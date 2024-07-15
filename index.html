@@ -25,7 +25,7 @@
             border-radius: 15px;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
             padding: 20px;
-            max-width: 100%;
+            max-width: 1200px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -65,8 +65,23 @@
             align-items: center;
             text-align: center;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            flex: 1 1 250px;
-            max-width: 300px;
+            flex: 1 1 calc(33.333% - 30px);
+            max-width: calc(33.333% - 30px);
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 900px) {
+            .pump {
+                flex: 1 1 calc(50% - 30px);
+                max-width: calc(50% - 30px);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .pump {
+                flex: 1 1 100%;
+                max-width: 100%;
+            }
         }
 
         .pump:hover {
@@ -224,14 +239,15 @@
         .login-form input {
             padding: 10px;
             border-radius: 5px;
-            border: none;
+            border: 1px solid #ccc;
+            width: 100%;
         }
 
         .login-form button {
             padding: 10px;
             border-radius: 5px;
             border: none;
-            background-color: #007bff;
+            background-color: #236B61; /* Updated color from the image */
             color: white;
             font-weight: bold;
             cursor: pointer;
@@ -239,7 +255,12 @@
         }
 
         .login-form button:hover {
-            background-color: #0056b3;
+            background-color: #1f5b53;
+        }
+
+        .login-logo {
+            width: 150px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -248,13 +269,13 @@
     <div id="login-container">
         <div class="container">
             <div class="header">
-                <div class="logo">Fire Pump Monitoring System</div>
+                <img src="/mnt/data/image.png" alt="Logo" class="login-logo">
             </div>
             <div class="login-form">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username">
+                <label for="username">Email:</label>
+                <input type="text" id="username" name="username" placeholder="Email">
                 <label for="password">Password:</label>
-                <input type="password" id="password" name="password">
+                <input type="password" id="password" name="password" placeholder="Password">
                 <button onclick="login()">Login</button>
                 <div id="login-error" style="color: red; margin-top: 10px;"></div>
             </div>
