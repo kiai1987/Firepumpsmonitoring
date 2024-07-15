@@ -375,12 +375,13 @@
         <div class="footer">Made from Engineering</div>
     </div>
 
-    <audio id="alarm-sound" src="https://www.zedge.net/find/ringtones/alarm-clock-sound-effect" preload="auto"></audio> 
+    <audio id="alarm-sound" src="https://www.zedge.net/find/ringtones/alarm-clock-sound-effect" preload="auto" muted></audio> 
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
         function playAlarmSound() {
             const alarmSound = document.getElementById('alarm-sound');
+            alarmSound.muted = false; 
             alarmSound.play();
         }
 
@@ -513,6 +514,14 @@
             }
         }, dataTimeout);
 
+        document.addEventListener('DOMContentLoaded', () => {
+            // Trigger a click event on a hidden element
+            const hiddenElement = document.createElement('div'); 
+            hiddenElement.style.display = 'none'; 
+            document.body.appendChild(hiddenElement); 
+            hiddenElement.click(); 
+        });
+
         document.getElementById('buzzer-switch').addEventListener('change', function () {
             const state = this.checked ? 'on' : 'off';
             mqttClient.publish('firepumpmonitoring/buzzer', state, function (err) {
@@ -537,10 +546,6 @@
                     }
                 });
             });
-        });
-
-        document.addEventListener('DOMContentLoaded', function () {
-            // Initialization or additional setup if needed
         });
     </script>
 </body>
