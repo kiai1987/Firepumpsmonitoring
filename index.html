@@ -31,6 +31,7 @@
             align-items: center;
             width: 100%;
             height: 100%;
+            overflow-y: auto;
         }
 
         .header {
@@ -47,8 +48,9 @@
         }
 
         .pumps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 15px;
             width: 100%;
         }
@@ -63,6 +65,8 @@
             align-items: center;
             text-align: center;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            flex: 1 1 250px;
+            max-width: 300px;
         }
 
         .pump:hover {
@@ -205,6 +209,37 @@
             font-size: 24px;
             font-weight: bold;
             margin-bottom: 10px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .login-form label {
+            font-weight: bold;
+        }
+
+        .login-form input {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .login-form button {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .login-form button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
