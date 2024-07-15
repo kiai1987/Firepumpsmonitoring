@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #236B61; /* Updated color from the image */
+            background-color: #2b2b2b;
             color: #e0e0e0;
             display: flex;
             justify-content: center;
@@ -21,17 +21,14 @@
         }
 
         .container {
-            background: #3b3b3b;
+            background: #236B61; /* Changed background color */
             border-radius: 15px;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
             padding: 20px;
-            max-width: 1200px;
+            max-width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 100%;
-            height: 100%;
-            overflow-y: auto;
         }
 
         .header {
@@ -48,15 +45,15 @@
         }
 
         .pumps {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, auto);
             gap: 15px;
             width: 100%;
         }
 
         .pump {
-            background: #4b4b4b;
+            background: #3b3b3b;
             border-radius: 10px;
             padding: 15px;
             transition: transform 0.3s, box-shadow 0.3s;
@@ -65,23 +62,6 @@
             align-items: center;
             text-align: center;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            flex: 1 1 calc(33.333% - 30px);
-            max-width: calc(33.333% - 30px);
-            box-sizing: border-box;
-        }
-
-        @media (max-width: 900px) {
-            .pump {
-                flex: 1 1 calc(50% - 30px);
-                max-width: calc(50% - 30px);
-            }
-        }
-
-        @media (max-width: 600px) {
-            .pump {
-                flex: 1 1 100%;
-                max-width: 100%;
-            }
         }
 
         .pump:hover {
@@ -196,7 +176,7 @@
         }
 
         #alarm-box {
-            background: #ff5722;
+            background: #d32f2f; /* Changed alert color */
             color: white;
             padding: 15px;
             border-radius: 5px;
@@ -225,257 +205,179 @@
             font-weight: bold;
             margin-bottom: 10px;
         }
-
-        .login-form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .login-form label {
-            font-weight: bold;
-        }
-
-        .login-form input {
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            width: 100%;
-        }
-
-        .login-form button {
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            background-color: #236B61; /* Updated color from the image */
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .login-form button:hover {
-            background-color: #1f5b53;
-        }
-
-        .login-logo {
-            width: 150px;
-            margin-bottom: 20px;
-        }
     </style>
 </head>
 
 <body>
-    <div id="login-container">
-        <div class="container">
-            <div class="header">
-                <img src="/mnt/data/image.png" alt="Logo" class="login-logo">
+    <div class="container">
+        <div class="header">
+            <div class="logo">Fire Pump Monitoring System</div>
+        </div>
+        <div class="buzzer-switch">
+            <label for="buzzer-switch">Buzzer Alarm:</label>
+            <input type="checkbox" id="buzzer-switch" checked>
+        </div>
+        <div id="alarm-box"></div>
+        <div class="pumps">
+            <div class="pump">
+                <div class="pump-title">Jockey Pump</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="jockey-pump-run"></div>
+                        <div>RUN</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="jockey-pump-off"></div>
+                        <div>OFF</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="jockey-pump-trip"></div>
+                        <div>TRIP</div>
+                    </div>
+                </div>
+                <div class="selector">
+                    <div>
+                        <input type="radio" id="jockey-manual" name="jockey-mode" value="1">
+                        <label for="jockey-manual">Manual</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="jockey-off-mode" name="jockey-mode" value="0">
+                        <label for="jockey-off-mode">Off</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="jockey-auto" name="jockey-mode" value="2">
+                        <label for="jockey-auto">Auto</label>
+                    </div>
+                </div>
             </div>
-            <div class="login-form">
-                <label for="username">Email:</label>
-                <input type="text" id="username" name="username" placeholder="Email">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" placeholder="Password">
-                <button onclick="login()">Login</button>
-                <div id="login-error" style="color: red; margin-top: 10px;"></div>
+            <div class="pump">
+                <div class="pump-title">Main Pump</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="main-pump-run"></div>
+                        <div>RUN</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="main-pump-off"></div>
+                        <div>OFF</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="main-pump-trip"></div>
+                        <div>TRIP</div>
+                    </div>
+                </div>
+                <div class="selector">
+                    <div>
+                        <input type="radio" id="main-manual" name="main-mode" value="1">
+                        <label for="main-manual">Manual</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="main-off-mode" name="main-mode" value="0">
+                        <label for="main-off-mode">Off</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="main-auto" name="main-mode" value="2">
+                        <label for="main-auto">Auto</label>
+                    </div>
+                </div>
+            </div>
+            <div class="pump">
+                <div class="pump-title">Diesel Pump</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="diesel-pump-run"></div>
+                        <div>RUN</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="diesel-pump-off"></div>
+                        <div>OFF</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="diesel-pump-trip"></div>
+                        <div>TRIP</div>
+                    </div>
+                </div>
+                <div class="selector">
+                    <div>
+                        <input type="radio" id="diesel-manual" name="diesel-mode" value="1">
+                        <label for="diesel-manual">Manual</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="diesel-off-mode" name="diesel-mode" value="0">
+                        <label for="diesel-off-mode">Off</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="diesel-auto" name="diesel-mode" value="2">
+                        <label for="diesel-auto">Auto</label>
+                    </div>
+                </div>
+            </div>
+            <div class="pump">
+                <div class="pump-title">Room Temperature & Humidity</div>
+                <div class="card">
+                    <h3>Temperature</h3>
+                    <div class="value temperature" id="room-temperature">--°C</div>
+                    <h3>Humidity</h3>
+                    <div class="value humidity" id="room-humidity">--%</div>
+                </div>
+            </div>
+            <div class="pump">
+                <div class="pump-title">Water Pressure</div>
+                <div class="card">
+                    <h3>Pressure</h3>
+                    <div class="value pressure" id="water-pressure">0</div>
+                </div>
+            </div>
+            <div class="pump">
+                <div class="pump-title">Smoke Detector 1</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="smoke-detector-1-active"></div>
+                        <div>ACTIVE</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="smoke-detector-1-inactive"></div>
+                        <div>INACTIVE</div>
+                    </div>
+                </div>
+            </div>
+            <div class="pump">
+                <div class="pump-title">Smoke Detector 2</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="smoke-detector-2-active"></div>
+                        <div>ACTIVE</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="smoke-detector-2-inactive"></div>
+                        <div>INACTIVE</div>
+                    </div>
+                </div>
+            </div>
+            <div class="pump">
+                <div class="pump-title">Water Flood Sensor</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="flood-sensor-active"></div>
+                        <div>ACTIVE</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="flood-sensor-inactive"></div>
+                        <div>INACTIVE</div>
+                    </div>
+                </div>
             </div>
         </div>
+        <div class="footer">Made from Engineering</div>
     </div>
-    <div id="main-container" style="display: none;">
-        <div class="container">
-            <div class="header">
-                <div class="logo">Fire Pump Monitoring System</div>
-            </div>
-            <div class="buzzer-switch">
-                <label for="buzzer-switch">Buzzer Alarm:</label>
-                <input type="checkbox" id="buzzer-switch" checked>
-            </div>
-            <div id="alarm-box"></div>
-            <div class="pumps">
-                <div class="pump">
-                    <div class="pump-title">Jockey Pump</div>
-                    <div class="status-indicators">
-                        <div class="status">
-                            <div class="led" id="jockey-pump-run"></div>
-                            <div>RUN</div>
-                        </div>
-                        <div class="status">
-                            <div class="led" id="jockey-pump-off"></div>
-                            <div>OFF</div>
-                        </div>
-                        <div class="status">
-                            <div class="led" id="jockey-pump-trip"></div>
-                            <div>TRIP</div>
-                        </div>
-                    </div>
-                    <div class="selector">
-                        <div>
-                            <input type="radio" id="jockey-manual" name="jockey-mode" value="1">
-                            <label for="jockey-manual">Manual</label>
-                        </div>
-                        <div>
-                            <input type="radio" id="jockey-off-mode" name="jockey-mode" value="0">
-                            <label for="jockey-off-mode">Off</label>
-                        </div>
-                        <div>
-                            <input type="radio" id="jockey-auto" name="jockey-mode" value="2">
-                            <label for="jockey-auto">Auto</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="pump">
-                    <div class="pump-title">Main Pump</div>
-                    <div class="status-indicators">
-                        <div class="status">
-                            <div class="led" id="main-pump-run"></div>
-                            <div>RUN</div>
-                        </div>
-                        <div class="status">
-                            <div class="led" id="main-pump-off"></div>
-                            <div>OFF</div>
-                        </div>
-                        <div class="status">
-                            <div class="led" id="main-pump-trip"></div>
-                            <div>TRIP</div>
-                        </div>
-                    </div>
-                    <div class="selector">
-                        <div>
-                            <input type="radio" id="main-manual" name="main-mode" value="1">
-                            <label for="main-manual">Manual</label>
-                        </div>
-                        <div>
-                            <input type="radio" id="main-off-mode" name="main-mode" value="0">
-                            <label for="main-off-mode">Off</label>
-                        </div>
-                        <div>
-                            <input type="radio" id="main-auto" name="main-mode" value="2">
-                            <label for="main-auto">Auto</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="pump">
-                    <div class="pump-title">Diesel Pump</div>
-                    <div class="status-indicators">
-                        <div class="status">
-                            <div class="led" id="diesel-pump-run"></div>
-                            <div>RUN</div>
-                        </div>
-                        <div class="status">
-                            <div class="led" id="diesel-pump-off"></div>
-                            <div>OFF</div>
-                        </div>
-                        <div class="status">
-                            <div class="led" id="diesel-pump-trip"></div>
-                            <div>TRIP</div>
-                        </div>
-                    </div>
-                    <div class="selector">
-                        <div>
-                            <input type="radio" id="diesel-manual" name="diesel-mode" value="1">
-                            <label for="diesel-manual">Manual</label>
-                        </div>
-                        <div>
-                            <input type="radio" id="diesel-off-mode" name="diesel-mode" value="0">
-                            <label for="diesel-off-mode">Off</label>
-                        </div>
-                        <div>
-                            <input type="radio" id="diesel-auto" name="diesel-mode" value="2">
-                            <label for="diesel-auto">Auto</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="pump">
-                    <div class="pump-title">Room Temperature & Humidity</div>
-                    <div class="card">
-                        <h3>Temperature</h3>
-                        <div class="value temperature" id="room-temperature">--°C</div>
-                        <h3>Humidity</h3>
-                        <div class="value humidity" id="room-humidity">--%</div>
-                    </div>
-                </div>
-                <div class="pump">
-                    <div class="pump-title">Water Pressure</div>
-                    <div class="card">
-                        <h3>Pressure</h3>
-                        <div class="value pressure" id="water-pressure">0</div>
-                    </div>
-                </div>
-                <div class="pump">
-                    <div class="pump-title">Smoke Detector 1</div>
-                    <div class="status-indicators">
-                        <div class="status">
-                            <div class="led" id="smoke-detector-1-active"></div>
-                            <div>ACTIVE</div>
-                        </div>
-                        <div class="status">
-                            <div class="led" id="smoke-detector-1-inactive"></div>
-                            <div>INACTIVE</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="pump">
-                    <div class="pump-title">Smoke Detector 2</div>
-                    <div class="status-indicators">
-                        <div class="status">
-                            <div class="led" id="smoke-detector-2-active"></div>
-                            <div>ACTIVE</div>
-                        </div>
-                        <div class="status">
-                            <div class="led" id="smoke-detector-2-inactive"></div>
-                            <div>INACTIVE</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="pump">
-                    <div class="pump-title">Water Flood Sensor</div>
-                    <div class="status-indicators">
-                        <div class="status">
-                            <div class="led" id="flood-sensor-active"></div>
-                            <div>ACTIVE</div>
-                        </div>
-                        <div class="status">
-                            <div class="led" id="flood-sensor-inactive"></div>
-                            <div>INACTIVE</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="footer">Made from Engineering</div>
-        </div>
 
-        <audio id="alarm-sound" preload="auto">
-            <source src="https://www.soundjay.com/button/beep-07.wav" type="audio/wav">
-        </audio>
-    </div>
+    <audio id="alarm-sound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
-        const correctUsername = 'Engineer';
-        const correctPasswordEngineer = '12345678';
-        const correctUsernameSecurity = 'Security';
-        const correctPasswordSecurity = '12345678';
-
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const loginError = document.getElementById('login-error');
-
-            if ((username === correctUsername && password === correctPasswordEngineer) || 
-                (username === correctUsernameSecurity && password === correctPasswordSecurity)) {
-                document.getElementById('login-container').style.display = 'none';
-                document.getElementById('main-container').style.display = 'block';
-                connectToMQTT();
-            } else {
-                loginError.textContent = 'Invalid username or password';
-            }
-        }
-
         function playAlarmSound() {
             const alarmSound = document.getElementById('alarm-sound');
-            alarmSound.play().catch(error => {
-                console.error('Alarm sound error:', error);
-            });
+            alarmSound.play();
         }
 
         function updateLedStatus(ledId, isActive, className) {
@@ -557,64 +459,76 @@
             }
         }
 
-        function connectToMQTT() {
-            const options = {
-                username: 'firepump',
-                password: '044313187Ki@',
-                clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
-            };
+        const options = {
+            username: 'firepump',
+            password: '044313187Ki@',
+            clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
+        };
 
-            const mqttClient = mqtt.connect('wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt', options);
+        const mqttClient = mqtt.connect('wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt', options);
 
-            mqttClient.on('connect', function () {
-                console.log('Connected to MQTT broker');
-                mqttClient.subscribe('fire-pump/status', function (err) {
-                    if (!err) {
-                        console.log('Subscribed to fire-pump/status');
-                    }
-                });
-            });
+        let lastDataReceived = new Date(); // Keep track of the last time data was received
+        const dataTimeout = 10000; // Timeout in milliseconds
 
-            mqttClient.on('message', function (topic, message) {
-                if (topic === 'fire-pump/status') {
-                    const data = JSON.parse(message.toString());
-                    handleStatusUpdates(data);
+        mqttClient.on('connect', function () {
+            console.log('Connected to MQTT broker');
+            mqttClient.subscribe('fire-pump/status', function (err) {
+                if (!err) {
+                    console.log('Subscribed to fire-pump/status');
                 }
             });
+        });
 
-            mqttClient.on('error', function (error) {
-                console.error('MQTT error:', error);
+        mqttClient.on('message', function (topic, message) {
+            if (topic === 'fire-pump/status') {
+                const data = JSON.parse(message.toString());
+                handleStatusUpdates(data);
+                lastDataReceived = new Date(); // Update last received time
+            }
+        });
+
+        mqttClient.on('error', function (error) {
+            console.error('MQTT error:', error);
+            const alarmBox = document.getElementById('alarm-box');
+            alarmBox.textContent = 'Communication error with MQTT broker!';
+            alarmBox.style.backgroundColor = '#d32f2f';
+        });
+
+        setInterval(function () {
+            // Check if it's been longer than the timeout since data was received
+            const now = new Date();
+            if (now - lastDataReceived > dataTimeout) {
                 const alarmBox = document.getElementById('alarm-box');
-                alarmBox.textContent = 'Communication error with MQTT broker!';
+                alarmBox.textContent = 'Communication timeout with ESP32!';
                 alarmBox.style.backgroundColor = '#d32f2f';
-            });
+            }
+        }, dataTimeout);
 
-            document.getElementById('buzzer-switch').addEventListener('change', function () {
-                const state = this.checked ? 'on' : 'off';
-                mqttClient.publish('firepumpmonitoring/buzzer', state, function (err) {
+        document.getElementById('buzzer-switch').addEventListener('change', function () {
+            const state = this.checked ? 'on' : 'off';
+            mqttClient.publish('firepumpmonitoring/buzzer', state, function (err) {
+                if (err) {
+                    console.error('Error publishing buzzer state:', err);
+                } else {
+                    console.log('Buzzer state published:', state);
+                }
+            });
+        });
+
+        document.querySelectorAll('.selector input').forEach(input => {
+            input.addEventListener('change', function () {
+                const selectorGroup = this.name.split('-')[0];
+                const selectedMode = this.value;
+                const payload = JSON.stringify({ group: selectorGroup, mode: selectedMode });
+                mqttClient.publish('fire-pump/mode', payload, function (err) {
                     if (err) {
-                        console.error('Error publishing buzzer state:', err);
+                        console.error('Error publishing pump mode:', err);
                     } else {
-                        console.log('Buzzer state published:', state);
+                        console.log('Pump mode published:', payload);
                     }
                 });
             });
-
-            document.querySelectorAll('.selector input').forEach(input => {
-                input.addEventListener('change', function () {
-                    const selectorGroup = this.name.split('-')[0];
-                    const selectedMode = this.value;
-                    const payload = JSON.stringify({ group: selectorGroup, mode: selectedMode });
-                    mqttClient.publish('fire-pump/mode', payload, function (err) {
-                        if (err) {
-                            console.error('Error publishing pump mode:', err);
-                        } else {
-                            console.log('Pump mode published:', payload);
-                        }
-                    });
-                });
-            });
-        }
+        });
 
         document.addEventListener('DOMContentLoaded', function () {
             // Initialization or additional setup if needed
@@ -623,4 +537,3 @@
 </body>
 
 </html>
-
