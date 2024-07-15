@@ -21,7 +21,7 @@
         }
 
         .container {
-            /* Background color is now inherited from the .container class */
+            background: #236B61;
             border-radius: 15px;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
             padding: 20px;
@@ -29,12 +29,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-
-        /* Apply the desired color to the container and its children */
-        .container, 
-        .container * { /* This will cascade the color to all child elements */
-            background: #236B61; /* Changed background color */
         }
 
         .header {
@@ -182,7 +176,7 @@
         }
 
         #alarm-box {
-            background: #d32f2f; /* Changed alert color */
+            background: #d32f2f; 
             color: white;
             padding: 15px;
             border-radius: 5px;
@@ -197,7 +191,7 @@
         }
 
         .card {
-            background: #4b4b4b;
+            background: #4b4b4b; 
             border-radius: 10px;
             padding: 15px;
             display: flex;
@@ -210,6 +204,10 @@
             font-size: 24px;
             font-weight: bold;
             margin-bottom: 10px;
+        }
+
+        .led-blank { /* Style for blank LEDs */
+            background-color: #333; /* Dark gray */
         }
     </style>
 </head>
@@ -391,6 +389,8 @@
             element.className = 'led';
             if (isActive) {
                 element.classList.add(className);
+            } else {
+                element.classList.add('led-blank'); // Add blank class if not active
             }
         }
 
@@ -473,8 +473,8 @@
 
         const mqttClient = mqtt.connect('wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt', options);
 
-        let lastDataReceived = new Date(); // Keep track of the last time data was received
-        const dataTimeout = 10000; // Timeout in milliseconds
+        let lastDataReceived = new Date(); 
+        const dataTimeout = 10000; 
 
         mqttClient.on('connect', function () {
             console.log('Connected to MQTT broker');
@@ -489,7 +489,7 @@
             if (topic === 'fire-pump/status') {
                 const data = JSON.parse(message.toString());
                 handleStatusUpdates(data);
-                lastDataReceived = new Date(); // Update last received time
+                lastDataReceived = new Date(); 
             }
         });
 
@@ -498,15 +498,20 @@
             const alarmBox = document.getElementById('alarm-box');
             alarmBox.textContent = 'Communication error with MQTT broker!';
             alarmBox.style.backgroundColor = '#d32f2f';
+
+            // Set all LEDs to blank
+            document.querySelectorAll('.led').forEach(led => led.classList.add('led-blank'));
         });
 
         setInterval(function () {
-            // Check if it's been longer than the timeout since data was received
             const now = new Date();
             if (now - lastDataReceived > dataTimeout) {
                 const alarmBox = document.getElementById('alarm-box');
                 alarmBox.textContent = 'Communication timeout with ESP32!';
                 alarmBox.style.backgroundColor = '#d32f2f';
+
+                // Set all LEDs to blank
+                document.querySelectorAll('.led').forEach(led => led.classList.add('led-blank'));
             }
         }, dataTimeout);
 
