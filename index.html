@@ -459,22 +459,25 @@
             }
         }
 
-        const mqttClient = mqtt.connect('wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884', { // Your MQTT broker details
-            username: 'firepump', // Your MQTT username
-            password: '044313187Ki@' // Your MQTT password
-        });
+        const options = {
+            username: 'firepump',
+            password: '044313187Ki@',
+            clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
+        };
+
+        const mqttClient = mqtt.connect('wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt', options);
 
         mqttClient.on('connect', function () {
             console.log('Connected to MQTT broker');
-            mqttClient.subscribe('firepumpmonitoring/status', function (err) {
+            mqttClient.subscribe('fire-pump/status', function (err) {
                 if (!err) {
-                    console.log('Subscribed to firepumpmonitoring/status');
+                    console.log('Subscribed to fire-pump/status');
                 }
             });
         });
 
         mqttClient.on('message', function (topic, message) {
-            if (topic === 'firepumpmonitoring/status') {
+            if (topic === 'fire-pump/status') {
                 const data = JSON.parse(message.toString());
                 handleStatusUpdates(data);
             }
@@ -503,7 +506,7 @@
                 const selectorGroup = this.name.split('-')[0];
                 const selectedMode = this.value;
                 const payload = JSON.stringify({ group: selectorGroup, mode: selectedMode });
-                mqttClient.publish('firepumpmonitoring/mode', payload, function (err) {
+                mqttClient.publish('fire-pump/mode', payload, function (err) {
                     if (err) {
                         console.error('Error publishing pump mode:', err);
                     } else {
