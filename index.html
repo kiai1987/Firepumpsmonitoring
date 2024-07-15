@@ -206,8 +206,8 @@
             margin-bottom: 10px;
         }
 
-        .led-blank { /* Style for blank LEDs */
-            background-color: #333; /* Dark gray */
+        .led-blank { 
+            background-color: #333; 
         }
     </style>
 </head>
@@ -375,7 +375,7 @@
         <div class="footer">Made from Engineering</div>
     </div>
 
-    <audio id="alarm-sound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
+    <audio id="alarm-sound" src="https://www.zedge.net/find/ringtones/alarm-clock-sound-effect" preload="auto"></audio> 
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
@@ -390,7 +390,7 @@
             if (isActive) {
                 element.classList.add(className);
             } else {
-                element.classList.add('led-blank'); // Add blank class if not active
+                element.classList.add('led-blank'); 
             }
         }
 
@@ -499,7 +499,6 @@
             alarmBox.textContent = 'Communication error with MQTT broker!';
             alarmBox.style.backgroundColor = '#d32f2f';
 
-            // Set all LEDs to blank
             document.querySelectorAll('.led').forEach(led => led.classList.add('led-blank'));
         });
 
@@ -510,7 +509,6 @@
                 alarmBox.textContent = 'Communication timeout with ESP32!';
                 alarmBox.style.backgroundColor = '#d32f2f';
 
-                // Set all LEDs to blank
                 document.querySelectorAll('.led').forEach(led => led.classList.add('led-blank'));
             }
         }, dataTimeout);
