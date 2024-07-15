@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,49 +12,43 @@
             color: #e0e0e0;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
+            overflow-y: auto;
             padding: 20px;
         }
-
         .container {
             background: #3b3b3b;
             border-radius: 15px;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
             padding: 20px;
-            max-width: 100%;
+            max-width: 1200px;
+            width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-
         .header {
             text-align: center;
             margin-bottom: 20px;
         }
-
         .logo {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 700;
             color: #007bff;
             margin-bottom: 10px;
             text-shadow: 0 0 5px #007bff;
         }
-
         .pumps {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(2, auto);
-            gap: 15px;
-            width: 100%;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
         }
-
         .pump {
             background: #4b4b4b;
             border-radius: 10px;
-            padding: 15px;
+            padding: 20px;
             transition: transform 0.3s, box-shadow 0.3s;
             display: flex;
             flex-direction: column;
@@ -63,35 +56,30 @@
             text-align: center;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-
         .pump:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
-
         .pump-title {
-            font-size: 18px;
-            margin-bottom: 10px;
+            font-size: 20px;
+            margin-bottom: 15px;
             color: #007bff;
             border-bottom: 2px solid #007bff;
             padding-bottom: 5px;
             text-transform: uppercase;
             font-weight: bold;
         }
-
         .status-indicators {
             display: flex;
             justify-content: center;
-            gap: 30px;
+            gap: 10px;
             margin-bottom: 15px;
         }
-
         .status {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-
         .status .led {
             width: 60px;
             height: 60px;
@@ -100,41 +88,33 @@
             margin-bottom: 5px;
             border: 2px solid #333;
         }
-
         .led-run {
             background-color: #4caf50;
         }
-
         .led-off {
             background-color: #f44336;
         }
-
         .led-trip {
             background-color: #FFFF33;
         }
-
         .led-active {
             background-color: #f44336;
         }
-
         .led-inactive {
             background-color: #4caf50;
         }
-
         .selector {
             display: flex;
             justify-content: space-around;
             width: 100%;
-            margin-top: 15px;
+            margin-bottom: 15px;
         }
-
         .selector input {
             display: none;
         }
-
         .selector label {
             display: block;
-            padding: 10px;
+            padding: 15px;
             background: #616161;
             border-radius: 5px;
             cursor: pointer;
@@ -142,14 +122,11 @@
             transition: background 0.3s;
             font-weight: bold;
             user-select: none;
-            font-size: 16px;
         }
-
         .selector input:checked + label {
             background: #007bff;
             color: #fff;
         }
-
         .buzzer-switch {
             text-align: center;
             margin-bottom: 20px;
@@ -157,57 +134,47 @@
             justify-content: center;
             align-items: center;
         }
-
         .buzzer-switch label {
-            font-size: 18px;
+            font-size: 20px;
             margin-right: 10px;
             font-weight: bold;
         }
-
         .buzzer-switch input {
             transform: scale(1.5);
         }
-
         .footer {
             text-align: center;
-            margin-top: 10px;
-            font-size: 16px;
+            margin-top: 20px;
+            font-size: 18px;
             color: #e0e0e0;
         }
-
         #alarm-box {
             background: #ff5722;
             color: white;
             padding: 15px;
             border-radius: 5px;
             text-align: center;
-            margin-bottom: 10px;
-            font-size: 20px;
+            margin-bottom: 20px;
+            font-size: 24px;
             font-weight: bold;
             text-shadow: 0 0 5px #ff5722;
-            max-width: 600px;
-            max-height: 100px;
-            overflow-y: auto;
         }
-
         .card {
             background: #4b4b4b;
             border-radius: 10px;
-            padding: 15px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
         }
-
         .value {
-            font-size: 24px;
+            font-size: 30px;
             font-weight: bold;
             margin-bottom: 10px;
         }
     </style>
 </head>
-
 <body>
     <div class="container">
         <div class="header">
@@ -373,12 +340,31 @@
 
     <audio id="alarm-sound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
 
+    <!-- Include MQTT.js library -->
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
     <script>
-        function playAlarmSound() {
-            const alarmSound = document.getElementById('alarm-sound');
-            alarmSound.play();
-        }
+        const mqttBrokerUrl = 'wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8883';
+        const mqttOptions = {
+            username: 'firepump',
+            password: '044313187Ki@',
+            reconnectPeriod: 1000,
+            connectTimeout: 30 * 1000,
+        };
+
+        const client = mqtt.connect(mqttBrokerUrl, mqttOptions);
+
+        client.on('connect', () => {
+            console.log('Connected to MQTT broker');
+            client.subscribe('fire-pump/status');
+        });
+
+        client.on('message', (topic, message) => {
+            if (topic === 'fire-pump/status') {
+                const data = JSON.parse(message.toString());
+                handleStatusUpdates(data);
+            }
+        });
 
         function updateLedStatus(ledId, isActive, className) {
             const element = document.getElementById(ledId);
@@ -440,14 +426,7 @@
             if (data.SS1) alarmText += 'Smoke Detector 1 Active; ';
             if (data.SS2) alarmText += 'Smoke Detector 2 Active; ';
             if (data.FS) alarmText += 'Water Flood Sensor Active; ';
-
-            if (alarmText) {
-                alarmBox.textContent = `ALARM: ${alarmText}`;
-                alarmBox.style.backgroundColor = '#d32f2f';
-            } else {
-                alarmBox.textContent = '';
-                alarmBox.style.backgroundColor = '#ff5722';
-            }
+            alarmBox.textContent = alarmText ? `ALARM: ${alarmText}` : '';
 
             if (data.JPT || data.MPT || data.DPT || data.SS1 || data.SS2 || data.FS) {
                 playAlarmSound();
@@ -456,67 +435,30 @@
             if (!data.connected) {
                 alarmBox.textContent = 'Communication error with central node or web server!';
                 alarmBox.style.backgroundColor = '#d32f2f';
+            } else {
+                alarmBox.style.backgroundColor = '#ff5722';
             }
         }
 
-        const mqttClient = mqtt.connect('wss://279f2d6397444dbcbeb4eaa4897960f7.s1.eu.hivemq.cloud:8884', {
-            username: 'firepumpmonitoring',
-            password: '044313187Ki@'
-        });
-
-        mqttClient.on('connect', function () {
-            console.log('Connected to MQTT broker');
-            mqttClient.subscribe('firepumpmonitoring/status', function (err) {
-                if (!err) {
-                    console.log('Subscribed to firepumpmonitoring/status');
-                }
-            });
-        });
-
-        mqttClient.on('message', function (topic, message) {
-            if (topic === 'firepumpmonitoring/status') {
-                const data = JSON.parse(message.toString());
-                handleStatusUpdates(data);
-            }
-        });
-
-        mqttClient.on('error', function (error) {
-            console.error('MQTT error:', error);
-            const alarmBox = document.getElementById('alarm-box');
-            alarmBox.textContent = 'Communication error with MQTT broker!';
-            alarmBox.style.backgroundColor = '#d32f2f';
-        });
-
-        document.getElementById('buzzer-switch').addEventListener('change', function () {
-            const state = this.checked ? 'on' : 'off';
-            mqttClient.publish('firepumpmonitoring/buzzer', state, function (err) {
-                if (err) {
-                    console.error('Error publishing buzzer state:', err);
-                } else {
-                    console.log('Buzzer state published:', state);
-                }
-            });
-        });
+        function updateBuzzerState() {
+            const buzzerSwitch = document.getElementById('buzzer-switch');
+            const state = buzzerSwitch.checked ? 'on' : 'off';
+            client.publish('fire-pump/buzzer', JSON.stringify({ buzzer: state }));
+        }
 
         document.querySelectorAll('.selector input').forEach(input => {
-            input.addEventListener('change', function () {
+            input.addEventListener('change', function() {
                 const selectorGroup = this.name.split('-')[0];
                 const selectedMode = this.value;
-                const payload = JSON.stringify({ group: selectorGroup, mode: selectedMode });
-                mqttClient.publish('firepumpmonitoring/mode', payload, function (err) {
-                    if (err) {
-                        console.error('Error publishing pump mode:', err);
-                    } else {
-                        console.log('Pump mode published:', payload);
-                    }
-                });
+                client.publish('fire-pump/' + selectorGroup, JSON.stringify({ mode: selectedMode }));
             });
         });
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Initialization or additional setup if needed
+            document.getElementById('buzzer-switch').addEventListener('change', updateBuzzerState);
         });
+
     </script>
 </body>
-
 </html>
+
