@@ -16,8 +16,8 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
             padding: 20px;
+            overflow: hidden;
         }
 
         .container {
@@ -30,6 +30,7 @@
             flex-direction: column;
             align-items: center;
             width: 90%;
+            overflow-y: auto;
         }
 
         .header {
@@ -245,6 +246,10 @@
         }
 
         @media (max-width: 600px) {
+            body {
+                overflow-y: scroll;
+            }
+
             .buzzer-switch {
                 flex-direction: column;
             }
@@ -252,6 +257,10 @@
             .buzzer-switch label {
                 margin-right: 0;
                 margin-bottom: 10px;
+            }
+
+            .container {
+                height: auto;
             }
         }
     </style>
@@ -417,7 +426,7 @@
                 </div>
             </div>
         </div>
-        <div class="footer">Made by AlNakhla Engineering Department</div>
+        <div class="footer">Made from Engineering</div>
         <button id="reset-button">Reset</button>
     </div>
 
