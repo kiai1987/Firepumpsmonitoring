@@ -62,6 +62,7 @@
             align-items: center;
             text-align: center;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            color: #4caf50; /* Green text color */
         }
 
         .pump:hover {
@@ -153,6 +154,7 @@
             font-weight: bold;
             user-select: none;
             font-size: 16px;
+            color: #e0e0e0; /* Light gray text */
         }
 
         .selector input:checked + label {
@@ -166,6 +168,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            color: #4caf50; /* Green text color */
         }
 
         .buzzer-switch label {
@@ -208,6 +211,7 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
+            color: #4caf50; /* Green text color */
         }
 
         .value {
@@ -389,37 +393,179 @@
         <div class="footer">Made from Engineering</div>
     </div>
 
-    <audio id="alarm-sound" src="https://github.com/kiai1987/Firepumpsmonitoring/raw/main/alarm_clock.mp3" preload="auto"></audio> 
+    <audio id="alarm-sound" src="https://github.com/kiai1987/Firepumpsmonitoring/raw/main/alarm_clock.mp3" preload="auto" muted></audio> 
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
-        const alarmSound = document.getElementById('alarm-sound');
-        const buzzerSwitch = document.getElementById('buzzer-switch');
-        const alarmBox = document.getElementById('alarm-box');
-
-        function playAlarm() {
-            alarmSound.muted = false;
+        function playAlarmSound() {
+            const alarmSound = document.getElementById('alarm-sound');
+            alarmSound.muted = false; 
             alarmSound.play();
-            alarmBox.textContent = 'ALARM! Check the pumps immediately!';
         }
 
-        function stopAlarm() {
-            alarmSound.pause();
-            alarmSound.currentTime = 0;
-            alarmBox.textContent = '';
-        }
-
-        buzzerSwitch.addEventListener('change', () => {
-            if (buzzerSwitch.checked) {
-                playAlarm();
+        function updateLedStatus(ledId, isActive, className) {
+            const element = document.getElementById(ledId);
+            element.className = 'led';
+            if (isActive) {
+                element.classList.add(className);
             } else {
-                stopAlarm();
+                element.classList.add('led-blank'); 
+            }
+        }
+
+        function updateSelector(selectorGroup, mode) {
+            const manual = document.getElementById(`${selectorGroup}-manual`);
+            const off = document.getElementById(`${selectorGroup}-off-mode`);
+            const auto = document.getElementById(`${selectorGroup}-auto`);
+
+            switch (mode) {
+                case 0:
+                    off.checked = true;
+                    break;
+                case 1:
+                    manual.checked = true;
+                    break;
+                case 2:
+                    auto.checked = true;
+                    break;
+            }
+        }
+
+        function handleStatusUpdates(data) {
+            console.log('Received data:', data);
+
+            updateLedStatus('jockey-pump-run', data.JP, 'led-run');
+            updateLedStatus('jockey-pump-off', !data.JP, 'led-off');
+            updateLedStatus('jockey-pump-trip', data.JPT, 'led-trip');
+            updateLedStatus('main-pump-run', data.MP, 'led-run');
+            updateLedStatus('main-pump-off', !data.MP, 'led-off');
+            updateLedStatus('main-pump-trip', data.MPT, 'led-trip');
+            updateLedStatus('diesel-pump-run', data.DP, 'led-run');
+            updateLedStatus('diesel-pump-off', !data.DP, 'led-off');
+            updateLedStatus('diesel-pump-trip', data.DPT, 'led-trip');
+            updateLedStatus('smoke-detector-1-active', data.SS1, 'led-active');
+            updateLedStatus('smoke-detector-1-inactive', !data.SS1, 'led-inactive');
+            updateLedStatus('smoke-detector-2-active', data.SS2, 'led-active');
+            updateLedStatus('smoke-detector-2-inactive', !data.SS2, 'led-inactive');
+            updateLedStatus('flood-sensor-active', data.FS, 'led-active');
+            updateLedStatus('flood-sensor-inactive', !data.FS, 'led-inactive');
+            document.getElementById('room-temperature').textContent = data.TH.split(',')[0] + '°C';
+            document.getElementById('room-humidity').textContent = data.TH.split(',')[1] + '%';
+            document.getElementById('water-pressure').textContent = data.WP;
+
+            updateSelector('jockey', data.JPM);
+            updateSelector('main', data.MPM);
+            updateSelector('diesel', data.DPM);
+
+            const alarmBox = document.getElementById('alarm-box');
+            let alarmText = '';
+            if (data.JPT) alarmText += 'Jockey Pump Trip; ';
+            if (data.MPT) alarmText += 'Main Pump Trip; ';
+            if (data.DPT) alarmText += 'Diesel Pump Trip; ';
+            if (data.SS1) alarmText += 'Smoke Detector 1 Active; ';
+            if (data.SS2) alarmText += 'Smoke Detector 2 Active; ';
+            if (data.FS) alarmText += 'Water Flood Sensor Active; ';
+
+            if (alarmText) {
+                alarmBox.textContent = `ALARM: ${alarmText}`;
+                alarmBox.style.backgroundColor = '#d32f2f';
+            } else {
+                alarmBox.textContent = '';
+                alarmBox.style.backgroundColor = '#ff5722';
+            }
+
+            if (data.JPT || data.MPT || data.DPT || data.SS1 || data.SS2 || data.FS) {
+                playAlarmSound();
+            }
+
+            if (!data.connected) {
+                alarmBox.textContent = 'Communication error with central node or web server!';
+                alarmBox.style.backgroundColor = '#d32f2f';
+            }
+        }
+
+        const options = {
+            username: 'firepump',
+            password: '044313187Ki@',
+            clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
+        };
+
+        const mqttClient = mqtt.connect('wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt', options);
+
+        let lastDataReceived = new Date(); 
+        const dataTimeout = 10000; 
+
+        mqttClient.on('connect', function () {
+            console.log('Connected to MQTT broker');
+            mqttClient.subscribe('fire-pump/status', function (err) {
+                if (!err) {
+                    console.log('Subscribed to fire-pump/status');
+                }
+            });
+        });
+
+        mqttClient.on('message', function (topic, message) {
+            if (topic === 'fire-pump/status') {
+                const data = JSON.parse(message.toString());
+                handleStatusUpdates(data);
+                lastDataReceived = new Date(); 
             }
         });
 
-        // Add MQTT logic and alarm conditions here
+        mqttClient.on('error', function (error) {
+            console.error('MQTT error:', error);
+            const alarmBox = document.getElementById('alarm-box');
+            alarmBox.textContent = 'Communication error with MQTT broker!';
+            alarmBox.style.backgroundColor = '#d32f2f';
+
+            document.querySelectorAll('.led').forEach(led => led.classList.add('led-blank'));
+        });
+
+        setInterval(function () {
+            const now = new Date();
+            if (now - lastDataReceived > dataTimeout) {
+                const alarmBox = document.getElementById('alarm-box');
+                alarmBox.textContent = 'Communication timeout with ESP32!';
+                alarmBox.style.backgroundColor = '#d32f2f';
+
+                document.querySelectorAll('.led').forEach(led => led.classList.add('led-blank'));
+            }
+        }, dataTimeout);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Trigger a click event on a hidden element
+            const hiddenElement = document.createElement('div'); 
+            hiddenElement.style.display = 'none'; 
+            document.body.appendChild(hiddenElement); 
+            hiddenElement.click(); 
+        });
+
+        document.getElementById('buzzer-switch').addEventListener('change', function () {
+            const state = this.checked ? 'on' : 'off';
+            mqttClient.publish('firepumpmonitoring/buzzer', state, function (err) {
+                if (err) {
+                    console.error('Error publishing buzzer state:', err);
+                } else {
+                    console.log('Buzzer state published:', state);
+                }
+            });
+        });
+
+        document.querySelectorAll('.selector input').forEach(input => {
+            input.addEventListener('change', function () {
+                const selectorGroup = this.name.split('-')[0];
+                const selectedMode = this.value;
+                const payload = JSON.stringify({ group: selectorGroup, mode: selectedMode });
+                mqttClient.publish('fire-pump/mode', payload, function (err) {
+                    if (err) {
+                        console.error('Error publishing pump mode:', err);
+                    } else {
+                        console.log('Pump mode published:', payload);
+                    }
+                });
+            });
+        });
     </script>
 </body>
 
 </html>
-
