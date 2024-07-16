@@ -11,13 +11,12 @@
             font-family: 'Roboto', sans-serif;
             background-color: #121212;
             color: #e0e0e0;
+            margin: 0;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
-            padding: 20px;
-            overflow: hidden;
         }
 
         .container {
@@ -25,12 +24,12 @@
             border-radius: 15px;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
             padding: 20px;
-            max-width: 100%;
+            width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 90%;
-            overflow-y: auto;
         }
 
         .header {
@@ -247,7 +246,7 @@
 
         @media (max-width: 600px) {
             body {
-                overflow-y: scroll;
+                overflow-y: auto;
             }
 
             .buzzer-switch {
