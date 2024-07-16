@@ -227,6 +227,24 @@
             font-weight: bold;
             color: #4caf50; /* Green */
         }
+
+        .status-indicators .status .led {
+            width: 40px;
+            height: 40px;
+        }
+
+        /* Style for the connection status LED */
+        #node-connection-status {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #4caf50; /* Green for connected */
+        }
+
+        /* Style for the connection status LED when disconnected */
+        #node-connection-status.disconnected {
+            background-color: #f44336; /* Red for disconnected */
+        }
     </style>
 </head>
 
@@ -389,8 +407,19 @@
                     </div>
                 </div>
             </div>
+            <div class="pump">
+                <div class="pump-title">Node Transmitter Status</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="node-connection-status"></div>
+                        <div>Connection</div>
+                    </div>
+                </div>
+            </div>
         </div>
+
         <div class="footer">Made from Engineering</div>
+        <button id="reset-button">Reset</button> 
     </div>
 
     <audio id="alarm-sound" src="https://github.com/kiai1987/Firepumpsmonitoring/raw/main/alarm_clock.mp3" preload="auto" muted></audio> 
@@ -457,6 +486,9 @@
             updateSelector('main', data.MPM);
             updateSelector('diesel', data.DPM);
 
+            // Update Node Transmitter connection status LED
+            updateNodeConnectionStatus(data.connected);
+
             const alarmBox = document.getElementById('alarm-box');
             let alarmText = '';
             if (data.JPT) alarmText += 'Jockey Pump Trip; ';
@@ -481,6 +513,15 @@
             if (!data.connected) {
                 alarmBox.textContent = 'Communication error with central node or web server!';
                 alarmBox.style.backgroundColor = '#d32f2f';
+            }
+        }
+
+        function updateNodeConnectionStatus(isConnected) {
+            const nodeStatusLED = document.getElementById('node-connection-status');
+            if (isConnected) {
+                nodeStatusLED.classList.remove('disconnected'); 
+            } else {
+                nodeStatusLED.classList.add('disconnected'); 
             }
         }
 
@@ -563,6 +604,19 @@
                         console.log('Pump mode published:', payload);
                     }
                 });
+            });
+        });
+
+        // Add event listener for the Reset button
+        const resetButton = document.getElementById('reset-button');
+        resetButton.addEventListener('click', function() {
+            // Send a "reset" command to the ESP32 (you'll need to implement this logic)
+            mqttClient.publish('firepumpmonitoring/reset', 'true', function(err) {
+                if (err) {
+                    console.error('Error publishing reset command:', err);
+                } else {
+                    console.log('Reset command published.');
+                }
             });
         });
     </script>
