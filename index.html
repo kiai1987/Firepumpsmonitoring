@@ -499,7 +499,7 @@
             console.error('MQTT error:', error);
             isConnected = false;
             const alarmBox = document.getElementById('alarm-box');
-            alarmBox.textContent = 'Communication error with MQTT broker!';
+            alarmBox.textContent = 'Communication between receiver node and MQTT broker failed!';
             alarmBox.style.backgroundColor = '#d32f2f';
             setAllLedsBlank();
         });
