@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fire Pump Monitoring Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqk1w20JwixBaZrP0WL+hOecEQnxqH+wKF0s8+rTj3QhbmVzNu3T5xrDWPqXJz0jEQDRn5Y+s="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -29,6 +32,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            /* Lift the container */
+            margin-top: 50px;
         }
 
         .header {
@@ -93,8 +98,8 @@
         }
 
         .status .led {
-            width: 60px;
-            height: 60px;
+            width: 80px; /* Larger LEDs */
+            height: 80px;
             border-radius: 50%;
             display: inline-block;
             margin-bottom: 5px;
@@ -102,23 +107,23 @@
         }
 
         .led-run {
-            background-color: #4caf50;
+            background-color: #4caf50; /* Green for running */
         }
 
         .led-off {
-            background-color: #f44336;
+            background-color: #f44336; /* Red for off */
         }
 
         .led-trip {
-            background-color: #FFFF33;
+            background-color: #FFFF33; /* Yellow for trip */
         }
 
         .led-active {
-            background-color: #f44336;
+            background-color: #f44336; /* Red for active */
         }
 
         .led-inactive {
-            background-color: #4caf50;
+            background-color: #4caf50; /* Green for inactive */
         }
 
         .led-blank {
@@ -179,16 +184,23 @@
             color: #e0e0e0;
         }
 
-        #alarm-box {
-            background: #ff5722;
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
+        #alarm-bar { /* Large Alarm Bar */
+            background-color: #ff5722; /* Red for alarm */
+            height: 50px;
+            width: 100%;
             text-align: center;
-            margin-bottom: 10px;
-            font-size: 20px;
+            line-height: 50px;
+            font-size: 24px;
             font-weight: bold;
-            text-shadow: 0 0 5px #ff5722;
+            color: white;
+        }
+
+        #alarm-bar.warning {
+            background-color: #ffc107; /* Yellow for warning */
+        }
+
+        #alarm-bar.ok {
+            background-color: #4caf50; /* Green for OK */
         }
 
         .card {
@@ -206,11 +218,29 @@
             font-weight: bold;
             margin-bottom: 10px;
         }
+
+        .pump-gauge {
+            width: 100px;
+            height: 50px;
+            background-color: #4b4b4b;
+            border-radius: 5px;
+        }
+
+        #system-status {
+            font-size: 100px;
+            color: green;
+        }
+
+        .sensor-icon {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
+        <div id="alarm-bar" class="ok">System Online</div> <!-- Alarm bar -->
         <div class="header">
             <div class="logo">Fire Pump Monitoring System</div>
         </div>
@@ -222,6 +252,9 @@
         <div class="pumps">
             <div class="pump">
                 <div class="pump-title">Jockey Pump</div>
+                <div class="pump-gauge">
+                    <!-- Add a gauge here to visually display pump pressure -->
+                </div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="jockey-pump-run"></div>
@@ -253,6 +286,9 @@
             </div>
             <div class="pump">
                 <div class="pump-title">Main Pump</div>
+                <div class="pump-gauge">
+                    <!-- Add a gauge here to visually display pump pressure -->
+                </div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="main-pump-run"></div>
@@ -284,6 +320,9 @@
             </div>
             <div class="pump">
                 <div class="pump-title">Diesel Pump</div>
+                <div class="pump-gauge">
+                    <!-- Add a gauge here to visually display pump pressure -->
+                </div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="diesel-pump-run"></div>
@@ -370,9 +409,11 @@
             </div>
         </div>
         <div class="footer">Made from Engineering</div>
+        <i id="system-status" class="fas fa-check-circle"></i> <!-- System status icon -->
     </div>
 
-    <audio id="alarm-sound" src="https://github.com/kiai1987/Firepumpsmonitoring/raw/main/alarm_clock.mp3" preload="auto" muted></audio>
+    <audio id="alarm-sound" src="https://github.com/kiai1987/Firepumpsmonitoring/raw/main/alarm_clock.mp3"
+        preload="auto" muted></audio>
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
@@ -460,7 +501,39 @@
                 playAlarmSound();
             }
 
-            alarmBox.style.backgroundColor = '#ff5722'; // Default alarm color
+            const alarmBar = document.getElementById('alarm-bar');
+            if (alarmText) {
+                alarmBar.classList.remove('ok');
+                alarmBar.classList.remove('warning');
+                alarmBar.classList.add('alarm');
+                alarmBar.textContent = 'System Alarm!';
+            } else if (data.connected === false) {
+                alarmBar.classList.remove('ok');
+                alarmBar.classList.remove('alarm');
+                alarmBar.classList.add('warning');
+                alarmBar.textContent = 'System Warning: Communication Error!';
+            } else {
+                alarmBar.classList.remove('alarm');
+                alarmBar.classList.remove('warning');
+                alarmBar.classList.add('ok');
+                alarmBar.textContent = 'System Online';
+            }
+
+            const systemStatusIcon = document.getElementById('system-status');
+            if (alarmText) {
+                systemStatusIcon.classList.remove('fa-check-circle');
+                systemStatusIcon.classList.add('fa-exclamation-triangle');
+                systemStatusIcon.style.color = 'red';
+            } else if (data.connected === false) {
+                systemStatusIcon.classList.remove('fa-check-circle');
+                systemStatusIcon.classList.add('fa-exclamation-circle');
+                systemStatusIcon.style.color = 'yellow';
+            } else {
+                systemStatusIcon.classList.remove('fa-exclamation-triangle');
+                systemStatusIcon.classList.remove('fa-exclamation-circle');
+                systemStatusIcon.classList.add('fa-check-circle');
+                systemStatusIcon.style.color = 'green';
+            }
         }
 
         function setAllLedsBlank() {
@@ -545,6 +618,18 @@
                     setAllLedsBlank();
                 }
             }, 5000); // Check every 5 seconds
+            // Initial setup for the alarm bar and system status icon
+            const alarmBar = document.getElementById('alarm-bar');
+            alarmBar.classList.remove('alarm');
+            alarmBar.classList.remove('warning');
+            alarmBar.classList.add('ok');
+            alarmBar.textContent = 'System Online';
+
+            const systemStatusIcon = document.getElementById('system-status');
+            systemStatusIcon.classList.remove('fa-exclamation-triangle');
+            systemStatusIcon.classList.remove('fa-exclamation-circle');
+            systemStatusIcon.classList.add('fa-check-circle');
+            systemStatusIcon.style.color = 'green';
         });
     </script>
 </body>
