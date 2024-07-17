@@ -184,23 +184,16 @@
             color: #e0e0e0;
         }
 
-        #alarm-bar { /* Large Alarm Bar */
-            background-color: #ff5722; /* Red for alarm */
-            height: 50px;
-            width: 100%;
-            text-align: center;
-            line-height: 50px;
-            font-size: 24px;
-            font-weight: bold;
+        #alarm-box {
+            background: #ff5722;
             color: white;
-        }
-
-        #alarm-bar.warning {
-            background-color: #ffc107; /* Yellow for warning */
-        }
-
-        #alarm-bar.ok {
-            background-color: #4caf50; /* Green for OK */
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 0 0 5px #ff5722;
         }
 
         .card {
@@ -229,6 +222,7 @@
         #system-status {
             font-size: 100px;
             color: green;
+            margin-top: 20px; /* Add margin to separate from the footer */
         }
 
         .sensor-icon {
@@ -240,7 +234,6 @@
 
 <body>
     <div class="container">
-        <div id="alarm-bar" class="ok">System Online</div> <!-- Alarm bar -->
         <div class="header">
             <div class="logo">Fire Pump Monitoring System</div>
         </div>
@@ -501,24 +494,6 @@
                 playAlarmSound();
             }
 
-            const alarmBar = document.getElementById('alarm-bar');
-            if (alarmText) {
-                alarmBar.classList.remove('ok');
-                alarmBar.classList.remove('warning');
-                alarmBar.classList.add('alarm');
-                alarmBar.textContent = 'System Alarm!';
-            } else if (data.connected === false) {
-                alarmBar.classList.remove('ok');
-                alarmBar.classList.remove('alarm');
-                alarmBar.classList.add('warning');
-                alarmBar.textContent = 'System Warning: Communication Error!';
-            } else {
-                alarmBar.classList.remove('alarm');
-                alarmBar.classList.remove('warning');
-                alarmBar.classList.add('ok');
-                alarmBar.textContent = 'System Online';
-            }
-
             const systemStatusIcon = document.getElementById('system-status');
             if (alarmText) {
                 systemStatusIcon.classList.remove('fa-check-circle');
@@ -619,12 +594,6 @@
                 }
             }, 5000); // Check every 5 seconds
             // Initial setup for the alarm bar and system status icon
-            const alarmBar = document.getElementById('alarm-bar');
-            alarmBar.classList.remove('alarm');
-            alarmBar.classList.remove('warning');
-            alarmBar.classList.add('ok');
-            alarmBar.textContent = 'System Online';
-
             const systemStatusIcon = document.getElementById('system-status');
             systemStatusIcon.classList.remove('fa-exclamation-triangle');
             systemStatusIcon.classList.remove('fa-exclamation-circle');
