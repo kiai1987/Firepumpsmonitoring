@@ -16,7 +16,7 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            overflow: auto; /* Enable scrolling for the entire body */
+            overflow: hidden;
             padding: 20px;
         }
 
@@ -25,12 +25,10 @@
             border-radius: 15px;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
             padding: 20px;
-            max-width: 90%;
+            max-width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Important: Disable scrolling for the container itself */
-            overflow: hidden;
         }
 
         .header {
@@ -48,11 +46,10 @@
 
         .pumps {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* Force 4 columns */
-            grid-template-rows: repeat(2, auto); /* Allow rows to expand */
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, auto);
             gap: 15px;
             width: 100%;
-            overflow-y: auto; /* Enable scrolling for the pumps container */
         }
 
         .pump {
@@ -85,7 +82,7 @@
         .status-indicators {
             display: flex;
             justify-content: center;
-            gap: 15px;
+            gap: 30px;
             margin-bottom: 15px;
         }
 
@@ -96,8 +93,8 @@
         }
 
         .status .led {
-            width: 40px;
-            height: 40px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             display: inline-block;
             margin-bottom: 5px;
@@ -124,6 +121,10 @@
             background-color: #4caf50;
         }
 
+        .led-blank {
+            background-color: #333;
+        }
+
         .selector {
             display: flex;
             justify-content: space-around;
@@ -145,7 +146,7 @@
             transition: background 0.3s;
             font-weight: bold;
             user-select: none;
-            font-size: 14px; /* Adjust font size as needed */
+            font-size: 16px;
         }
 
         .selector input:checked+label {
@@ -162,7 +163,7 @@
         }
 
         .buzzer-switch label {
-            font-size: 16px;
+            font-size: 18px;
             margin-right: 10px;
             font-weight: bold;
         }
@@ -174,7 +175,7 @@
         .footer {
             text-align: center;
             margin-top: 10px;
-            font-size: 14px;
+            font-size: 16px;
             color: #e0e0e0;
         }
 
@@ -185,7 +186,7 @@
             border-radius: 5px;
             text-align: center;
             margin-bottom: 10px;
-            font-size: 16px; /* Adjust font size as needed */
+            font-size: 20px;
             font-weight: bold;
             text-shadow: 0 0 5px #ff5722;
         }
@@ -201,36 +202,9 @@
         }
 
         .value {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: bold;
             margin-bottom: 10px;
-        }
-
-        /* Mobile View Styles */
-        @media (max-width: 768px) {
-            .container {
-                max-width: 95%;
-            }
-
-            .pumps {
-                grid-template-columns: 1fr; /* One column for mobile */
-                overflow-y: auto; /* Allow scrolling for pumps */
-            }
-
-            .pump {
-                width: 100%;
-            }
-
-            .status-indicators {
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-
-            .selector {
-                flex-direction: column;
-                align-items: center;
-                gap: 10px;
-            }
         }
     </style>
 </head>
@@ -398,14 +372,13 @@
         <div class="footer">Made from Engineering</div>
     </div>
 
-    <!-- Alarm Sound -->
     <audio id="alarm-sound" src="https://github.com/kiai1987/Firepumpsmonitoring/raw/main/alarm_clock.mp3" preload="auto" muted></audio>
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
         function playAlarmSound() {
             const alarmSound = document.getElementById('alarm-sound');
-            alarmSound.muted = false; // Unmute the sound before playing
+            alarmSound.muted = false;
             alarmSound.play();
         }
 
@@ -414,6 +387,8 @@
             element.className = 'led';
             if (isActive) {
                 element.classList.add(className);
+            } else {
+                element.classList.add('led-blank');
             }
         }
 
@@ -478,26 +453,30 @@
             if (!data.connected) {
                 alarmBox.textContent = 'Communication error with central node or web server!';
                 alarmBox.style.backgroundColor = '#d32f2f';
+                setAllLedsBlank();
             } else {
                 alarmBox.style.backgroundColor = '#ff5722';
             }
+        }
+
+        function setAllLedsBlank() {
+            const leds = document.querySelectorAll('.led');
+            leds.forEach(led => {
+                led.className = 'led led-blank';
+            });
         }
 
         const options = {
             username: 'firepump',
             password: '044313187Ki@',
             clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
-            keepalive: 60, // 60 seconds
-            reconnectPeriod: 5000, // Try to reconnect every 5 seconds
         };
 
         const mqttClient = mqtt.connect('wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt', options);
 
-        let lastDataReceived = new Date();
-
         mqttClient.on('connect', function () {
             console.log('Connected to MQTT broker');
-            mqttClient.subscribe('fire-pump/status', { qos: 1 }, function (err) {
+            mqttClient.subscribe('fire-pump/status', function (err) {
                 if (!err) {
                     console.log('Subscribed to fire-pump/status');
                 }
@@ -508,7 +487,6 @@
             if (topic === 'fire-pump/status') {
                 const data = JSON.parse(message.toString());
                 handleStatusUpdates(data);
-                lastDataReceived = new Date();
             }
         });
 
@@ -517,60 +495,49 @@
             const alarmBox = document.getElementById('alarm-box');
             alarmBox.textContent = 'Communication error with MQTT broker!';
             alarmBox.style.backgroundColor = '#d32f2f';
-
-            document.querySelectorAll('.led').forEach(led => led.classList.add('led-blank'));
+            setAllLedsBlank();
         });
 
-        mqttClient.on('reconnect', function () {
-            console.log('Reconnecting to MQTT broker...');
-        });
+        function updateBuzzerState() {
+            const buzzerSwitch = document.getElementById('buzzer-switch');
+            const state = buzzerSwitch.checked ? 'on' : 'off';
+            mqttClient.publish('firepumpmonitoring/buzzer', state, function (err) {
+                if (err) {
+                    console.error('Error publishing buzzer state:', err);
+                } else {
+                    console.log('Buzzer state published:', state);
+                }
+            });
+        }
 
-        mqttClient.on('offline', function () {
-            console.log('MQTT client is offline');
-            const alarmBox = document.getElementById('alarm-box');
-            alarmBox.textContent = 'MQTT client is offline!';
-            alarmBox.style.backgroundColor = '#d32f2f';
-        });
-
-        document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('buzzer-switch').addEventListener('change', function () {
-                const state = this.checked ? 'on' : 'off';
-                mqttClient.publish('firepumpmonitoring/buzzer', state, { qos: 1 }, function (err) {
+        document.querySelectorAll('.selector input').forEach(input => {
+            input.addEventListener('change', function () {
+                const selectorGroup = this.name.split('-')[0];
+                const selectedMode = this.value;
+                const payload = JSON.stringify({ group: selectorGroup, mode: selectedMode });
+                mqttClient.publish('fire-pump/mode', payload, function (err) {
                     if (err) {
-                        console.error('Error publishing buzzer state:', err);
+                        console.error('Error publishing pump mode:', err);
                     } else {
-                        console.log('Buzzer state published:', state);
+                        console.log('Pump mode published:', payload);
                     }
                 });
             });
+        });
 
-            document.querySelectorAll('.selector input').forEach(input => {
-                input.addEventListener('change', function () {
-                    const selectorGroup = this.name.split('-')[0];
-                    const selectedMode = this.value;
-                    const payload = JSON.stringify({ group: selectorGroup, mode: selectedMode });
-                    mqttClient.publish('fire-pump/mode', payload, { qos: 1 }, function (err) {
-                        if (err) {
-                            console.error('Error publishing pump mode:', err);
-                        } else {
-                            console.log('Pump mode published:', payload);
-                        }
-                    });
-                });
-            });
-
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('buzzer-switch').addEventListener('change', updateBuzzerState);
             setInterval(function () {
-                const now = new Date();
-                if (now - lastDataReceived > 10000) {
+                if (!mqttClient.connected) {
                     const alarmBox = document.getElementById('alarm-box');
-                    alarmBox.textContent = 'Communication timeout with ESP32!';
+                    alarmBox.textContent = 'Communication error with MQTT broker!';
                     alarmBox.style.backgroundColor = '#d32f2f';
-
-                    document.querySelectorAll('.led').forEach(led => led.classList.add('led-blank'));
+                    setAllLedsBlank();
                 }
-            }, 10000);
+            }, 5000); // Check every 5 seconds
         });
     </script>
 </body>
 
 </html>
+
