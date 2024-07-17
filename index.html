@@ -376,6 +376,9 @@
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
+        let lastMessageTime = Date.now();
+        let isConnected = false; // Track connection state
+
         function playAlarmSound() {
             const alarmSound = document.getElementById('alarm-sound');
             alarmSound.muted = false;
@@ -412,6 +415,8 @@
 
         function handleStatusUpdates(data) {
             console.log('Received data:', data);
+            lastMessageTime = Date.now();
+            isConnected = true; // Update connection state
 
             updateLedStatus('jockey-pump-run', data.JP, 'led-run');
             updateLedStatus('jockey-pump-off', !data.JP, 'led-off');
@@ -438,25 +443,24 @@
 
             const alarmBox = document.getElementById('alarm-box');
             let alarmText = '';
+
+            // Check for alarm conditions
             if (data.JPT) alarmText += 'Jockey Pump Trip; ';
             if (data.MPT) alarmText += 'Main Pump Trip; ';
             if (data.DPT) alarmText += 'Diesel Pump Trip; ';
             if (data.SS1) alarmText += 'Smoke Detector 1 Active; ';
             if (data.SS2) alarmText += 'Smoke Detector 2 Active; ';
             if (data.FS) alarmText += 'Water Flood Sensor Active; ';
+            if (data.BZ) alarmText += 'Buzzer Active; '; // Include buzzer alarm
+
+            // Display the alarm message only if there's at least one alarm condition
             alarmBox.textContent = alarmText ? `ALARM: ${alarmText}` : '';
 
-            if (data.JPT || data.MPT || data.DPT || data.SS1 || data.SS2 || data.FS) {
+            if (data.JPT || data.MPT || data.DPT || data.SS1 || data.SS2 || data.FS || data.BZ) { // Check buzzer alarm
                 playAlarmSound();
             }
 
-            if (!data.connected) {
-                alarmBox.textContent = 'Communication error with central node or web server!';
-                alarmBox.style.backgroundColor = '#d32f2f';
-                setAllLedsBlank();
-            } else {
-                alarmBox.style.backgroundColor = '#ff5722';
-            }
+            alarmBox.style.backgroundColor = '#ff5722'; // Default alarm color
         }
 
         function setAllLedsBlank() {
@@ -476,6 +480,7 @@
 
         mqttClient.on('connect', function () {
             console.log('Connected to MQTT broker');
+            isConnected = true;
             mqttClient.subscribe('fire-pump/status', function (err) {
                 if (!err) {
                     console.log('Subscribed to fire-pump/status');
@@ -492,6 +497,7 @@
 
         mqttClient.on('error', function (error) {
             console.error('MQTT error:', error);
+            isConnected = false;
             const alarmBox = document.getElementById('alarm-box');
             alarmBox.textContent = 'Communication error with MQTT broker!';
             alarmBox.style.backgroundColor = '#d32f2f';
@@ -528,9 +534,13 @@
         document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('buzzer-switch').addEventListener('change', updateBuzzerState);
             setInterval(function () {
-                if (!mqttClient.connected) {
-                    const alarmBox = document.getElementById('alarm-box');
-                    alarmBox.textContent = 'Communication error with MQTT broker!';
+                const alarmBox = document.getElementById('alarm-box');
+                if (!isConnected) {
+                    alarmBox.textContent = 'Not connected to MQTT broker!';
+                    alarmBox.style.backgroundColor = '#d32f2f';
+                    setAllLedsBlank();
+                } else if (Date.now() - lastMessageTime > 10000) { // 10 seconds
+                    alarmBox.textContent = 'No data received from the transmitter!';
                     alarmBox.style.backgroundColor = '#d32f2f';
                     setAllLedsBlank();
                 }
@@ -540,4 +550,3 @@
 </body>
 
 </html>
-
