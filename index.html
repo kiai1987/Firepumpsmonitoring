@@ -9,27 +9,28 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #121212;
+            background-color: #2b2b2b;
             color: #e0e0e0;
-            margin: 0;
-            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            margin: 0;
+            overflow: auto; /* Enable scrolling for the entire body */
+            padding: 20px;
         }
 
         .container {
-            background: #1f1f1f;
+            background: #3b3b3b;
             border-radius: 15px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
             padding: 20px;
-            width: 90%;
-            max-height: 90%;
-            overflow-y: auto;
+            max-width: 90%;
             display: flex;
             flex-direction: column;
             align-items: center;
+            /* Important: Disable scrolling for the container itself */
+            overflow: hidden;
         }
 
         .header {
@@ -40,52 +41,22 @@
         .logo {
             font-size: 32px;
             font-weight: 700;
-            color: #00bcd4;
+            color: #007bff;
             margin-bottom: 10px;
-            text-shadow: 0 0 5px #00bcd4;
-        }
-
-        .buzzer-switch {
-            text-align: center;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #ffeb3b;
-        }
-
-        .buzzer-switch label {
-            font-size: 18px;
-            margin-right: 10px;
-            font-weight: bold;
-        }
-
-        .buzzer-switch input {
-            transform: scale(1.5);
-        }
-
-        #alarm-box {
-            background: #d32f2f;
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 20px;
-            font-weight: bold;
-            text-shadow: 0 0 5px #ff5722;
-            max-width: 600px;
+            text-shadow: 0 0 5px #007bff;
         }
 
         .pumps {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(4, 1fr); /* Force 4 columns */
+            grid-template-rows: repeat(2, auto); /* Allow rows to expand */
             gap: 15px;
             width: 100%;
+            overflow-y: auto; /* Enable scrolling for the pumps container */
         }
 
         .pump {
-            background: #2c2c2c;
+            background: #4b4b4b;
             border-radius: 10px;
             padding: 15px;
             transition: transform 0.3s, box-shadow 0.3s;
@@ -93,20 +64,19 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            color: #00e676;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .pump:hover {
             transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
 
         .pump-title {
             font-size: 18px;
             margin-bottom: 10px;
-            color: #00bcd4;
-            border-bottom: 2px solid #00bcd4;
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
             padding-bottom: 5px;
             text-transform: uppercase;
             font-weight: bold;
@@ -115,7 +85,7 @@
         .status-indicators {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 15px;
             margin-bottom: 15px;
         }
 
@@ -126,42 +96,32 @@
         }
 
         .status .led {
-            width: 60px;
-            height: 60px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: inline-block;
             margin-bottom: 5px;
             border: 2px solid #333;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .led:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
         }
 
         .led-run {
-            background-color: #00e676;
+            background-color: #4caf50;
         }
 
         .led-off {
-            background-color: #ff1744;
+            background-color: #f44336;
         }
 
         .led-trip {
-            background-color: #ffeb3b;
+            background-color: #FFFF33;
         }
 
         .led-active {
-            background-color: #ff1744;
+            background-color: #f44336;
         }
 
         .led-inactive {
-            background-color: #00e676;
-        }
-
-        .led-blank {
-            background-color: #333;
+            background-color: #4caf50;
         }
 
         .selector {
@@ -178,87 +138,98 @@
         .selector label {
             display: block;
             padding: 10px;
-            background: #424242;
+            background: #616161;
             border-radius: 5px;
             cursor: pointer;
             text-align: center;
             transition: background 0.3s;
             font-weight: bold;
             user-select: none;
-            font-size: 16px;
-            color: #e0e0e0;
+            font-size: 14px; /* Adjust font size as needed */
         }
 
-        .selector input:checked + label {
-            background: #00bcd4;
+        .selector input:checked+label {
+            background: #007bff;
             color: #fff;
         }
 
+        .buzzer-switch {
+            text-align: center;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .buzzer-switch label {
+            font-size: 16px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .buzzer-switch input {
+            transform: scale(1.5);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #e0e0e0;
+        }
+
+        #alarm-box {
+            background: #ff5722;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 16px; /* Adjust font size as needed */
+            font-weight: bold;
+            text-shadow: 0 0 5px #ff5722;
+        }
+
         .card {
-            background: #3b3b3b;
+            background: #4b4b4b;
             border-radius: 10px;
             padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            color: #00e676;
         }
 
         .value {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
             margin-bottom: 10px;
         }
 
-        .temperature,
-        .humidity,
-        .pressure {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 16px;
-            color: #e0e0e0;
-        }
-
-        #reset-button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            background-color: #00bcd4;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        #reset-button:hover {
-            background-color: #0097a7;
-        }
-
-        @media (max-width: 600px) {
-            body {
-                overflow-y: auto;
-            }
-
-            .buzzer-switch {
-                flex-direction: column;
-            }
-
-            .buzzer-switch label {
-                margin-right: 0;
-                margin-bottom: 10px;
-            }
-
+        /* Mobile View Styles */
+        @media (max-width: 768px) {
             .container {
-                height: auto;
-                max-height: none;
+                max-width: 95%;
+            }
+
+            .pumps {
+                grid-template-columns: 1fr; /* One column for mobile */
+                overflow-y: auto; /* Allow scrolling for pumps */
+            }
+
+            .pump {
+                width: 100%;
+            }
+
+            .status-indicators {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .selector {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
             }
         }
     </style>
@@ -425,16 +396,16 @@
             </div>
         </div>
         <div class="footer">Made from Engineering</div>
-        <button id="reset-button">Reset</button>
     </div>
 
+    <!-- Alarm Sound -->
     <audio id="alarm-sound" src="https://github.com/kiai1987/Firepumpsmonitoring/raw/main/alarm_clock.mp3" preload="auto" muted></audio>
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
         function playAlarmSound() {
             const alarmSound = document.getElementById('alarm-sound');
-            alarmSound.muted = false;
+            alarmSound.muted = false; // Unmute the sound before playing
             alarmSound.play();
         }
 
@@ -443,8 +414,6 @@
             element.className = 'led';
             if (isActive) {
                 element.classList.add(className);
-            } else {
-                element.classList.add('led-blank');
             }
         }
 
@@ -500,14 +469,7 @@
             if (data.SS1) alarmText += 'Smoke Detector 1 Active; ';
             if (data.SS2) alarmText += 'Smoke Detector 2 Active; ';
             if (data.FS) alarmText += 'Water Flood Sensor Active; ';
-
-            if (alarmText) {
-                alarmBox.textContent = `ALARM: ${alarmText}`;
-                alarmBox.style.backgroundColor = '#d32f2f';
-            } else {
-                alarmBox.textContent = '';
-                alarmBox.style.backgroundColor = '#ff5722';
-            }
+            alarmBox.textContent = alarmText ? `ALARM: ${alarmText}` : '';
 
             if (data.JPT || data.MPT || data.DPT || data.SS1 || data.SS2 || data.FS) {
                 playAlarmSound();
@@ -516,6 +478,8 @@
             if (!data.connected) {
                 alarmBox.textContent = 'Communication error with central node or web server!';
                 alarmBox.style.backgroundColor = '#d32f2f';
+            } else {
+                alarmBox.style.backgroundColor = '#ff5722';
             }
         }
 
@@ -523,16 +487,17 @@
             username: 'firepump',
             password: '044313187Ki@',
             clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
+            keepalive: 60, // 60 seconds
+            reconnectPeriod: 5000, // Try to reconnect every 5 seconds
         };
 
         const mqttClient = mqtt.connect('wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt', options);
 
         let lastDataReceived = new Date();
-        const dataTimeout = 10000;
 
         mqttClient.on('connect', function () {
             console.log('Connected to MQTT broker');
-            mqttClient.subscribe('fire-pump/status', function (err) {
+            mqttClient.subscribe('fire-pump/status', { qos: 1 }, function (err) {
                 if (!err) {
                     console.log('Subscribed to fire-pump/status');
                 }
@@ -556,61 +521,56 @@
             document.querySelectorAll('.led').forEach(led => led.classList.add('led-blank'));
         });
 
-        setInterval(function () {
-            const now = new Date();
-            if (now - lastDataReceived > dataTimeout) {
-                const alarmBox = document.getElementById('alarm-box');
-                alarmBox.textContent = 'Communication timeout with ESP32!';
-                alarmBox.style.backgroundColor = '#d32f2f';
-
-                document.querySelectorAll('.led').forEach(led => led.classList.add('led-blank'));
-            }
-        }, dataTimeout);
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const hiddenElement = document.createElement('div');
-            hiddenElement.style.display = 'none';
-            document.body.appendChild(hiddenElement);
-            hiddenElement.click();
+        mqttClient.on('reconnect', function () {
+            console.log('Reconnecting to MQTT broker...');
         });
 
-        document.getElementById('buzzer-switch').addEventListener('change', function () {
-            const state = this.checked ? 'on' : 'off';
-            mqttClient.publish('firepumpmonitoring/buzzer', state, function (err) {
-                if (err) {
-                    console.error('Error publishing buzzer state:', err);
-                } else {
-                    console.log('Buzzer state published:', state);
-                }
-            });
+        mqttClient.on('offline', function () {
+            console.log('MQTT client is offline');
+            const alarmBox = document.getElementById('alarm-box');
+            alarmBox.textContent = 'MQTT client is offline!';
+            alarmBox.style.backgroundColor = '#d32f2f';
         });
 
-        document.querySelectorAll('.selector input').forEach(input => {
-            input.addEventListener('change', function () {
-                const selectorGroup = this.name.split('-')[0];
-                const selectedMode = this.value;
-                const payload = JSON.stringify({ group: selectorGroup, mode: selectedMode });
-                mqttClient.publish('fire-pump/mode', payload, function (err) {
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('buzzer-switch').addEventListener('change', function () {
+                const state = this.checked ? 'on' : 'off';
+                mqttClient.publish('firepumpmonitoring/buzzer', state, { qos: 1 }, function (err) {
                     if (err) {
-                        console.error('Error publishing pump mode:', err);
+                        console.error('Error publishing buzzer state:', err);
                     } else {
-                        console.log('Pump mode published:', payload);
+                        console.log('Buzzer state published:', state);
                     }
                 });
             });
-        });
 
-        document.getElementById('reset-button').addEventListener('click', function () {
-            mqttClient.publish('firepumpmonitoring/reset', 'true', function (err) {
-                if (err) {
-                    console.error('Error publishing reset command:', err);
-                } else {
-                    console.log('Reset command published.');
-                }
+            document.querySelectorAll('.selector input').forEach(input => {
+                input.addEventListener('change', function () {
+                    const selectorGroup = this.name.split('-')[0];
+                    const selectedMode = this.value;
+                    const payload = JSON.stringify({ group: selectorGroup, mode: selectedMode });
+                    mqttClient.publish('fire-pump/mode', payload, { qos: 1 }, function (err) {
+                        if (err) {
+                            console.error('Error publishing pump mode:', err);
+                        } else {
+                            console.log('Pump mode published:', payload);
+                        }
+                    });
+                });
             });
+
+            setInterval(function () {
+                const now = new Date();
+                if (now - lastDataReceived > 10000) {
+                    const alarmBox = document.getElementById('alarm-box');
+                    alarmBox.textContent = 'Communication timeout with ESP32!';
+                    alarmBox.style.backgroundColor = '#d32f2f';
+
+                    document.querySelectorAll('.led').forEach(led => led.classList.add('led-blank'));
+                }
+            }, 10000);
         });
     </script>
 </body>
 
 </html>
-
