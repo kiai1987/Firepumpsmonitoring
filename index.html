@@ -422,6 +422,22 @@
                 </div>
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm"></i>
             </div>
+
+            <!-- Communication Status -->
+            <div class="card">
+                <div class="card-header">Communication Status</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="comm-receiver-transmitter-active"></div>
+                        <div>RX-TX</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="comm-receiver-mqtt-active"></div>
+                        <div>RX-MQTT</div>
+                    </div>
+                </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="comm-alarm"></i>
+            </div>
         </div>
 
         <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
@@ -503,55 +519,82 @@
             updateSelector('main', data.MPM);
             updateSelector('diesel', data.DPM);
 
+            // Communication status updates
+            updateLedStatus('comm-receiver-transmitter-active', data.RXTX, 'led-active');
+            updateLedStatus('comm-receiver-mqtt-active', data.RXMQTT, 'led-active');
+
             // Alarm logic
             const alarmIcons = document.querySelectorAll('.alarm-icon');
             alarmIcons.forEach(icon => icon.classList.add('hidden')); // Hide all alarms initially
             const alarmBox = document.getElementById('alarm-box');
             alarmBox.textContent = ''; // Clear the alarm box
 
+            let alarmActive = false;
+
             if (data.JPT) {
                 document.getElementById('jockey-alarm').classList.remove('hidden');
                 alarmBox.textContent += 'Jockey Pump Trip; ';
                 playAlarmSound();
+                alarmActive = true;
             }
             if (data.MPT) {
                 document.getElementById('main-alarm').classList.remove('hidden');
                 alarmBox.textContent += 'Main Pump Trip; ';
                 playAlarmSound();
+                alarmActive = true;
             }
             if (data.DPT) {
                 document.getElementById('diesel-alarm').classList.remove('hidden');
                 alarmBox.textContent += 'Diesel Pump Trip; ';
                 playAlarmSound();
+                alarmActive = true;
             }
             if (data.SS1) {
                 document.getElementById('smoke-detector-1-alarm').classList.remove('hidden');
                 alarmBox.textContent += 'Smoke Detector 1 Active; ';
                 playAlarmSound();
+                alarmActive = true;
             }
             if (data.SS2) {
                 document.getElementById('smoke-detector-2-alarm').classList.remove('hidden');
                 alarmBox.textContent += 'Smoke Detector 2 Active; ';
                 playAlarmSound();
+                alarmActive = true;
             }
             if (data.FS) {
                 document.getElementById('flood-sensor-alarm').classList.remove('hidden');
                 alarmBox.textContent += 'Water Flood Sensor Active; ';
                 playAlarmSound();
+                alarmActive = true;
             }
             if (data.BZ) {
                 alarmBox.textContent += 'Buzzer Active; ';
                 playAlarmSound();
+                alarmActive = true;
+            }
+            if (data.RXTX === false) {
+                document.getElementById('comm-alarm').classList.remove('hidden');
+                alarmBox.textContent += 'Receiver-Transmitter Communication Failed; ';
+                playAlarmSound();
+                alarmActive = true;
+            }
+            if (data.RXMQTT === false) {
+                document.getElementById('comm-alarm').classList.remove('hidden');
+                alarmBox.textContent += 'Receiver-MQTT Communication Failed; ';
+                playAlarmSound();
+                alarmActive = true;
             }
 
             // System Status
-            const systemStatusIcon = document.getElementById('system-status');
-            if (data.connected === false) {
+            if (alarmActive) {
+                systemStatusIcon.classList.remove('fa-check-circle');
+                systemStatusIcon.classList.add('fa-exclamation-circle');
+                systemStatusIcon.style.color = 'red';
+            } else if (data.connected === false) {
                 systemStatusIcon.classList.remove('fa-check-circle');
                 systemStatusIcon.classList.add('fa-exclamation-circle');
                 systemStatusIcon.style.color = 'yellow';
             } else {
-                systemStatusIcon.classList.remove('fa-exclamation-triangle');
                 systemStatusIcon.classList.remove('fa-exclamation-circle');
                 systemStatusIcon.classList.add('fa-check-circle');
                 systemStatusIcon.style.color = 'green';
@@ -561,7 +604,7 @@
         function setAllLedsBlank() {
             const leds = document.querySelectorAll('.led');
             leds.forEach(led => {
-                led.className = 'led led-blank');
+                led.className = 'led led-blank';
             });
         }
 
@@ -626,21 +669,20 @@
             });
         });
 
-        document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('buzzer-switch').addEventListener('change', updateBuzzerState);
-            setInterval(function () {
-                const systemStatusIcon = document.getElementById('system-status');
-                if (!isConnected) {
-                    systemStatusIcon.classList.remove('fa-check-circle');
-                    systemStatusIcon.classList.add('fa-exclamation-circle');
-                    systemStatusIcon.style.color = 'yellow';
-                } else if (Date.now() - lastMessageTime > 10000) { // 10 seconds
-                    systemStatusIcon.classList.remove('fa-check-circle');
-                    systemStatusIcon.classList.add('fa-exclamation-circle');
-                    systemStatusIcon.style.color = 'yellow';
-                }
-            }, 5000); // Check every 5 seconds
-        });
+        document.getElementById('buzzer-switch').addEventListener('change', updateBuzzerState);
+
+        setInterval(function () {
+            const systemStatusIcon = document.getElementById('system-status');
+            if (!isConnected) {
+                systemStatusIcon.classList.remove('fa-check-circle');
+                systemStatusIcon.classList.add('fa-exclamation-circle');
+                systemStatusIcon.style.color = 'yellow';
+            } else if (Date.now() - lastMessageTime > 10000) { // 10 seconds
+                systemStatusIcon.classList.remove('fa-check-circle');
+                systemStatusIcon.classList.add('fa-exclamation-circle');
+                systemStatusIcon.style.color = 'yellow';
+            }
+        }, 5000); // Check every 5 seconds
     </script>
 </body>
 
