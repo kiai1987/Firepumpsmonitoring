@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fire Pump Monitoring Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Use the correct integrity hash for Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
@@ -272,7 +274,7 @@
             <!-- Jockey Pump -->
             <div class="card">
                 <div class="card-header">Jockey Pump</div>
-                <div class="gauge-value" id="jockey-pressure"></div>
+                <div class="gauge-value" id="jockey-pressure">0</div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="jockey-pump-run"></div>
@@ -298,12 +300,13 @@
                     </div>
                 </div>
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm"></i>
+                <canvas id="jockey-pressure-gauge"></canvas>
             </div>
 
             <!-- Main Pump -->
             <div class="card">
                 <div class="card-header">Main Pump</div>
-                <div class="gauge-value" id="main-pressure"></div>
+                <div class="gauge-value" id="main-pressure">0</div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="main-pump-run"></div>
@@ -329,12 +332,13 @@
                     </div>
                 </div>
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="main-alarm"></i>
+                <canvas id="main-pressure-gauge"></canvas>
             </div>
 
             <!-- Diesel Pump -->
             <div class="card">
                 <div class="card-header">Diesel Pump</div>
-                <div class="gauge-value" id="diesel-pressure"></div>
+                <div class="gauge-value" id="diesel-pressure">0</div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="diesel-pump-run"></div>
@@ -360,6 +364,7 @@
                     </div>
                 </div>
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="diesel-alarm"></i>
+                <canvas id="diesel-pressure-gauge"></canvas>
             </div>
 
             <!-- Room Temperature & Humidity -->
@@ -428,8 +433,12 @@
         <i id="system-status" class="fas fa-check-circle"></i> <!-- System status icon -->
     </div>
 
+    <audio id="alarm-sound" src="https://github.com/kiai1987/Firepumpsmonitoring/raw/main/alarm_clock.mp3"
+        preload="auto" muted></audio>
+
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
         let lastMessageTime = Date.now();
         let isConnected = false; // Track connection state
 
@@ -438,13 +447,14 @@
         let alarmBuffer;
 
         // Load the alarm sound into an AudioBuffer
-        fetch('https://cdn.jsdelivr.net/gh/kiai1987/Firepumpsmonitoring/alarm_clock.mp3', { mode: 'no-cors' })
+        fetch('https://cdn.jsdelivr.net/gh/kiai1987/Firepumpsmonitoring/alarm_clock.mp3')
             .then(response => response.arrayBuffer())
             .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
             .then(buffer => {
                 alarmBuffer = buffer;
             });
 
+        // Function to play the alarm sound
         function playAlarmSound() {
             if (alarmBuffer) {
                 const alarmSource = audioContext.createBufferSource();
@@ -497,6 +507,9 @@
             document.getElementById('room-temperature').textContent = data.TH.split(',')[0] + '°C';
             document.getElementById('room-humidity').textContent = data.TH.split(',')[1] + '%';
             document.getElementById('water-pressure').textContent = data.WP;
+            document.getElementById('jockey-pressure').textContent = data.JPP;
+            document.getElementById('main-pressure').textContent = data.MPP;
+            document.getElementById('diesel-pressure').textContent = data.DPP;
 
             // Mode updates
             updateSelector('jockey', data.JPM);
@@ -640,98 +653,8 @@
                     systemStatusIcon.style.color = 'yellow';
                 }
             }, 5000); // Check every 5 seconds
-
-            // Initialize Chart.js gauges for pumps
-            const jockeyGaugeCtx = document.getElementById('jockey-pressure').getContext('2d');
-            const mainGaugeCtx = document.getElementById('main-pressure').getContext('2d');
-            const dieselGaugeCtx = document.getElementById('diesel-pressure').getContext('2d');
-
-            const jockeyGauge = new Chart(jockeyGaugeCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Pressure'],
-                    datasets: [{
-                        data: [], // Initial value - will be updated later
-                        backgroundColor: 'rgba(0, 123, 255, 0.8)' // Light blue for pressure
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100 // Set appropriate maximum pressure value
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-
-            const mainGauge = new Chart(mainGaugeCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Pressure'],
-                    datasets: [{
-                        data: [], // Initial value - will be updated later
-                        backgroundColor: 'rgba(0, 123, 255, 0.8)' // Light blue for pressure
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100 // Set appropriate maximum pressure value
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-
-            const dieselGauge = new Chart(dieselGaugeCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Pressure'],
-                    datasets: [{
-                        data: [], // Initial value - will be updated later
-                        backgroundColor: 'rgba(0, 123, 255, 0.8)' // Light blue for pressure
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100 // Set appropriate maximum pressure value
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-
-            // Update the gauges when data is received
-            function updateGauges(data) {
-                jockeyGauge.data.datasets[0].data[0] = data.JPP;
-                mainGauge.data.datasets[0].data[0] = data.MPP;
-                dieselGauge.data.datasets[0].data[0] = data.DPP;
-
-                jockeyGauge.update();
-                mainGauge.update();
-                dieselGauge.update();
-            }
         });
     </script>
 </body>
 
 </html>
-
-
