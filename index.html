@@ -34,6 +34,8 @@
             align-items: center;
             /* Lift the container */
             margin-top: 50px;
+            overflow-y: auto; /* Add vertical scroll */
+            height: calc(100vh - 100px); /* Adjust height */
         }
 
         .header {
@@ -237,6 +239,22 @@
             font-weight: bold;
             text-shadow: 0 0 5px #ff5722;
         }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .card {
+                width: 90%; /* Make cards take up most of the screen width on small screens */
+            }
+
+            .container {
+                margin-top: 0; /* Remove top margin for small screens */
+                padding: 10px; /* Reduce padding for small screens */
+            }
+        }
     </style>
 </head>
 
@@ -246,7 +264,8 @@
             <div class="logo">Fire Pump Monitoring System</div>
         </div>
 
-        <div id="alarm-box"></div> <div class="buzzer-switch">
+        <div id="alarm-box"></div>
+        <div class="buzzer-switch">
             <label for="buzzer-switch">Buzzer Alarm:</label>
             <input type="checkbox" id="buzzer-switch" checked>
         </div>
