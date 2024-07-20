@@ -136,45 +136,45 @@
             font-size: 28px;
             font-weight: bold;
             color: #e0e0e0;
-            margin-bottom: 10px;
+            margin-bottom: 10px.
         }
 
         .controls {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-            margin-top: 20px;
+            display: flex.
+            justify-content: space-around.
+            width: 100%.
+            margin-top: 20px.
         }
 
         .control-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            display: flex.
+            flex-direction: column.
+            align-items: center.
         }
 
         .control-label {
-            font-size: 16px;
-            margin-bottom: 5px;
+            font-size: 16px.
+            margin-bottom: 5px.
             font-weight: bold.
         }
 
         .control-input {
-            width: 100px;
-            padding: 8px;
-            border: 1px solid #616161;
-            border-radius: 5px;
-            background-color: #4b4b4b;
-            color: #e0e0e0;
-            text-align: center;
+            width: 100px.
+            padding: 8px.
+            border: 1px solid #616161.
+            border-radius: 5px.
+            background-color: #4b4b4b.
+            color: #e0e0e0.
+            text-align: center.
             font-size: 16px.
         }
 
         .control-input option[value="0"] {
-            background-color: #f44336;
+            background-color: #f44336.
         }
 
         .control-input option[value="1"] {
-            background-color: #fff;
+            background-color: #fff.
         }
 
         .control-input option[value="2"] {
@@ -423,7 +423,7 @@
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         let alarmBuffer;
 
-        const alarmSoundUrl = 'https://<alarmclock1987>.s3.eu-north-1.amazonaws.com/alarm_clock.wav';
+        const alarmSoundUrl = 'https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock.wav';
 
         fetch(alarmSoundUrl)
             .then(response => response.arrayBuffer())
