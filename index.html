@@ -423,8 +423,10 @@
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         let alarmBuffer;
 
-        // Use a common format like .wav and ensure the file is accessible
-        fetch('https://cdn.jsdelivr.net/gh/kiai1987/Firepumpsmonitoring/alarm_clock.wav', { mode: 'cors' })
+        // Replace YOUR_ALARM_SOUND_URL with the actual URL to your alarm sound file
+        const alarmSoundUrl = 'YOUR_ALARM_SOUND_URL';
+
+        fetch(alarmSoundUrl)
             .then(response => response.arrayBuffer())
             .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
             .then(buffer => {
@@ -627,7 +629,7 @@
             const currentTime = Date.now();
             const elapsedTime = currentTime - lastMessageTime;
 
-            if (elapsedTime > 10000) { // Check for 10 seconds
+            if (elapsedTime > 10000) {
                 const alarmBox = document.getElementById('alarm-box');
                 alarmBox.textContent = '';
                 setAllLedsBlank();
