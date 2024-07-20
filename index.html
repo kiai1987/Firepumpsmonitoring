@@ -249,15 +249,11 @@
         .communication-status-indicator {
             font-size: 30px;
             margin-right: 10px;
-            color: #e0e0e0;
+            color: #e0e0e0; /* Keep a light color for inactive */
         }
 
         .communication-status-indicator.active {
             color: #4caf50; /* Green for active */
-        }
-
-        .communication-status-indicator.inactive {
-            color: #f44336; /* Red for inactive */
         }
 
         @media (max-width: 768px) {
@@ -446,8 +442,8 @@
         </div>
 
         <div id="communication-status">
-            <i class="fas fa-satellite-dish communication-status-indicator active" id="receiver-transmitter"></i>
-            <i class="fas fa-network-wired communication-status-indicator active" id="receiver-mqtt"></i>
+            <i class="fas fa-satellite-dish communication-status-indicator" id="receiver-transmitter"></i>
+            <i class="fas fa-network-wired communication-status-indicator" id="receiver-mqtt"></i>
             Communication Status
         </div>
 
@@ -582,6 +578,15 @@
                 alarmActive = true;
             }
 
+            if (!isReceiverTransmitterConnected) {
+                alarmBox.textContent += 'Communication with Transmitter Lost; ';
+                alarmActive = true;
+            }
+            if (!isReceiverMqttConnected) {
+                alarmBox.textContent += 'Communication with MQTT Broker Lost; ';
+                alarmActive = true;
+            }
+
             // System Status
             if (alarmActive) {
                 systemStatusIcon.classList.remove('fa-check-circle');
@@ -690,15 +695,32 @@
             // Simulate random connection status changes
             if (randomValue < 0.1) { // 10% chance of disconnect
                 isReceiverTransmitterConnected = !isReceiverTransmitterConnected;
-                receiverTransmitterIcon.classList.remove(isReceiverTransmitterConnected ? 'inactive' : 'active');
-                receiverTransmitterIcon.classList.add(isReceiverTransmitterConnected ? 'active' : 'inactive');
             }
             if (randomValue < 0.2) { // 20% chance of disconnect
                 isReceiverMqttConnected = !isReceiverMqttConnected;
-                receiverMqttIcon.classList.remove(isReceiverMqttConnected ? 'inactive' : 'active');
-                receiverMqttIcon.classList.add(isReceiverMqttConnected ? 'active' : 'inactive');
             }
         }, 2000); // Update every 2 seconds
+
+        // Update communication icons
+        setInterval(function () {
+            const receiverTransmitterIcon = document.getElementById('receiver-transmitter');
+            const receiverMqttIcon = document.getElementById('receiver-mqtt');
+
+            receiverTransmitterIcon.classList.remove('active', 'inactive');
+            receiverMqttIcon.classList.remove('active', 'inactive');
+
+            if (isReceiverTransmitterConnected) {
+                receiverTransmitterIcon.classList.add('active');
+            } else {
+                receiverTransmitterIcon.classList.add('inactive');
+            }
+
+            if (isReceiverMqttConnected) {
+                receiverMqttIcon.classList.add('active');
+            } else {
+                receiverMqttIcon.classList.add('inactive');
+            }
+        }, 1000); // Update every second
     </script>
 </body>
 
