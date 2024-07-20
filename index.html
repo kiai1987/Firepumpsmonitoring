@@ -423,7 +423,7 @@
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         let alarmBuffer;
 
-        const alarmSoundUrl = 'https://github.com/kiai1987/Firepumpsmonitoring/raw/main/alarm_clock%20(6).wav';
+        const alarmSoundUrl = 'https://github.com/kiai1987/alarm-sound/raw/main/alarm_clock.wav';
 
         fetch(alarmSoundUrl)
             .then(response => response.arrayBuffer())
