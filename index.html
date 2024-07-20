@@ -525,17 +525,6 @@
                 alarmActive = true;
             }
 
-            if (data.RXTX === false) {
-                alarmBox.textContent += 'Receiver-Transmitter Communication Failed; ';
-                playAlarmSound();
-                alarmActive = true;
-            }
-            if (data.RXMQTT === false) {
-                alarmBox.textContent += 'Receiver-MQTT Communication Failed; ';
-                playAlarmSound();
-                alarmActive = true;
-            }
-
             const systemStatusIcon = document.getElementById('system-status');
             if (alarmActive) {
                 systemStatusIcon.classList.remove('fa-check-circle');
@@ -628,8 +617,8 @@
 
             if (elapsedTime > 5000) {
                 const alarmBox = document.getElementById('alarm-box');
-                alarmBox.textContent = 'Receiver-Transmitter Communication Failed; ';
-                playAlarmSound();
+                alarmBox.textContent = ''; // Leave alarm box blank
+                setAllLedsBlank(); // Set all LEDs to blank
 
                 const systemStatusIcon = document.getElementById('system-status');
                 systemStatusIcon.classList.remove('fa-check-circle');
