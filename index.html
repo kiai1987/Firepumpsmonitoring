@@ -6,14 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fire Pump Monitoring Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-        integrity="sha512-iecdLmaskl7CVkqk1w20JwixBaZrP0WL+hOecEQnxqH+wKF0s8+rTj3QhbmVzNu3T5xrDWPqXJz0jEQDRn5Y+s="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #1e1e1e;
-            color: #f0f0f0;
+            background-color: #2b2b2b;
+            color: #e0e0e0;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -24,60 +21,59 @@
         }
 
         .container {
-            background: #292929;
-            border-radius: 20px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
-            padding: 30px;
-            max-width: 90%;
+            background: #3b3b3b;
+            border-radius: 15px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            padding: 20px;
+            max-width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 20px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .logo {
-            font-size: 36px;
+            font-size: 32px;
             font-weight: 700;
-            color: #ff4500;
+            color: #007bff;
             margin-bottom: 10px;
-            text-shadow: 0 0 10px #ff4500;
+            text-shadow: 0 0 5px #007bff;
         }
 
         .pumps {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, auto);
+            gap: 15px;
             width: 100%;
         }
 
         .pump {
-            background: #333;
-            border-radius: 15px;
-            padding: 20px;
+            background: #4b4b4b;
+            border-radius: 10px;
+            padding: 15px;
             transition: transform 0.3s, box-shadow 0.3s;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .pump:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
 
         .pump-title {
-            font-size: 20px;
-            margin-bottom: 15px;
-            color: #ff4500;
-            border-bottom: 2px solid #ff4500;
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
             padding-bottom: 5px;
             text-transform: uppercase;
             font-weight: bold;
@@ -86,8 +82,8 @@
         .status-indicators {
             display: flex;
             justify-content: center;
-            gap: 20px;
-            margin-bottom: 20px;
+            gap: 30px;
+            margin-bottom: 15px;
         }
 
         .status {
@@ -102,7 +98,7 @@
             border-radius: 50%;
             display: inline-block;
             margin-bottom: 5px;
-            border: 3px solid #444;
+            border: 2px solid #333;
         }
 
         .led-run {
@@ -114,7 +110,7 @@
         }
 
         .led-trip {
-            background-color: #ffeb3b;
+            background-color: #FFFF33;
         }
 
         .led-active {
@@ -126,14 +122,14 @@
         }
 
         .led-blank {
-            background-color: #444;
+            background-color: #333;
         }
 
         .selector {
             display: flex;
             justify-content: space-around;
             width: 100%;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
         .selector input {
@@ -143,8 +139,8 @@
         .selector label {
             display: block;
             padding: 10px;
-            background: #555;
-            border-radius: 10px;
+            background: #616161;
+            border-radius: 5px;
             cursor: pointer;
             text-align: center;
             transition: background 0.3s;
@@ -154,7 +150,7 @@
         }
 
         .selector input:checked+label {
-            background: #ff4500;
+            background: #007bff;
             color: #fff;
         }
 
@@ -178,27 +174,27 @@
 
         .footer {
             text-align: center;
-            margin-top: 30px;
+            margin-top: 10px;
             font-size: 16px;
-            color: #f0f0f0;
+            color: #e0e0e0;
         }
 
         #alarm-box {
-            background: #d32f2f;
+            background: #ff5722;
             color: white;
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 5px;
             text-align: center;
-            margin-bottom: 20px;
-            font-size: 18px;
+            margin-bottom: 10px;
+            font-size: 20px;
             font-weight: bold;
-            text-shadow: 0 0 5px #d32f2f;
+            text-shadow: 0 0 5px #ff5722;
         }
 
         .card {
-            background: #333;
+            background: #4b4b4b;
             border-radius: 10px;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -206,27 +202,8 @@
         }
 
         .value {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .pump-gauge {
-            width: 120px;
-            height: 60px;
-            background-color: #444;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-
-        #system-status {
-            font-size: 80px;
-            color: green;
-            margin-top: 20px;
-        }
-
-        .sensor-icon {
-            font-size: 30px;
             margin-bottom: 10px;
         }
     </style>
@@ -245,9 +222,6 @@
         <div class="pumps">
             <div class="pump">
                 <div class="pump-title">Jockey Pump</div>
-                <div class="pump-gauge">
-                    <!-- Add a gauge here to visually display pump pressure -->
-                </div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="jockey-pump-run"></div>
@@ -279,9 +253,6 @@
             </div>
             <div class="pump">
                 <div class="pump-title">Main Pump</div>
-                <div class="pump-gauge">
-                    <!-- Add a gauge here to visually display pump pressure -->
-                </div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="main-pump-run"></div>
@@ -313,9 +284,6 @@
             </div>
             <div class="pump">
                 <div class="pump-title">Diesel Pump</div>
-                <div class="pump-gauge">
-                    <!-- Add a gauge here to visually display pump pressure -->
-                </div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="diesel-pump-run"></div>
@@ -402,16 +370,13 @@
             </div>
         </div>
         <div class="footer">Made from Engineering</div>
-        <i id="system-status" class="fas fa-check-circle"></i> <!-- System status icon -->
     </div>
 
-    <audio id="alarm-sound" src="https://github.com/kiai1987/Firepumpsmonitoring/raw/main/alarm_clock.mp3"
-        preload="auto" muted></audio>
+    <audio id="alarm-sound" src="https://github.com/kiai1987/Firepumpsmonitoring/raw/main/alarm_clock.mp3" preload="auto" muted></audio>
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
         let lastMessageTime = Date.now();
-        let isConnected = false;
 
         function playAlarmSound() {
             const alarmSound = document.getElementById('alarm-sound');
@@ -450,7 +415,6 @@
         function handleStatusUpdates(data) {
             console.log('Received data:', data);
             lastMessageTime = Date.now();
-            isConnected = true;
 
             updateLedStatus('jockey-pump-run', data.JP, 'led-run');
             updateLedStatus('jockey-pump-off', !data.JP, 'led-off');
@@ -477,35 +441,24 @@
 
             const alarmBox = document.getElementById('alarm-box');
             let alarmText = '';
-
             if (data.JPT) alarmText += 'Jockey Pump Trip; ';
             if (data.MPT) alarmText += 'Main Pump Trip; ';
             if (data.DPT) alarmText += 'Diesel Pump Trip; ';
             if (data.SS1) alarmText += 'Smoke Detector 1 Active; ';
             if (data.SS2) alarmText += 'Smoke Detector 2 Active; ';
             if (data.FS) alarmText += 'Water Flood Sensor Active; ';
-            if (data.BZ) alarmText += 'Buzzer Active; ';
-
             alarmBox.textContent = alarmText ? `ALARM: ${alarmText}` : '';
 
-            if (data.JPT || data.MPT || data.DPT || data.SS1 || data.SS2 || data.FS || data.BZ) {
+            if (data.JPT || data.MPT || data.DPT || data.SS1 || data.SS2 || data.FS) {
                 playAlarmSound();
             }
 
-            const systemStatusIcon = document.getElementById('system-status');
-            if (alarmText) {
-                systemStatusIcon.classList.remove('fa-check-circle');
-                systemStatusIcon.classList.add('fa-exclamation-triangle');
-                systemStatusIcon.style.color = 'red';
-            } else if (data.connected === false) {
-                systemStatusIcon.classList.remove('fa-check-circle');
-                systemStatusIcon.classList.add('fa-exclamation-circle');
-                systemStatusIcon.style.color = 'yellow';
+            if (!data.connected) {
+                alarmBox.textContent = 'Communication error with central node or web server!';
+                alarmBox.style.backgroundColor = '#d32f2f';
+                setAllLedsBlank();
             } else {
-                systemStatusIcon.classList.remove('fa-exclamation-triangle');
-                systemStatusIcon.classList.remove('fa-exclamation-circle');
-                systemStatusIcon.classList.add('fa-check-circle');
-                systemStatusIcon.style.color = 'green';
+                alarmBox.style.backgroundColor = '#ff5722';
             }
         }
 
@@ -526,7 +479,6 @@
 
         mqttClient.on('connect', function () {
             console.log('Connected to MQTT broker');
-            isConnected = true;
             mqttClient.subscribe('fire-pump/status', function (err) {
                 if (!err) {
                     console.log('Subscribed to fire-pump/status');
@@ -543,9 +495,8 @@
 
         mqttClient.on('error', function (error) {
             console.error('MQTT error:', error);
-            isConnected = false;
             const alarmBox = document.getElementById('alarm-box');
-            alarmBox.textContent = 'Communication between receiver node and MQTT broker failed!';
+            alarmBox.textContent = 'Communication error with MQTT broker!';
             alarmBox.style.backgroundColor = '#d32f2f';
             setAllLedsBlank();
         });
@@ -580,22 +531,18 @@
         document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('buzzer-switch').addEventListener('change', updateBuzzerState);
             setInterval(function () {
-                const alarmBox = document.getElementById('alarm-box');
-                if (!isConnected) {
-                    alarmBox.textContent = 'Communication between receiver node and MQTT broker failed!';
+                if (!mqttClient.connected) {
+                    const alarmBox = document.getElementById('alarm-box');
+                    alarmBox.textContent = 'Communication error with MQTT broker!';
                     alarmBox.style.backgroundColor = '#d32f2f';
                     setAllLedsBlank();
-                } else if (Date.now() - lastMessageTime > 10000) {
+                } else if (Date.now() - lastMessageTime > 10000) { // 10 seconds
+                    const alarmBox = document.getElementById('alarm-box');
                     alarmBox.textContent = 'No data received from the transmitter!';
                     alarmBox.style.backgroundColor = '#d32f2f';
                     setAllLedsBlank();
                 }
-            }, 5000);
-            const systemStatusIcon = document.getElementById('system-status');
-            systemStatusIcon.classList.remove('fa-exclamation-triangle');
-            systemStatusIcon.classList.remove('fa-exclamation-circle');
-            systemStatusIcon.classList.add('fa-check-circle');
-            systemStatusIcon.style.color = 'green';
+            }, 5000); // Check every 5 seconds
         });
     </script>
 </body>
