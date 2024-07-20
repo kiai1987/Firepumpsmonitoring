@@ -419,13 +419,12 @@
     <script>
         let lastMessageTime = Date.now();
         let isConnected = false;
-        let alarmSource; 
 
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         let alarmBuffer;
 
         // Replace YOUR_ALARM_SOUND_URL with the actual URL to your alarm sound file
-        const alarmSoundUrl = 'YOUR_ALARM_SOUND_URL'; // Update with your sound file URL
+        const alarmSoundUrl = 'YOUR_ALARM_SOUND_URL';
 
         fetch(alarmSoundUrl)
             .then(response => response.arrayBuffer())
@@ -436,16 +435,10 @@
 
         function playAlarmSound() {
             if (alarmBuffer) {
-                alarmSource = audioContext.createBufferSource();
+                const alarmSource = audioContext.createBufferSource();
                 alarmSource.buffer = alarmBuffer;
                 alarmSource.connect(audioContext.destination);
                 alarmSource.start(0);
-            }
-        }
-
-        function stopAlarmSound() {
-            if (alarmSource) {
-                alarmSource.stop();
             }
         }
 
@@ -631,8 +624,6 @@
         });
 
         document.getElementById('buzzer-switch').addEventListener('change', updateBuzzerState);
-
-        window.addEventListener('blur', stopAlarmSound); // Add this line for audio stopping
 
         setInterval(function () {
             const currentTime = Date.now();
