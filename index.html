@@ -424,11 +424,6 @@
             </div>
         </div>
 
-        <div id="comm-alarm-box" class="alarm-box hidden">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span id="comm-alarm-msg">Communication Alarm</span>
-        </div>
-
         <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
         <i id="system-status" class="fas fa-check-circle"></i> <!-- System status icon -->
     </div>
@@ -508,27 +503,6 @@
             updateSelector('main', data.MPM);
             updateSelector('diesel', data.DPM);
 
-            // Communication alarm updates
-            const commAlarmBox = document.getElementById('comm-alarm-box');
-            commAlarmBox.classList.add('hidden'); // Hide the communication alarm box initially
-            const commAlarmMsg = document.getElementById('comm-alarm-msg');
-            commAlarmMsg.textContent = '';
-
-            let commAlarmActive = false;
-
-            if (data.RXTX === false) {
-                commAlarmBox.classList.remove('hidden');
-                commAlarmMsg.textContent += 'Receiver-Transmitter Communication Failed; ';
-                playAlarmSound();
-                commAlarmActive = true;
-            }
-            if (data.RXMQTT === false) {
-                commAlarmBox.classList.remove('hidden');
-                commAlarmMsg.textContent += 'Receiver-MQTT Communication Failed; ';
-                playAlarmSound();
-                commAlarmActive = true;
-            }
-
             // Alarm logic
             const alarmIcons = document.querySelectorAll('.alarm-icon');
             alarmIcons.forEach(icon => icon.classList.add('hidden')); // Hide all alarms initially
@@ -579,14 +553,21 @@
                 alarmActive = true;
             }
 
-            // Combine communication and other alarms
-            if (commAlarmActive) {
-                alarmBox.textContent += commAlarmMsg.textContent;
+            // Communication alarm updates
+            if (data.RXTX === false) {
+                alarmBox.textContent += 'Receiver-Transmitter Communication Failed; ';
+                playAlarmSound();
+                alarmActive = true;
+            }
+            if (data.RXMQTT === false) {
+                alarmBox.textContent += 'Receiver-MQTT Communication Failed; ';
+                playAlarmSound();
+                alarmActive = true;
             }
 
             // System Status
             const systemStatusIcon = document.getElementById('system-status');
-            if (alarmActive || commAlarmActive) {
+            if (alarmActive) {
                 systemStatusIcon.classList.remove('fa-check-circle');
                 systemStatusIcon.classList.add('fa-exclamation-circle');
                 systemStatusIcon.style.color = 'red';
