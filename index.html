@@ -419,12 +419,15 @@
     <script>
         let lastMessageTime = Date.now();
         let isConnected = false;
+        let alarmSource; 
 
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         let alarmBuffer;
 
-        // Use a common format like .wav and ensure the file is accessible
-        fetch('https://cdn.jsdelivr.net/gh/kiai1987/Firepumpsmonitoring/alarm_clock.wav', { mode: 'cors' })
+        // Replace YOUR_ALARM_SOUND_URL with the actual URL to your alarm sound file
+        const alarmSoundUrl = 'YOUR_ALARM_SOUND_URL'; // Update with your sound file URL
+
+        fetch(alarmSoundUrl)
             .then(response => response.arrayBuffer())
             .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
             .then(buffer => {
@@ -433,10 +436,16 @@
 
         function playAlarmSound() {
             if (alarmBuffer) {
-                const alarmSource = audioContext.createBufferSource();
+                alarmSource = audioContext.createBufferSource();
                 alarmSource.buffer = alarmBuffer;
                 alarmSource.connect(audioContext.destination);
                 alarmSource.start(0);
+            }
+        }
+
+        function stopAlarmSound() {
+            if (alarmSource) {
+                alarmSource.stop();
             }
         }
 
@@ -623,11 +632,13 @@
 
         document.getElementById('buzzer-switch').addEventListener('change', updateBuzzerState);
 
+        window.addEventListener('blur', stopAlarmSound); // Add this line for audio stopping
+
         setInterval(function () {
             const currentTime = Date.now();
             const elapsedTime = currentTime - lastMessageTime;
 
-            if (elapsedTime > 10000) { // Check for 10 seconds
+            if (elapsedTime > 10000) {
                 const alarmBox = document.getElementById('alarm-box');
                 alarmBox.textContent = '';
                 setAllLedsBlank();
