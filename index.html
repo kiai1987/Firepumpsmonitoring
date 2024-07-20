@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fire Pump Monitoring Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #2b2b2b;
+            background-color: #181818;
             color: #e0e0e0;
             display: flex;
             justify-content: center;
@@ -21,14 +21,17 @@
         }
 
         .container {
-            background: #3b3b3b;
+            background: #282828;
             border-radius: 15px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
             padding: 20px;
             max-width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
+            margin-top: 50px;
+            overflow-y: auto;
+            height: calc(100vh - 100px);
         }
 
         .header {
@@ -44,46 +47,47 @@
             text-shadow: 0 0 5px #007bff;
         }
 
-        .pumps {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(2, auto);
-            gap: 15px;
-            width: 100%;
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
         }
 
-        .pump {
-            background: #4b4b4b;
+        .card {
+            background: #3b3b3b;
             border-radius: 10px;
             padding: 15px;
-            transition: transform 0.3s, box-shadow 0.3s;
-            display: flex;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            min-width: 250px;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            width: 300px;
         }
 
-        .pump:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .pump-title {
+        .card-header {
             font-size: 18px;
-            margin-bottom: 10px;
-            color: #007bff;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 5px;
-            text-transform: uppercase;
             font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
 
         .status-indicators {
             display: flex;
-            justify-content: center;
-            gap: 30px;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 15px;
+            width: 100%;
+            gap: 10px;
         }
 
         .status {
@@ -92,12 +96,10 @@
             align-items: center;
         }
 
-        .status .led {
-            width: 60px;
-            height: 60px;
+        .led {
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            display: inline-block;
-            margin-bottom: 5px;
             border: 2px solid #333;
         }
 
@@ -125,41 +127,77 @@
             background-color: #333;
         }
 
-        .selector {
+        .sensor-icon {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+
+        .gauge-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e0e0e0;
+            margin-bottom: 10px;
+        }
+
+        .controls {
             display: flex;
             justify-content: space-around;
             width: 100%;
-            margin-top: 15px;
+            margin-top: 20px;
         }
 
-        .selector input {
-            display: none;
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .selector label {
-            display: block;
-            padding: 10px;
-            background: #616161;
-            border-radius: 5px;
-            cursor: pointer;
-            text-align: center;
-            transition: background 0.3s;
+        .control-label {
+            font-size: 16px;
+            margin-bottom: 5px;
             font-weight: bold;
-            user-select: none;
+        }
+
+        .control-input {
+            width: 100px;
+            padding: 8px;
+            border: 1px solid #616161;
+            border-radius: 5px;
+            background-color: #4b4b4b;
+            color: #e0e0e0;
+            text-align: center;
             font-size: 16px;
         }
 
-        .selector input:checked+label {
-            background: #007bff;
-            color: #fff;
+        .control-input option[value="0"] {
+            background-color: #f44336;
+        }
+
+        .control-input option[value="1"] {
+            background-color: #fff;
+        }
+
+        .control-input option[value="2"] {
+            background-color: #007bff;
+        }
+
+        .alarm-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #ff5722;
+            font-size: 24px;
+        }
+
+        .alarm-icon.hidden {
+            display: none;
         }
 
         .buzzer-switch {
-            text-align: center;
-            margin-bottom: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
+            margin-bottom: 20px;
         }
 
         .buzzer-switch label {
@@ -179,6 +217,12 @@
             color: #e0e0e0;
         }
 
+        #system-status {
+            font-size: 100px;
+            color: green;
+            margin-top: 20px;
+        }
+
         #alarm-box {
             background: #ff5722;
             color: white;
@@ -191,37 +235,38 @@
             text-shadow: 0 0 5px #ff5722;
         }
 
-        .card {
-            background: #4b4b4b;
-            border-radius: 10px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
+        @media (max-width: 768px) {
+            .dashboard {
+                flex-direction: column;
+                align-items: center;
+            }
 
-        .value {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
+            .card {
+                width: 90%;
+            }
+
+            .container {
+                margin-top: 0;
+                padding: 10px;
+            }
         }
     </style>
 </head>
-
 <body>
     <div class="container">
         <div class="header">
             <div class="logo">Fire Pump Monitoring System</div>
         </div>
+
+        <div id="alarm-box"></div>
         <div class="buzzer-switch">
             <label for="buzzer-switch">Buzzer Alarm:</label>
             <input type="checkbox" id="buzzer-switch" checked>
         </div>
-        <div id="alarm-box"></div>
-        <div class="pumps">
-            <div class="pump">
-                <div class="pump-title">Jockey Pump</div>
+        <div class="dashboard">
+            <div class="card">
+                <div class="card-header">Jockey Pump</div>
+                <div class="gauge-value" id="jockey-pressure"></div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="jockey-pump-run"></div>
@@ -236,23 +281,22 @@
                         <div>TRIP</div>
                     </div>
                 </div>
-                <div class="selector">
-                    <div>
-                        <input type="radio" id="jockey-manual" name="jockey-mode" value="1">
-                        <label for="jockey-manual">Manual</label>
-                    </div>
-                    <div>
-                        <input type="radio" id="jockey-off-mode" name="jockey-mode" value="0">
-                        <label for="jockey-off-mode">Off</label>
-                    </div>
-                    <div>
-                        <input type="radio" id="jockey-auto" name="jockey-mode" value="2">
-                        <label for="jockey-auto">Auto</label>
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-label">Mode</div>
+                        <select class="control-input" id="jockey-mode">
+                            <option value="0">Off</option>
+                            <option value="1">Manual</option>
+                            <option value="2">Auto</option>
+                        </select>
                     </div>
                 </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm"></i>
             </div>
-            <div class="pump">
-                <div class="pump-title">Main Pump</div>
+
+            <div class="card">
+                <div class="card-header">Main Pump</div>
+                <div class="gauge-value" id="main-pressure"></div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="main-pump-run"></div>
@@ -267,23 +311,22 @@
                         <div>TRIP</div>
                     </div>
                 </div>
-                <div class="selector">
-                    <div>
-                        <input type="radio" id="main-manual" name="main-mode" value="1">
-                        <label for="main-manual">Manual</label>
-                    </div>
-                    <div>
-                        <input type="radio" id="main-off-mode" name="main-mode" value="0">
-                        <label for="main-off-mode">Off</label>
-                    </div>
-                    <div>
-                        <input type="radio" id="main-auto" name="main-mode" value="2">
-                        <label for="main-auto">Auto</label>
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-label">Mode</div>
+                        <select class="control-input" id="main-mode">
+                            <option value="0">Off</option>
+                            <option value="1">Manual</option>
+                            <option value="2">Auto</option>
+                        </select>
                     </div>
                 </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="main-alarm"></i>
             </div>
-            <div class="pump">
-                <div class="pump-title">Diesel Pump</div>
+
+            <div class="card">
+                <div class="card-header">Diesel Pump</div>
+                <div class="gauge-value" id="diesel-pressure"></div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="diesel-pump-run"></div>
@@ -298,39 +341,32 @@
                         <div>TRIP</div>
                     </div>
                 </div>
-                <div class="selector">
-                    <div>
-                        <input type="radio" id="diesel-manual" name="diesel-mode" value="1">
-                        <label for="diesel-manual">Manual</label>
-                    </div>
-                    <div>
-                        <input type="radio" id="diesel-off-mode" name="diesel-mode" value="0">
-                        <label for="diesel-off-mode">Off</label>
-                    </div>
-                    <div>
-                        <input type="radio" id="diesel-auto" name="diesel-mode" value="2">
-                        <label for="diesel-auto">Auto</label>
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-label">Mode</div>
+                        <select class="control-input" id="diesel-mode">
+                            <option value="0">Off</option>
+                            <option value="1">Manual</option>
+                            <option value="2">Auto</option>
+                        </select>
                     </div>
                 </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="diesel-alarm"></i>
             </div>
-            <div class="pump">
-                <div class="pump-title">Room Temperature & Humidity</div>
-                <div class="card">
-                    <h3>Temperature</h3>
-                    <div class="value temperature" id="room-temperature">--°C</div>
-                    <h3>Humidity</h3>
-                    <div class="value humidity" id="room-humidity">--%</div>
-                </div>
+
+            <div class="card">
+                <div class="card-header">Room Temperature & Humidity</div>
+                <div class="value temperature" id="room-temperature">--°C</div>
+                <div class="value humidity" id="room-humidity">--%</div>
             </div>
-            <div class="pump">
-                <div class="pump-title">Water Pressure</div>
-                <div class="card">
-                    <h3>Pressure</h3>
-                    <div class="value pressure" id="water-pressure">0</div>
-                </div>
+
+            <div class="card">
+                <div class="card-header">Water Pressure</div>
+                <div class="value pressure" id="water-pressure">0</div>
             </div>
-            <div class="pump">
-                <div class="pump-title">Smoke Detector 1</div>
+
+            <div class="card">
+                <div class="card-header">Smoke Detector 1</div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="smoke-detector-1-active"></div>
@@ -341,9 +377,11 @@
                         <div>INACTIVE</div>
                     </div>
                 </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-1-alarm"></i>
             </div>
-            <div class="pump">
-                <div class="pump-title">Smoke Detector 2</div>
+
+            <div class="card">
+                <div class="card-header">Smoke Detector 2</div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="smoke-detector-2-active"></div>
@@ -354,9 +392,11 @@
                         <div>INACTIVE</div>
                     </div>
                 </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-2-alarm"></i>
             </div>
-            <div class="pump">
-                <div class="pump-title">Water Flood Sensor</div>
+
+            <div class="card">
+                <div class="card-header">Water Flood Sensor</div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="flood-sensor-active"></div>
@@ -367,21 +407,36 @@
                         <div>INACTIVE</div>
                     </div>
                 </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm"></i>
             </div>
         </div>
-        <div class="footer">Made from Engineering</div>
-    </div>
 
-    <audio id="alarm-sound" src="https://github.com/kiai1987/Firepumpsmonitoring/raw/main/alarm_clock.mp3" preload="auto" muted></audio>
+        <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
+        <i id="system-status" class="fas fa-check-circle"></i>
+    </div>
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
         let lastMessageTime = Date.now();
+        let isConnected = false;
+
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let alarmBuffer;
+
+        fetch('https://cdn.jsdelivr.net/gh/kiai1987/Firepumpsmonitoring/alarm_clock.mp3', { mode: 'no-cors' })
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+            .then(buffer => {
+                alarmBuffer = buffer;
+            }).catch(error => console.error('Error loading alarm sound:', error));
 
         function playAlarmSound() {
-            const alarmSound = document.getElementById('alarm-sound');
-            alarmSound.muted = false;
-            alarmSound.play();
+            if (alarmBuffer) {
+                const alarmSource = audioContext.createBufferSource();
+                alarmSource.buffer = alarmBuffer;
+                alarmSource.connect(audioContext.destination);
+                alarmSource.start(0);
+            }
         }
 
         function updateLedStatus(ledId, isActive, className) {
@@ -395,26 +450,14 @@
         }
 
         function updateSelector(selectorGroup, mode) {
-            const manual = document.getElementById(`${selectorGroup}-manual`);
-            const off = document.getElementById(`${selectorGroup}-off-mode`);
-            const auto = document.getElementById(`${selectorGroup}-auto`);
-
-            switch (mode) {
-                case 0:
-                    off.checked = true;
-                    break;
-                case 1:
-                    manual.checked = true;
-                    break;
-                case 2:
-                    auto.checked = true;
-                    break;
-            }
+            const selector = document.getElementById(`${selectorGroup}-mode`);
+            selector.value = mode;
         }
 
         function handleStatusUpdates(data) {
             console.log('Received data:', data);
             lastMessageTime = Date.now();
+            isConnected = true;
 
             updateLedStatus('jockey-pump-run', data.JP, 'led-run');
             updateLedStatus('jockey-pump-off', !data.JP, 'led-off');
@@ -425,12 +468,14 @@
             updateLedStatus('diesel-pump-run', data.DP, 'led-run');
             updateLedStatus('diesel-pump-off', !data.DP, 'led-off');
             updateLedStatus('diesel-pump-trip', data.DPT, 'led-trip');
+
             updateLedStatus('smoke-detector-1-active', data.SS1, 'led-active');
             updateLedStatus('smoke-detector-1-inactive', !data.SS1, 'led-inactive');
             updateLedStatus('smoke-detector-2-active', data.SS2, 'led-active');
             updateLedStatus('smoke-detector-2-inactive', !data.SS2, 'led-inactive');
             updateLedStatus('flood-sensor-active', data.FS, 'led-active');
             updateLedStatus('flood-sensor-inactive', !data.FS, 'led-inactive');
+
             document.getElementById('room-temperature').textContent = data.TH.split(',')[0] + '°C';
             document.getElementById('room-humidity').textContent = data.TH.split(',')[1] + '%';
             document.getElementById('water-pressure').textContent = data.WP;
@@ -440,25 +485,70 @@
             updateSelector('diesel', data.DPM);
 
             const alarmBox = document.getElementById('alarm-box');
-            let alarmText = '';
-            if (data.JPT) alarmText += 'Jockey Pump Trip; ';
-            if (data.MPT) alarmText += 'Main Pump Trip; ';
-            if (data.DPT) alarmText += 'Diesel Pump Trip; ';
-            if (data.SS1) alarmText += 'Smoke Detector 1 Active; ';
-            if (data.SS2) alarmText += 'Smoke Detector 2 Active; ';
-            if (data.FS) alarmText += 'Water Flood Sensor Active; ';
-            alarmBox.textContent = alarmText ? `ALARM: ${alarmText}` : '';
+            alarmBox.textContent = '';
 
-            if (data.JPT || data.MPT || data.DPT || data.SS1 || data.SS2 || data.FS) {
+            let alarmActive = false;
+
+            if (data.JPT) {
+                alarmBox.textContent += 'Jockey Pump Trip; ';
                 playAlarmSound();
+                alarmActive = true;
+            }
+            if (data.MPT) {
+                alarmBox.textContent += 'Main Pump Trip; ';
+                playAlarmSound();
+                alarmActive = true;
+            }
+            if (data.DPT) {
+                alarmBox.textContent += 'Diesel Pump Trip; ';
+                playAlarmSound();
+                alarmActive = true;
+            }
+            if (data.SS1) {
+                alarmBox.textContent += 'Smoke Detector 1 Active; ';
+                playAlarmSound();
+                alarmActive = true;
+            }
+            if (data.SS2) {
+                alarmBox.textContent += 'Smoke Detector 2 Active; ';
+                playAlarmSound();
+                alarmActive = true;
+            }
+            if (data.FS) {
+                alarmBox.textContent += 'Water Flood Sensor Active; ';
+                playAlarmSound();
+                alarmActive = true;
+            }
+            if (data.BZ) {
+                alarmBox.textContent += 'Buzzer Active; ';
+                playAlarmSound();
+                alarmActive = true;
             }
 
-            if (!data.connected) {
-                alarmBox.textContent = 'Communication error with central node or web server!';
-                alarmBox.style.backgroundColor = '#d32f2f';
-                setAllLedsBlank();
+            if (!data.RXTX) {
+                alarmBox.textContent += 'Receiver-Transmitter Communication Failed; ';
+                playAlarmSound();
+                alarmActive = true;
+            }
+            if (!data.RXMQTT) {
+                alarmBox.textContent += 'Receiver-MQTT Communication Failed; ';
+                playAlarmSound();
+                alarmActive = true;
+            }
+
+            const systemStatusIcon = document.getElementById('system-status');
+            if (alarmActive) {
+                systemStatusIcon.classList.remove('fa-check-circle');
+                systemStatusIcon.classList.add('fa-exclamation-circle');
+                systemStatusIcon.style.color = 'red';
+            } else if (data.connected === false) {
+                systemStatusIcon.classList.remove('fa-check-circle');
+                systemStatusIcon.classList.add('fa-exclamation-circle');
+                systemStatusIcon.style.color = 'yellow';
             } else {
-                alarmBox.style.backgroundColor = '#ff5722';
+                systemStatusIcon.classList.remove('fa-exclamation-circle');
+                systemStatusIcon.classList.add('fa-check-circle');
+                systemStatusIcon.style.color = 'green';
             }
         }
 
@@ -479,6 +569,7 @@
 
         mqttClient.on('connect', function () {
             console.log('Connected to MQTT broker');
+            isConnected = true;
             mqttClient.subscribe('fire-pump/status', function (err) {
                 if (!err) {
                     console.log('Subscribed to fire-pump/status');
@@ -495,10 +586,11 @@
 
         mqttClient.on('error', function (error) {
             console.error('MQTT error:', error);
-            const alarmBox = document.getElementById('alarm-box');
-            alarmBox.textContent = 'Communication error with MQTT broker!';
-            alarmBox.style.backgroundColor = '#d32f2f';
-            setAllLedsBlank();
+            isConnected = false;
+            const systemStatusIcon = document.getElementById('system-status');
+            systemStatusIcon.classList.remove('fa-check-circle');
+            systemStatusIcon.classList.add('fa-exclamation-circle');
+            systemStatusIcon.style.color = 'yellow';
         });
 
         function updateBuzzerState() {
@@ -513,9 +605,9 @@
             });
         }
 
-        document.querySelectorAll('.selector input').forEach(input => {
+        document.querySelectorAll('.control-input').forEach(input => {
             input.addEventListener('change', function () {
-                const selectorGroup = this.name.split('-')[0];
+                const selectorGroup = this.id.split('-')[0];
                 const selectedMode = this.value;
                 const payload = JSON.stringify({ group: selectorGroup, mode: selectedMode });
                 mqttClient.publish('fire-pump/mode', payload, function (err) {
@@ -528,23 +620,31 @@
             });
         });
 
-        document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('buzzer-switch').addEventListener('change', updateBuzzerState);
-            setInterval(function () {
-                if (!mqttClient.connected) {
-                    const alarmBox = document.getElementById('alarm-box');
-                    alarmBox.textContent = 'Communication error with MQTT broker!';
-                    alarmBox.style.backgroundColor = '#d32f2f';
-                    setAllLedsBlank();
-                } else if (Date.now() - lastMessageTime > 10000) { // 10 seconds
-                    const alarmBox = document.getElementById('alarm-box');
-                    alarmBox.textContent = 'No data received from the transmitter!';
-                    alarmBox.style.backgroundColor = '#d32f2f';
-                    setAllLedsBlank();
+        document.getElementById('buzzer-switch').addEventListener('change', updateBuzzerState);
+
+        setInterval(function () {
+            const currentTime = Date.now();
+            const elapsedTime = currentTime - lastMessageTime;
+
+            if (elapsedTime > 10000) { // Check for 10 seconds
+                const alarmBox = document.getElementById('alarm-box');
+                alarmBox.textContent = '';
+                setAllLedsBlank();
+
+                if (!isConnected) {
+                    alarmBox.textContent += 'Receiver-MQTT Communication Failed; ';
+                    playAlarmSound();
+                } else {
+                    alarmBox.textContent += 'Receiver-Transmitter Communication Failed; ';
+                    playAlarmSound();
                 }
-            }, 5000); // Check every 5 seconds
-        });
+
+                const systemStatusIcon = document.getElementById('system-status');
+                systemStatusIcon.classList.remove('fa-check-circle');
+                systemStatusIcon.classList.add('fa-exclamation-circle');
+                systemStatusIcon.style.color = 'red';
+            }
+        }, 1000);
     </script>
 </body>
-
 </html>
