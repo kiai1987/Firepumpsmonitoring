@@ -626,7 +626,19 @@
         document.getElementById('buzzer-switch').addEventListener('change', updateBuzzerState);
 
         setInterval(function () {
-            // ... (Your existing code to update the dashboard) ...
+            const currentTime = Date.now();
+            const elapsedTime = currentTime - lastMessageTime;
+
+            if (elapsedTime > 5000) { // If more than 5 seconds have passed since the last message
+                const alarmBox = document.getElementById('alarm-box');
+                alarmBox.textContent = 'Receiver-Transmitter Communication Failed; ';
+                playAlarmSound();
+
+                const systemStatusIcon = document.getElementById('system-status');
+                systemStatusIcon.classList.remove('fa-check-circle');
+                systemStatusIcon.classList.add('fa-exclamation-circle');
+                systemStatusIcon.style.color = 'red';
+            }
         }, 1000);
     </script>
 </body>
