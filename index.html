@@ -155,7 +155,7 @@
         .control-label {
             font-size: 16px;
             margin-bottom: 5px;
-            font-weight: bold;
+            font-weight: bold.
         }
 
         .control-input {
@@ -166,7 +166,7 @@
             background-color: #4b4b4b;
             color: #e0e0e0;
             text-align: center;
-            font-size: 16px;
+            font-size: 16px.
         }
 
         .control-input option[value="0"] {
@@ -178,76 +178,76 @@
         }
 
         .control-input option[value="2"] {
-            background-color: #007bff;
+            background-color: #007bff.
         }
 
         .alarm-icon {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: #ff5722;
-            font-size: 24px;
+            position: absolute.
+            top: 10px.
+            right: 10px.
+            color: #ff5722.
+            font-size: 24px.
         }
 
         .alarm-icon.hidden {
-            display: none;
+            display: none.
         }
 
         .buzzer-switch {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
+            display: flex.
+            justify-content: center.
+            align-items: center.
+            margin-bottom: 20px.
         }
 
         .buzzer-switch label {
-            font-size: 18px;
-            margin-right: 10px;
-            font-weight: bold;
+            font-size: 18px.
+            margin-right: 10px.
+            font-weight: bold.
         }
 
         .buzzer-switch input {
-            transform: scale(1.5);
+            transform: scale(1.5).
         }
 
         .footer {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 16px;
-            color: #e0e0e0;
+            text-align: center.
+            margin-top: 10px.
+            font-size: 16px.
+            color: #e0e0e0.
         }
 
         #system-status {
-            font-size: 100px;
-            color: green;
-            margin-top: 20px;
+            font-size: 100px.
+            color: green.
+            margin-top: 20px.
         }
 
         #alarm-box {
-            background: #ff5722;
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 20px;
-            font-weight: bold;
-            text-shadow: 0 0 5px #ff5722;
+            background: #ff5722.
+            color: white.
+            padding: 15px.
+            border-radius: 5px.
+            text-align: center.
+            margin-bottom: 10px.
+            font-size: 20px.
+            font-weight: bold.
+            text-shadow: 0 0 5px #ff5722.
         }
 
         @media (max-width: 768px) {
             .dashboard {
-                flex-direction: column;
-                align-items: center;
+                flex-direction: column.
+                align-items: center.
             }
 
             .card {
-                width: 90%;
+                width: 90%.
             }
 
             .container {
-                margin-top: 0;
-                padding: 10px;
+                margin-top: 0.
+                padding: 10px.
             }
         }
     </style>
@@ -423,7 +423,7 @@
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         let alarmBuffer;
 
-        const alarmSoundUrl = 'https://github.com/kiai1987/alarm-sound/raw/main/alarm_clock.wav';
+        const alarmSoundUrl = 'https://<alarmclock1987>.s3.eu-north-1.amazonaws.com/alarm_clock.wav';
 
         fetch(alarmSoundUrl)
             .then(response => response.arrayBuffer())
