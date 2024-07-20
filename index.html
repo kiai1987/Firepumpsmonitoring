@@ -239,23 +239,6 @@
             text-shadow: 0 0 5px #ff5722;
         }
 
-        #communication-status {
-            font-size: 30px;
-            color: white;
-            margin-top: 10px;
-            margin-bottom: 20px;
-        }
-
-        .communication-status-indicator {
-            font-size: 30px;
-            margin-right: 10px;
-            color: #e0e0e0; /* Keep a light color for inactive */
-        }
-
-        .communication-status-indicator.active {
-            color: #4caf50; /* Green for active */
-        }
-
         @media (max-width: 768px) {
             .dashboard {
                 flex-direction: column;
@@ -441,12 +424,6 @@
             </div>
         </div>
 
-        <div id="communication-status">
-            <i class="fas fa-satellite-dish communication-status-indicator" id="receiver-transmitter"></i>
-            <i class="fas fa-network-wired communication-status-indicator" id="receiver-mqtt"></i>
-            Communication Status
-        </div>
-
         <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
         <i id="system-status" class="fas fa-check-circle"></i> <!-- System status icon -->
     </div>
@@ -455,8 +432,6 @@
     <script>
         let lastMessageTime = Date.now();
         let isConnected = false; // Track connection state
-        let isReceiverTransmitterConnected = true;
-        let isReceiverMqttConnected = true;
 
         // Create an audio context
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -578,15 +553,6 @@
                 alarmActive = true;
             }
 
-            if (!isReceiverTransmitterConnected) {
-                alarmBox.textContent += 'Communication with Transmitter Lost; ';
-                alarmActive = true;
-            }
-            if (!isReceiverMqttConnected) {
-                alarmBox.textContent += 'Communication with MQTT Broker Lost; ';
-                alarmActive = true;
-            }
-
             // System Status
             if (alarmActive) {
                 systemStatusIcon.classList.remove('fa-check-circle');
@@ -685,27 +651,6 @@
                 systemStatusIcon.style.color = 'yellow';
             }
         }, 5000); // Check every 5 seconds
-
-        // Update communication icons
-        setInterval(function () {
-            const receiverTransmitterIcon = document.getElementById('receiver-transmitter');
-            const receiverMqttIcon = document.getElementById('receiver-mqtt');
-
-            receiverTransmitterIcon.classList.remove('active', 'inactive');
-            receiverMqttIcon.classList.remove('active', 'inactive');
-
-            if (isReceiverTransmitterConnected) {
-                receiverTransmitterIcon.classList.add('active');
-            } else {
-                receiverTransmitterIcon.classList.add('inactive');
-            }
-
-            if (isReceiverMqttConnected) {
-                receiverMqttIcon.classList.add('active');
-            } else {
-                receiverMqttIcon.classList.add('inactive');
-            }
-        }, 1000); // Update every second
     </script>
 </body>
 
