@@ -423,7 +423,8 @@
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         let alarmBuffer;
 
-        fetch('https://cdn.jsdelivr.net/gh/kiai1987/Firepumpsmonitoring/alarm_clock.mp3', { mode: 'no-cors' })
+        // Use a common format like .wav and ensure the file is accessible
+        fetch('https://cdn.jsdelivr.net/gh/kiai1987/Firepumpsmonitoring/alarm_clock.wav', { mode: 'cors' })
             .then(response => response.arrayBuffer())
             .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
             .then(buffer => {
