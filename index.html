@@ -525,12 +525,12 @@
                 alarmActive = true;
             }
 
-            if (data.RXTX === false) {
+            if (!data.RXTX) {
                 alarmBox.textContent += 'Receiver-Transmitter Communication Failed; ';
                 playAlarmSound();
                 alarmActive = true;
             }
-            if (data.RXMQTT === false) {
+            if (!data.RXMQTT) {
                 alarmBox.textContent += 'Receiver-MQTT Communication Failed; ';
                 playAlarmSound();
                 alarmActive = true;
@@ -632,10 +632,10 @@
                 setAllLedsBlank(); // Set all LEDs to blank
 
                 if (!isConnected) {
-                    alarmBox.textContent = 'Receiver-MQTT Communication Failed; ';
+                    alarmBox.textContent += 'Receiver-MQTT Communication Failed; ';
                     playAlarmSound();
                 } else {
-                    alarmBox.textContent = 'Receiver-Transmitter Communication Failed; ';
+                    alarmBox.textContent += 'Receiver-Transmitter Communication Failed; ';
                     playAlarmSound();
                 }
 
