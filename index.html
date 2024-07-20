@@ -686,21 +686,6 @@
             }
         }, 5000); // Check every 5 seconds
 
-        // Simulate Communication Status Updates
-        setInterval(function () {
-            const receiverTransmitterIcon = document.getElementById('receiver-transmitter');
-            const receiverMqttIcon = document.getElementById('receiver-mqtt');
-            const randomValue = Math.random();
-
-            // Simulate random connection status changes
-            if (randomValue < 0.1) { // 10% chance of disconnect
-                isReceiverTransmitterConnected = !isReceiverTransmitterConnected;
-            }
-            if (randomValue < 0.2) { // 20% chance of disconnect
-                isReceiverMqttConnected = !isReceiverMqttConnected;
-            }
-        }, 2000); // Update every 2 seconds
-
         // Update communication icons
         setInterval(function () {
             const receiverTransmitterIcon = document.getElementById('receiver-transmitter');
