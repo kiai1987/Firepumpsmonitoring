@@ -424,6 +424,11 @@
             </div>
         </div>
 
+        <div id="comm-alarm-box" class="alarm-box hidden">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="comm-alarm-msg">Communication Alarm</span>
+        </div>
+
         <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
         <i id="system-status" class="fas fa-check-circle"></i> <!-- System status icon -->
     </div>
@@ -502,6 +507,23 @@
             updateSelector('jockey', data.JPM);
             updateSelector('main', data.MPM);
             updateSelector('diesel', data.DPM);
+
+            // Communication alarm updates
+            const commAlarmBox = document.getElementById('comm-alarm-box');
+            commAlarmBox.classList.add('hidden'); // Hide the communication alarm box initially
+            const commAlarmMsg = document.getElementById('comm-alarm-msg');
+            commAlarmMsg.textContent = '';
+
+            if (data.RXTX === false) {
+                commAlarmBox.classList.remove('hidden');
+                commAlarmMsg.textContent += 'Receiver-Transmitter Communication Failed; ';
+                playAlarmSound();
+            }
+            if (data.RXMQTT === false) {
+                commAlarmBox.classList.remove('hidden');
+                commAlarmMsg.textContent += 'Receiver-MQTT Communication Failed; ';
+                playAlarmSound();
+            }
 
             // Alarm logic
             const alarmIcons = document.querySelectorAll('.alarm-icon');
