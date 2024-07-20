@@ -626,10 +626,10 @@
             const currentTime = Date.now();
             const elapsedTime = currentTime - lastMessageTime;
 
-            if (elapsedTime > 5000) {
+            if (elapsedTime > 10000) { // Check for 10 seconds
                 const alarmBox = document.getElementById('alarm-box');
-                alarmBox.textContent = ''; // Leave alarm box blank
-                setAllLedsBlank(); // Set all LEDs to blank
+                alarmBox.textContent = '';
+                setAllLedsBlank();
 
                 if (!isConnected) {
                     alarmBox.textContent += 'Receiver-MQTT Communication Failed; ';
