@@ -239,18 +239,6 @@
             text-shadow: 0 0 5px #ff5722;
         }
 
-        #communication-alarm {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: #ff5722;
-            font-size: 24px;
-        }
-
-        #communication-alarm.hidden {
-            display: none;
-        }
-
         @media (max-width: 768px) {
             .dashboard {
                 flex-direction: column;
@@ -434,12 +422,6 @@
                 </div>
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm"></i>
             </div>
-
-            <!-- Communication Alarm -->
-            <div class="card">
-                <div class="card-header">Communication</div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="communication-alarm"></i>
-            </div>
         </div>
 
         <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
@@ -522,45 +504,37 @@
             updateSelector('diesel', data.DPM);
 
             // Alarm logic
-            const alarmIcons = document.querySelectorAll('.alarm-icon');
-            alarmIcons.forEach(icon => icon.classList.add('hidden')); // Hide all alarms initially
             const alarmBox = document.getElementById('alarm-box');
             alarmBox.textContent = ''; // Clear the alarm box
 
             let alarmActive = false;
 
             if (data.JPT) {
-                document.getElementById('jockey-alarm').classList.remove('hidden');
                 alarmBox.textContent += 'Jockey Pump Trip; ';
                 playAlarmSound();
                 alarmActive = true;
             }
             if (data.MPT) {
-                document.getElementById('main-alarm').classList.remove('hidden');
                 alarmBox.textContent += 'Main Pump Trip; ';
                 playAlarmSound();
                 alarmActive = true;
             }
             if (data.DPT) {
-                document.getElementById('diesel-alarm').classList.remove('hidden');
                 alarmBox.textContent += 'Diesel Pump Trip; ';
                 playAlarmSound();
                 alarmActive = true;
             }
             if (data.SS1) {
-                document.getElementById('smoke-detector-1-alarm').classList.remove('hidden');
                 alarmBox.textContent += 'Smoke Detector 1 Active; ';
                 playAlarmSound();
                 alarmActive = true;
             }
             if (data.SS2) {
-                document.getElementById('smoke-detector-2-alarm').classList.remove('hidden');
                 alarmBox.textContent += 'Smoke Detector 2 Active; ';
                 playAlarmSound();
                 alarmActive = true;
             }
             if (data.FS) {
-                document.getElementById('flood-sensor-alarm').classList.remove('hidden');
                 alarmBox.textContent += 'Water Flood Sensor Active; ';
                 playAlarmSound();
                 alarmActive = true;
@@ -576,13 +550,11 @@
                 alarmBox.textContent += 'Receiver-Transmitter Communication Failed; ';
                 playAlarmSound();
                 alarmActive = true;
-                document.getElementById('communication-alarm').classList.remove('hidden');
             }
             if (data.RXMQTT === false) {
                 alarmBox.textContent += 'Receiver-MQTT Communication Failed; ';
                 playAlarmSound();
                 alarmActive = true;
-                document.getElementById('communication-alarm').classList.remove('hidden');
             }
 
             // System Status
@@ -672,18 +644,10 @@
 
         document.getElementById('buzzer-switch').addEventListener('change', updateBuzzerState);
 
+        // Update the dashboard every second
         setInterval(function () {
-            const systemStatusIcon = document.getElementById('system-status');
-            if (!isConnected) {
-                systemStatusIcon.classList.remove('fa-check-circle');
-                systemStatusIcon.classList.add('fa-exclamation-circle');
-                systemStatusIcon.style.color = 'yellow';
-            } else if (Date.now() - lastMessageTime > 10000) { // 10 seconds
-                systemStatusIcon.classList.remove('fa-check-circle');
-                systemStatusIcon.classList.add('fa-exclamation-circle');
-                systemStatusIcon.style.color = 'yellow';
-            }
-        }, 5000); // Check every 5 seconds
+            // ... (Your existing code to update the dashboard) ...
+        }, 1000); 
     </script>
 </body>
 
