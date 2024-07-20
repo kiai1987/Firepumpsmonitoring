@@ -514,15 +514,19 @@
             const commAlarmMsg = document.getElementById('comm-alarm-msg');
             commAlarmMsg.textContent = '';
 
+            let commAlarmActive = false;
+
             if (data.RXTX === false) {
                 commAlarmBox.classList.remove('hidden');
                 commAlarmMsg.textContent += 'Receiver-Transmitter Communication Failed; ';
                 playAlarmSound();
+                commAlarmActive = true;
             }
             if (data.RXMQTT === false) {
                 commAlarmBox.classList.remove('hidden');
                 commAlarmMsg.textContent += 'Receiver-MQTT Communication Failed; ';
                 playAlarmSound();
+                commAlarmActive = true;
             }
 
             // Alarm logic
@@ -575,8 +579,14 @@
                 alarmActive = true;
             }
 
+            // Combine communication and other alarms
+            if (commAlarmActive) {
+                alarmBox.textContent += commAlarmMsg.textContent;
+            }
+
             // System Status
-            if (alarmActive) {
+            const systemStatusIcon = document.getElementById('system-status');
+            if (alarmActive || commAlarmActive) {
                 systemStatusIcon.classList.remove('fa-check-circle');
                 systemStatusIcon.classList.add('fa-exclamation-circle');
                 systemStatusIcon.style.color = 'red';
