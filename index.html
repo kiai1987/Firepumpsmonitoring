@@ -239,6 +239,27 @@
             text-shadow: 0 0 5px #ff5722;
         }
 
+        #communication-status {
+            font-size: 30px;
+            color: white;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        .communication-status-indicator {
+            font-size: 30px;
+            margin-right: 10px;
+            color: #e0e0e0;
+        }
+
+        .communication-status-indicator.active {
+            color: #4caf50; /* Green for active */
+        }
+
+        .communication-status-indicator.inactive {
+            color: #f44336; /* Red for inactive */
+        }
+
         @media (max-width: 768px) {
             .dashboard {
                 flex-direction: column;
@@ -422,22 +443,12 @@
                 </div>
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm"></i>
             </div>
+        </div>
 
-            <!-- Communication Status -->
-            <div class="card">
-                <div class="card-header">Communication Status</div>
-                <div class="status-indicators">
-                    <div class="status">
-                        <div class="led" id="comm-receiver-transmitter-active"></div>
-                        <div>RX-TX</div>
-                    </div>
-                    <div class="status">
-                        <div class="led" id="comm-receiver-mqtt-active"></div>
-                        <div>RX-MQTT</div>
-                    </div>
-                </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="comm-alarm"></i>
-            </div>
+        <div id="communication-status">
+            <i class="fas fa-satellite-dish communication-status-indicator active" id="receiver-transmitter"></i>
+            <i class="fas fa-network-wired communication-status-indicator active" id="receiver-mqtt"></i>
+            Communication Status
         </div>
 
         <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
@@ -448,6 +459,8 @@
     <script>
         let lastMessageTime = Date.now();
         let isConnected = false; // Track connection state
+        let isReceiverTransmitterConnected = true;
+        let isReceiverMqttConnected = true;
 
         // Create an audio context
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -519,10 +532,6 @@
             updateSelector('main', data.MPM);
             updateSelector('diesel', data.DPM);
 
-            // Communication status updates
-            updateLedStatus('comm-receiver-transmitter-active', data.RXTX, 'led-active');
-            updateLedStatus('comm-receiver-mqtt-active', data.RXMQTT, 'led-active');
-
             // Alarm logic
             const alarmIcons = document.querySelectorAll('.alarm-icon');
             alarmIcons.forEach(icon => icon.classList.add('hidden')); // Hide all alarms initially
@@ -569,18 +578,6 @@
             }
             if (data.BZ) {
                 alarmBox.textContent += 'Buzzer Active; ';
-                playAlarmSound();
-                alarmActive = true;
-            }
-            if (data.RXTX === false) {
-                document.getElementById('comm-alarm').classList.remove('hidden');
-                alarmBox.textContent += 'Receiver-Transmitter Communication Failed; ';
-                playAlarmSound();
-                alarmActive = true;
-            }
-            if (data.RXMQTT === false) {
-                document.getElementById('comm-alarm').classList.remove('hidden');
-                alarmBox.textContent += 'Receiver-MQTT Communication Failed; ';
                 playAlarmSound();
                 alarmActive = true;
             }
@@ -683,6 +680,25 @@
                 systemStatusIcon.style.color = 'yellow';
             }
         }, 5000); // Check every 5 seconds
+
+        // Simulate Communication Status Updates
+        setInterval(function () {
+            const receiverTransmitterIcon = document.getElementById('receiver-transmitter');
+            const receiverMqttIcon = document.getElementById('receiver-mqtt');
+            const randomValue = Math.random();
+
+            // Simulate random connection status changes
+            if (randomValue < 0.1) { // 10% chance of disconnect
+                isReceiverTransmitterConnected = !isReceiverTransmitterConnected;
+                receiverTransmitterIcon.classList.remove(isReceiverTransmitterConnected ? 'inactive' : 'active');
+                receiverTransmitterIcon.classList.add(isReceiverTransmitterConnected ? 'active' : 'inactive');
+            }
+            if (randomValue < 0.2) { // 20% chance of disconnect
+                isReceiverMqttConnected = !isReceiverMqttConnected;
+                receiverMqttIcon.classList.remove(isReceiverMqttConnected ? 'inactive' : 'active');
+                receiverMqttIcon.classList.add(isReceiverMqttConnected ? 'active' : 'inactive');
+            }
+        }, 2000); // Update every 2 seconds
     </script>
 </body>
 
