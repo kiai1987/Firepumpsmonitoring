@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #181818; /* Darker background */
+            background-color: #181818;
             color: #e0e0e0;
             display: flex;
             justify-content: center;
@@ -23,18 +23,17 @@
         }
 
         .container {
-            background: #282828; /* Darker background */
+            background: #282828;
             border-radius: 15px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
             padding: 20px;
             max-width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Lift the container */
             margin-top: 50px;
-            overflow-y: auto; /* Add vertical scroll */
-            height: calc(100vh - 100px); /* Adjust height */
+            overflow-y: auto;
+            height: calc(100vh - 100px);
         }
 
         .header {
@@ -62,11 +61,11 @@
             border-radius: 10px;
             padding: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            min-width: 250px; /* Ensure cards have minimum width */
+            min-width: 250px;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            position: relative; /* For positioning the alarm icon */
+            position: relative;
             width: 300px;
         }
 
@@ -86,10 +85,10 @@
 
         .status-indicators {
             display: flex;
-            justify-content: space-between; /* Distribute LEDs evenly */
+            justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            width: 100%; /* Make LEDs take up the full width */
+            width: 100%;
             gap: 10px;
         }
 
@@ -107,23 +106,23 @@
         }
 
         .led-run {
-            background-color: #4caf50; /* Green for running */
+            background-color: #4caf50;
         }
 
         .led-off {
-            background-color: #f44336; /* Red for off */
+            background-color: #f44336;
         }
 
         .led-trip {
-            background-color: #FFFF33; /* Yellow for trip */
+            background-color: #FFFF33;
         }
 
         .led-active {
-            background-color: #f44336; /* Red for active */
+            background-color: #f44336;
         }
 
         .led-inactive {
-            background-color: #4caf50; /* Green for inactive */
+            background-color: #4caf50;
         }
 
         .led-blank {
@@ -162,27 +161,26 @@
         }
 
         .control-input {
-            width: 100px; /* Wider selector switch */
-            padding: 8px; /* More padding */
+            width: 100px;
+            padding: 8px;
             border: 1px solid #616161;
             border-radius: 5px;
             background-color: #4b4b4b;
             color: #e0e0e0;
             text-align: center;
-            font-size: 16px; /* Slightly larger font size */
+            font-size: 16px;
         }
 
-        /* Mode Colors */
         .control-input option[value="0"] {
-            background-color: #f44336; /* Red for Off */
+            background-color: #f44336;
         }
 
         .control-input option[value="1"] {
-            background-color: #fff; /* White for Manual */
+            background-color: #fff;
         }
 
         .control-input option[value="2"] {
-            background-color: #007bff; /* Blue for Auto */
+            background-color: #007bff;
         }
 
         .alarm-icon {
@@ -224,7 +222,7 @@
         #system-status {
             font-size: 100px;
             color: green;
-            margin-top: 20px; /* Add margin to separate from the footer */
+            margin-top: 20px;
         }
 
         #alarm-box {
@@ -246,12 +244,12 @@
             }
 
             .card {
-                width: 90%; /* Make cards take up most of the screen width on small screens */
+                width: 90%;
             }
 
             .container {
-                margin-top: 0; /* Remove top margin for small screens */
-                padding: 10px; /* Reduce padding for small screens */
+                margin-top: 0;
+                padding: 10px;
             }
         }
     </style>
@@ -269,7 +267,6 @@
             <input type="checkbox" id="buzzer-switch" checked>
         </div>
         <div class="dashboard">
-            <!-- Jockey Pump -->
             <div class="card">
                 <div class="card-header">Jockey Pump</div>
                 <div class="gauge-value" id="jockey-pressure"></div>
@@ -300,7 +297,6 @@
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm"></i>
             </div>
 
-            <!-- Main Pump -->
             <div class="card">
                 <div class="card-header">Main Pump</div>
                 <div class="gauge-value" id="main-pressure"></div>
@@ -331,7 +327,6 @@
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="main-alarm"></i>
             </div>
 
-            <!-- Diesel Pump -->
             <div class="card">
                 <div class="card-header">Diesel Pump</div>
                 <div class="gauge-value" id="diesel-pressure"></div>
@@ -362,20 +357,17 @@
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="diesel-alarm"></i>
             </div>
 
-            <!-- Room Temperature & Humidity -->
             <div class="card">
                 <div class="card-header">Room Temperature & Humidity</div>
                 <div class="value temperature" id="room-temperature">--°C</div>
                 <div class="value humidity" id="room-humidity">--%</div>
             </div>
 
-            <!-- Water Pressure -->
             <div class="card">
                 <div class="card-header">Water Pressure</div>
                 <div class="value pressure" id="water-pressure">0</div>
             </div>
 
-            <!-- Smoke Detector 1 -->
             <div class="card">
                 <div class="card-header">Smoke Detector 1</div>
                 <div class="status-indicators">
@@ -391,7 +383,6 @@
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-1-alarm"></i>
             </div>
 
-            <!-- Smoke Detector 2 -->
             <div class="card">
                 <div class="card-header">Smoke Detector 2</div>
                 <div class="status-indicators">
@@ -407,7 +398,6 @@
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-2-alarm"></i>
             </div>
 
-            <!-- Water Flood Sensor -->
             <div class="card">
                 <div class="card-header">Water Flood Sensor</div>
                 <div class="status-indicators">
@@ -425,19 +415,17 @@
         </div>
 
         <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
-        <i id="system-status" class="fas fa-check-circle"></i> <!-- System status icon -->
+        <i id="system-status" class="fas fa-check-circle"></i>
     </div>
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
         let lastMessageTime = Date.now();
-        let isConnected = false; // Track connection state
+        let isConnected = false;
 
-        // Create an audio context
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         let alarmBuffer;
 
-        // Load the alarm sound into an AudioBuffer
         fetch('https://cdn.jsdelivr.net/gh/kiai1987/Firepumpsmonitoring/alarm_clock.mp3', { mode: 'no-cors' })
             .then(response => response.arrayBuffer())
             .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
@@ -472,9 +460,8 @@
         function handleStatusUpdates(data) {
             console.log('Received data:', data);
             lastMessageTime = Date.now();
-            isConnected = true; // Update connection state
+            isConnected = true;
 
-            // Pump status updates
             updateLedStatus('jockey-pump-run', data.JP, 'led-run');
             updateLedStatus('jockey-pump-off', !data.JP, 'led-off');
             updateLedStatus('jockey-pump-trip', data.JPT, 'led-trip');
@@ -485,7 +472,6 @@
             updateLedStatus('diesel-pump-off', !data.DP, 'led-off');
             updateLedStatus('diesel-pump-trip', data.DPT, 'led-trip');
 
-            // Sensor status updates
             updateLedStatus('smoke-detector-1-active', data.SS1, 'led-active');
             updateLedStatus('smoke-detector-1-inactive', !data.SS1, 'led-inactive');
             updateLedStatus('smoke-detector-2-active', data.SS2, 'led-active');
@@ -493,19 +479,16 @@
             updateLedStatus('flood-sensor-active', data.FS, 'led-active');
             updateLedStatus('flood-sensor-inactive', !data.FS, 'led-inactive');
 
-            // Value updates
             document.getElementById('room-temperature').textContent = data.TH.split(',')[0] + '°C';
             document.getElementById('room-humidity').textContent = data.TH.split(',')[1] + '%';
             document.getElementById('water-pressure').textContent = data.WP;
 
-            // Mode updates
             updateSelector('jockey', data.JPM);
             updateSelector('main', data.MPM);
             updateSelector('diesel', data.DPM);
 
-            // Alarm logic
             const alarmBox = document.getElementById('alarm-box');
-            alarmBox.textContent = ''; // Clear the alarm box
+            alarmBox.textContent = '';
 
             let alarmActive = false;
 
@@ -545,7 +528,6 @@
                 alarmActive = true;
             }
 
-            // Communication alarm checks
             if (data.RXTX === false) {
                 alarmBox.textContent += 'Receiver-Transmitter Communication Failed; ';
                 playAlarmSound();
@@ -557,7 +539,6 @@
                 alarmActive = true;
             }
 
-            // System Status
             const systemStatusIcon = document.getElementById('system-status');
             if (alarmActive) {
                 systemStatusIcon.classList.remove('fa-check-circle');
@@ -644,10 +625,9 @@
 
         document.getElementById('buzzer-switch').addEventListener('change', updateBuzzerState);
 
-        // Update the dashboard every second
         setInterval(function () {
             // ... (Your existing code to update the dashboard) ...
-        }, 1000); 
+        }, 1000);
     </script>
 </body>
 
