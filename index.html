@@ -419,25 +419,47 @@
     <script>
         let lastMessageTime = Date.now();
         let isConnected = false;
+        let audioContext;
 
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        // Create audio context and handle potential errors
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (error) {
+            console.error("Error creating audio context: ", error);
+        }
+
         let alarmBuffer;
 
-        const alarmSoundUrl = 'https://github.com/kiai1987/alarm-sound/raw/main/alarm_clock.wav';
+        // Make sure to get the sound file from the same origin
+        const alarmSoundUrl = 'https://github.com/kiai1987/Firepumpsmonitoring/raw/main/alarm_clock%20(6).wav'; // Replace with the path to your sound file
+
+        // Handle the audio context state correctly
+        audioContext.suspend();  // Start in suspended state
+        audioContext.onstatechange = function () {
+            if (audioContext.state === 'suspended') {
+                console.log("Audio context suspended.");
+            } else if (audioContext.state === 'running') {
+                console.log("Audio context running.");
+            }
+        };
 
         fetch(alarmSoundUrl)
             .then(response => response.arrayBuffer())
             .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
             .then(buffer => {
                 alarmBuffer = buffer;
+                console.log("Alarm sound loaded successfully.");
             }).catch(error => console.error('Error loading alarm sound:', error));
 
         function playAlarmSound() {
             if (alarmBuffer) {
-                const alarmSource = audioContext.createBufferSource();
-                alarmSource.buffer = alarmBuffer;
-                alarmSource.connect(audioContext.destination);
-                alarmSource.start(0);
+                // Resume audio context to allow playback
+                audioContext.resume().then(() => {
+                    const alarmSource = audioContext.createBufferSource();
+                    alarmSource.buffer = alarmBuffer;
+                    alarmSource.connect(audioContext.destination);
+                    alarmSource.start(0);
+                });
             }
         }
 
