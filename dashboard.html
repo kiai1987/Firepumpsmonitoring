@@ -32,6 +32,7 @@
             margin-top: 50px;
             overflow-y: auto;
             height: calc(100vh - 100px);
+            position: relative;
         }
 
         .header {
@@ -45,6 +46,14 @@
             color: #007bff;
             margin-bottom: 10px;
             text-shadow: 0 0 5px #007bff;
+        }
+
+        .logo-top-right {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 150px; /* Adjust width as needed */
+            height: auto;
         }
 
         .dashboard {
@@ -254,6 +263,7 @@
 </head>
 <body>
     <div class="container">
+        <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo" class="logo-top-right">
         <div class="header">
             <div class="logo">Fire Pump Monitoring System</div>
         </div>
