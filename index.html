@@ -223,7 +223,7 @@
             margin-top: 20px;
         }
 
-        #alarm-box {
+        .alarm-box {
             background: #ff5722;
             color: white;
             padding: 15px;
@@ -233,6 +233,10 @@
             font-size: 20px;
             font-weight: bold;
             text-shadow: 0 0 5px #ff5722;
+        }
+
+        .hidden {
+            display: none;
         }
 
         @media (max-width: 768px) {
@@ -258,12 +262,13 @@
             <div class="logo">Fire Pump Monitoring System</div>
         </div>
 
-        <div id="alarm-box"></div>
+        <div id="alarm-box" class="alarm-box hidden"></div>
         <div class="buzzer-switch">
             <label for="buzzer-switch">Buzzer Alarm:</label>
             <input type="checkbox" id="buzzer-switch" checked>
         </div>
         <div class="dashboard">
+            <!-- Jockey Pump Card -->
             <div class="card">
                 <div class="card-header">Jockey Pump</div>
                 <div class="gauge-value" id="jockey-pressure"></div>
@@ -293,7 +298,8 @@
                 </div>
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm"></i>
             </div>
-
+            
+            <!-- Main Pump Card -->
             <div class="card">
                 <div class="card-header">Main Pump</div>
                 <div class="gauge-value" id="main-pressure"></div>
@@ -324,6 +330,7 @@
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="main-alarm"></i>
             </div>
 
+            <!-- Diesel Pump Card -->
             <div class="card">
                 <div class="card-header">Diesel Pump</div>
                 <div class="gauge-value" id="diesel-pressure"></div>
@@ -354,6 +361,7 @@
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="diesel-alarm"></i>
             </div>
 
+            <!-- Other Sensors -->
             <div class="card">
                 <div class="card-header">Room Temperature & Humidity</div>
                 <div class="value temperature" id="room-temperature">--°C</div>
@@ -509,9 +517,19 @@
             updateSelector('diesel', data.DPM);
 
             const alarmBox = document.getElementById('alarm-box');
+            const communicationAlarm = document.getElementById('communication-alarm-box');
+            const transmitterAlarm = document.getElementById('transmitter-alarm-box');
+            const receiverAlarm = document.getElementById('receiver-alarm-box');
+            
             alarmBox.textContent = '';
+            communicationAlarm.textContent = '';
+            transmitterAlarm.textContent = '';
+            receiverAlarm.textContent = '';
 
             let alarmActive = false;
+            let communicationAlarmActive = false;
+            let transmitterAlarmActive = false;
+            let receiverAlarmActive = false;
 
             if (data.JPT) {
                 alarmBox.textContent += 'Jockey Pump Trip; ';
@@ -550,18 +568,18 @@
             }
 
             if (!data.RXTX) {
-                alarmBox.textContent += 'Receiver-Transmitter Communication Failed; ';
+                transmitterAlarm.textContent += 'Receiver-Transmitter Communication Failed; ';
                 playAlarmSound();
-                alarmActive = true;
+                transmitterAlarmActive = true;
             }
             if (!data.RXMQTT) {
-                alarmBox.textContent += 'Receiver-MQTT Communication Failed; ';
+                communicationAlarm.textContent += 'Receiver-MQTT Communication Failed; ';
                 playAlarmSound();
-                alarmActive = true;
+                communicationAlarmActive = true;
             }
 
             const systemStatusIcon = document.getElementById('system-status');
-            if (alarmActive) {
+            if (alarmActive || communicationAlarmActive || transmitterAlarmActive || receiverAlarmActive) {
                 systemStatusIcon.classList.remove('fa-check-circle');
                 systemStatusIcon.classList.add('fa-exclamation-circle');
                 systemStatusIcon.style.color = 'red';
@@ -574,6 +592,11 @@
                 systemStatusIcon.classList.add('fa-check-circle');
                 systemStatusIcon.style.color = 'green';
             }
+
+            document.getElementById('alarm-box').classList.toggle('hidden', !alarmActive);
+            document.getElementById('communication-alarm-box').classList.toggle('hidden', !communicationAlarmActive);
+            document.getElementById('transmitter-alarm-box').classList.toggle('hidden', !transmitterAlarmActive);
+            document.getElementById('receiver-alarm-box').classList.toggle('hidden', !receiverAlarmActive);
         }
 
         function setAllLedsBlank() {
@@ -652,14 +675,22 @@
 
             if (elapsedTime > 10000) {
                 const alarmBox = document.getElementById('alarm-box');
+                const communicationAlarm = document.getElementById('communication-alarm-box');
+                const transmitterAlarm = document.getElementById('transmitter-alarm-box');
+                const receiverAlarm = document.getElementById('receiver-alarm-box');
+
                 alarmBox.textContent = '';
+                communicationAlarm.textContent = '';
+                transmitterAlarm.textContent = '';
+                receiverAlarm.textContent = '';
+                
                 setAllLedsBlank();
 
                 if (!isConnected) {
-                    alarmBox.textContent += 'Receiver-MQTT Communication Failed; ';
+                    communicationAlarm.textContent += 'Receiver-MQTT Communication Failed; ';
                     playAlarmSound();
                 } else {
-                    alarmBox.textContent += 'Receiver-Transmitter Communication Failed; ';
+                    transmitterAlarm.textContent += 'Receiver-Transmitter Communication Failed; ';
                     playAlarmSound();
                 }
 
@@ -667,6 +698,10 @@
                 systemStatusIcon.classList.remove('fa-check-circle');
                 systemStatusIcon.classList.add('fa-exclamation-circle');
                 systemStatusIcon.style.color = 'red';
+
+                document.getElementById('communication-alarm-box').classList.remove('hidden');
+                document.getElementById('transmitter-alarm-box').classList.remove('hidden');
+                document.getElementById('receiver-alarm-box').classList.remove('hidden');
             }
         }, 1000);
     </script>
