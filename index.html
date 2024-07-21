@@ -23,10 +23,12 @@
             padding: 40px;
             width: 400px;
             text-align: center;
+            position: relative;
         }
 
         .login-container img {
-            width: 150px;
+            width: 150px; /* Adjust width as needed */
+            height: auto;
             margin-bottom: 20px;
         }
 
@@ -60,7 +62,7 @@
 </head>
 <body>
     <div class="login-container">
-        <img src="logo.png" alt="Al Nakhla Logo">
+        <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo">
         <input type="text" id="username" placeholder="User">
         <input type="password" id="password" placeholder="Password">
         <button onclick="login()">Login</button>
