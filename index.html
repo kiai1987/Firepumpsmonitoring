@@ -417,30 +417,11 @@
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
-        const engineerUsername = "Engineer";
-        const engineerPassword = "12345678";
-        const securityUsername = "Security";
-        const securityPassword = "12345678";
-
-        function promptLogin() {
-            const username = prompt("Enter username:");
-            const password = prompt("Enter password:");
-
-            if ((username === engineerUsername && password === engineerPassword) || 
-                (username === securityUsername && password === securityPassword)) {
-                localStorage.setItem("authenticated", "true"); // Store authentication state
-                document.body.style.display = "flex"; // Display the body if authentication is successful
-            } else {
-                alert("Incorrect username or password. Please try again.");
-                promptLogin();
-            }
-        }
-
         function checkAuthentication() {
-            if (localStorage.getItem("authenticated") === "true") {
-                document.body.style.display = "flex"; // Show body if already authenticated
+            if (localStorage.getItem("authenticated") !== "true") {
+                window.location.href = "index.html"; // Redirect to login page if not authenticated
             } else {
-                promptLogin(); // Prompt for login if not authenticated
+                document.body.style.display = "flex"; // Show body if authenticated
             }
         }
 
