@@ -38,6 +38,10 @@
         .header {
             text-align: center;
             margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
         }
 
         .logo {
@@ -48,10 +52,7 @@
             text-shadow: 0 0 5px #007bff;
         }
 
-        .logo-top-right {
-            position: absolute;
-            top: 10px;
-            right: 10px;
+        .logo-side {
             width: 150px; /* Adjust width as needed */
             height: auto;
         }
@@ -263,9 +264,10 @@
 </head>
 <body>
     <div class="container">
-        <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo" class="logo-top-right">
         <div class="header">
+            <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo" class="logo-side">
             <div class="logo">Fire Pump Monitoring System</div>
+            <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo" class="logo-side">
         </div>
 
         <div id="alarm-box"></div>
