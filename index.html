@@ -263,6 +263,10 @@
         </div>
 
         <div id="alarm-box" class="alarm-box hidden"></div>
+        <div id="communication-alarm-box" class="alarm-box hidden"></div>
+        <div id="transmitter-alarm-box" class="alarm-box hidden"></div>
+        <div id="receiver-alarm-box" class="alarm-box hidden"></div>
+
         <div class="buzzer-switch">
             <label for="buzzer-switch">Buzzer Alarm:</label>
             <input type="checkbox" id="buzzer-switch" checked>
@@ -531,6 +535,7 @@
             let transmitterAlarmActive = false;
             let receiverAlarmActive = false;
 
+            // Handle Pump Trip Alarms
             if (data.JPT) {
                 alarmBox.textContent += 'Jockey Pump Trip; ';
                 playAlarmSound();
@@ -546,6 +551,8 @@
                 playAlarmSound();
                 alarmActive = true;
             }
+
+            // Handle Smoke Sensor Alarms
             if (data.SS1) {
                 alarmBox.textContent += 'Smoke Detector 1 Active; ';
                 playAlarmSound();
@@ -556,22 +563,29 @@
                 playAlarmSound();
                 alarmActive = true;
             }
+
+            // Handle Flood Sensor Alarm
             if (data.FS) {
                 alarmBox.textContent += 'Water Flood Sensor Active; ';
                 playAlarmSound();
                 alarmActive = true;
             }
+
+            // Handle Buzzer Alarm
             if (data.BZ) {
                 alarmBox.textContent += 'Buzzer Active; ';
                 playAlarmSound();
                 alarmActive = true;
             }
 
+            // Handle Transmitter Communication Alarm
             if (!data.RXTX) {
                 transmitterAlarm.textContent += 'Receiver-Transmitter Communication Failed; ';
                 playAlarmSound();
                 transmitterAlarmActive = true;
             }
+
+            // Handle Receiver Communication Alarm
             if (!data.RXMQTT) {
                 communicationAlarm.textContent += 'Receiver-MQTT Communication Failed; ';
                 playAlarmSound();
