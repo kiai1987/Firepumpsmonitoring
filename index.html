@@ -11,7 +11,7 @@
             font-family: 'Roboto', sans-serif;
             background-color: #181818;
             color: #e0e0e0;
-            display: flex;
+            display: none; /* Hide body initially */
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -428,15 +428,13 @@
 
             if ((username === engineerUsername && password === engineerPassword) || 
                 (username === securityUsername && password === securityPassword)) {
-                document.body.style.display = "block";
+                document.body.style.display = "flex"; // Display the body if authentication is successful
             } else {
                 alert("Incorrect username or password. Please try again.");
-                document.body.style.display = "none";
                 promptLogin();
             }
         }
 
-        document.body.style.display = "none";
         promptLogin();
 
         let lastMessageTime = Date.now();
