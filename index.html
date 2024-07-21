@@ -428,6 +428,7 @@
 
             if ((username === engineerUsername && password === engineerPassword) || 
                 (username === securityUsername && password === securityPassword)) {
+                localStorage.setItem("authenticated", "true"); // Store authentication state
                 document.body.style.display = "flex"; // Display the body if authentication is successful
             } else {
                 alert("Incorrect username or password. Please try again.");
@@ -435,7 +436,15 @@
             }
         }
 
-        promptLogin();
+        function checkAuthentication() {
+            if (localStorage.getItem("authenticated") === "true") {
+                document.body.style.display = "flex"; // Show body if already authenticated
+            } else {
+                promptLogin(); // Prompt for login if not authenticated
+            }
+        }
+
+        window.onload = checkAuthentication;
 
         let lastMessageTime = Date.now();
         let isConnected = false;
