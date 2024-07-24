@@ -278,51 +278,6 @@
                 padding: 10px;
             }
         }
-
-        .engineer-dashboard {
-            width: 80%;
-            margin-top: 20px;
-        }
-
-        .engineer-card {
-            background-color: #ffffff;
-            color: #000000;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .engineer-card-header {
-            font-size: 1.5em;
-            margin-bottom: 10px;
-        }
-
-        .engineer-status {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .engineer-status .label {
-            font-weight: bold;
-        }
-
-        .engineer-status .value {
-            font-family: monospace;
-        }
-
-        .engineer-logo {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .engineer-logo img {
-            height: 50px;
-            margin-right: 10px;
-        }
     </style>
 </head>
 <body>
@@ -484,48 +439,6 @@
                     </div>
                 </div>
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm"></i>
-            </div>
-        </div>
-
-        <div class="engineer-dashboard">
-            <div class="engineer-logo">
-                <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo">
-                <h1>Engineer Dashboard</h1>
-            </div>
-            <div class="engineer-card">
-                <div class="engineer-card-header">Connection Information</div>
-                <div class="engineer-status">
-                    <div class="label">Connection Status:</div>
-                    <div class="value" id="connection-status">Checking...</div>
-                </div>
-                <div class="engineer-status">
-                    <div class="label">Signal Range:</div>
-                    <div class="value" id="signal-range">Checking...</div>
-                </div>
-                <div class="engineer-status">
-                    <div class="label">Signal Strength:</div>
-                    <div class="value" id="signal-strength">Checking...</div>
-                </div>
-                <div class="engineer-status">
-                    <div class="label">MQTT Status:</div>
-                    <div class="value" id="mqtt-status">Checking...</div>
-                </div>
-                <div class="engineer-status">
-                    <div class="label">Network Status:</div>
-                    <div class="value" id="network-status">Checking...</div>
-                </div>
-                <div class="engineer-status">
-                    <div class="label">IP Address:</div>
-                    <div class="value" id="ip-address">Checking...</div>
-                </div>
-                <div class="engineer-status">
-                    <div class="label">Network Name:</div>
-                    <div class="value" id="network-name">Checking...</div>
-                </div>
-                <div class="engineer-status">
-                    <div class="label">LoRa Power:</div>
-                    <div class="value" id="lora-power">Checking...</div>
-                </div>
             </div>
         </div>
 
@@ -728,11 +641,6 @@
                     console.log('Subscribed to fire-pump/status');
                 }
             });
-            mqttClient.subscribe('fire-pump/connection-info', function (err) {
-                if (!err) {
-                    console.log('Subscribed to fire-pump/connection-info');
-                }
-            });
         });
 
         mqttClient.on('message', function (topic, message) {
@@ -740,15 +648,6 @@
             if (topic === 'fire-pump/status') {
                 const data = JSON.parse(message.toString());
                 handleStatusUpdates(data);
-            } else if (topic === 'fire-pump/connection-info') {
-                const data = JSON.parse(message.toString());
-                document.getElementById('connection-status').textContent = data.connectionStatus;
-                document.getElementById('signal-range').textContent = data.signalRange;
-                document.getElementById('signal-strength').textContent = data.signalStrength;
-                document.getElementById('network-status').textContent = data.networkStatus;
-                document.getElementById('ip-address').textContent = data.ipAddress;
-                document.getElementById('network-name').textContent = data.networkName;
-                document.getElementById('lora-power').textContent = data.loraPower;
             }
         });
 
@@ -759,15 +658,6 @@
             systemStatusIcon.classList.remove('fa-check-circle');
             systemStatusIcon.classList.add('fa-exclamation-circle');
             systemStatusIcon.style.color = 'yellow';
-
-            document.getElementById('mqtt-status').textContent = 'Error';
-            document.getElementById('connection-status').textContent = 'Error';
-            document.getElementById('signal-range').textContent = 'N/A';
-            document.getElementById('signal-strength').textContent = 'N/A';
-            document.getElementById('network-status').textContent = 'Error';
-            document.getElementById('ip-address').textContent = 'Error';
-            document.getElementById('network-name').textContent = 'Error';
-            document.getElementById('lora-power').textContent = 'Error';
         });
 
         function updateBuzzerState() {
@@ -822,26 +712,6 @@
                 systemStatusIcon.style.color = 'red';
             }
         }, 1000);
-
-        function updateConnectionInfo() {
-            const connectionStatus = 'Connected';
-            const signalRange = '200 meters';
-            const signalStrength = '-70 dBm';
-            const networkStatus = 'Online';
-            const ipAddress = '192.168.1.100';
-            const networkName = 'Al Nakhla Network';
-            const loraPower = '20 dBm';
-
-            document.getElementById('connection-status').textContent = connectionStatus;
-            document.getElementById('signal-range').textContent = signalRange;
-            document.getElementById('signal-strength').textContent = signalStrength;
-            document.getElementById('network-status').textContent = networkStatus;
-            document.getElementById('ip-address').textContent = ipAddress;
-            document.getElementById('network-name').textContent = networkName;
-            document.getElementById('lora-power').textContent = loraPower;
-        }
-
-        window.onload = updateConnectionInfo;
     </script>
 </body>
 </html>
