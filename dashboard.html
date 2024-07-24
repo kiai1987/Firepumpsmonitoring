@@ -11,7 +11,7 @@
             font-family: 'Roboto', sans-serif;
             background-color: #005f46;
             color: #e0e0e0;
-            display: none;
+            display: none; /* Hide body initially */
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -712,6 +712,7 @@
         });
 
         mqttClient.on('message', function (topic, message) {
+            console.log('MQTT message received:', topic, message.toString()); // Debug log
             if (topic === 'fire-pump/status') {
                 const data = JSON.parse(message.toString());
                 handleStatusUpdates(data);
