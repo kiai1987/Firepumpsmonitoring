@@ -122,11 +122,14 @@
         function checkAuthentication() {
             if (localStorage.getItem("authenticated") !== "true") {
                 window.location.href = "index.html";
+            } else {
+                document.body.style.display = "flex";
             }
         }
 
         function logout() {
             localStorage.removeItem("authenticated");
+            localStorage.removeItem("userRole");
             window.location.href = "index.html";
         }
 
@@ -174,27 +177,6 @@
             document.getElementById('network-name').textContent = 'Error';
             document.getElementById('lora-power').textContent = 'Error';
         });
-
-        // Simulate data retrieval for demo purposes
-        function updateConnectionInfo() {
-            const connectionStatus = 'Connected';
-            const signalRange = '200 meters';
-            const signalStrength = '-70 dBm';
-            const networkStatus = 'Online';
-            const ipAddress = '192.168.1.100';
-            const networkName = 'Al Nakhla Network';
-            const loraPower = '20 dBm';
-
-            document.getElementById('connection-status').textContent = connectionStatus;
-            document.getElementById('signal-range').textContent = signalRange;
-            document.getElementById('signal-strength').textContent = signalStrength;
-            document.getElementById('network-status').textContent = networkStatus;
-            document.getElementById('ip-address').textContent = ipAddress;
-            document.getElementById('network-name').textContent = networkName;
-            document.getElementById('lora-power').textContent = loraPower;
-        }
-
-        window.onload = updateConnectionInfo;
     </script>
 </body>
 </html>
