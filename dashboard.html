@@ -11,7 +11,7 @@
             font-family: 'Roboto', sans-serif;
             background-color: #005f46;
             color: #e0e0e0;
-            display: none; 
+            display: none;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -53,7 +53,7 @@
         }
 
         .logo-side {
-            width: 150px; 
+            width: 150px;
             height: auto;
             margin-right: 20px;
         }
@@ -246,34 +246,6 @@
             text-shadow: 0 0 5px #ff5722;
         }
 
-        .engineer-dashboard {
-            background: #3b3b3b;
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            min-width: 250px;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            position: relative;
-            width: 300px;
-        }
-
-        .status {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .status .label {
-            font-weight: bold;
-        }
-
-        .status .value {
-            font-family: monospace;
-        }
-        
         @media (max-width: 768px) {
             .dashboard {
                 flex-direction: column;
@@ -288,6 +260,51 @@
                 margin-top: 0;
                 padding: 10px;
             }
+        }
+
+        .engineer-dashboard {
+            width: 80%;
+            margin-top: 20px;
+        }
+
+        .engineer-card {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .engineer-card-header {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .engineer-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .engineer-status .label {
+            font-weight: bold;
+        }
+
+        .engineer-status .value {
+            font-family: monospace;
+        }
+
+        .engineer-logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .engineer-logo img {
+            height: 50px;
+            margin-right: 10px;
         }
     </style>
 </head>
@@ -449,38 +466,44 @@
                 </div>
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm"></i>
             </div>
+        </div>
 
-            <div class="engineer-dashboard">
-                <div class="card-header">Connection Information</div>
-                <div class="status">
+        <div class="engineer-dashboard">
+            <div class="engineer-logo">
+                <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo">
+                <h1>Engineer Dashboard</h1>
+            </div>
+            <div class="engineer-card">
+                <div class="engineer-card-header">Connection Information</div>
+                <div class="engineer-status">
                     <div class="label">Connection Status:</div>
                     <div class="value" id="connection-status">Checking...</div>
                 </div>
-                <div class="status">
+                <div class="engineer-status">
                     <div class="label">Signal Range:</div>
                     <div class="value" id="signal-range">Checking...</div>
                 </div>
-                <div class="status">
+                <div class="engineer-status">
                     <div class="label">Signal Strength:</div>
                     <div class="value" id="signal-strength">Checking...</div>
                 </div>
-                <div class="status">
+                <div class="engineer-status">
                     <div class="label">MQTT Status:</div>
                     <div class="value" id="mqtt-status">Checking...</div>
                 </div>
-                <div class="status">
+                <div class="engineer-status">
                     <div class="label">Network Status:</div>
                     <div class="value" id="network-status">Checking...</div>
                 </div>
-                <div class="status">
+                <div class="engineer-status">
                     <div class="label">IP Address:</div>
                     <div class="value" id="ip-address">Checking...</div>
                 </div>
-                <div class="status">
+                <div class="engineer-status">
                     <div class="label">Network Name:</div>
                     <div class="value" id="network-name">Checking...</div>
                 </div>
-                <div class="status">
+                <div class="engineer-status">
                     <div class="label">LoRa Power:</div>
                     <div class="value" id="lora-power">Checking...</div>
                 </div>
@@ -495,9 +518,9 @@
     <script>
         function checkAuthentication() {
             if (localStorage.getItem("authenticated") !== "true") {
-                window.location.href = "index.html"; 
+                window.location.href = "index.html";
             } else {
-                document.body.style.display = "flex"; 
+                document.body.style.display = "flex";
             }
         }
 
@@ -514,9 +537,10 @@
         }
 
         let alarmBuffer;
+
         const alarmSoundUrl = 'https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav';
 
-        audioContext.suspend();  
+        audioContext.suspend();
         audioContext.onstatechange = function () {
             if (audioContext.state === 'suspended') {
                 console.log("Audio context suspended.");
@@ -667,7 +691,7 @@
         const options = {
             username: 'firepump',
             password: '044313187Ki@',
-            clientId: mqttjs_${Math.random().toString(16).substr(2, 8)},
+            clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
         };
 
         const mqttClient = mqtt.connect('wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt', options);
@@ -710,6 +734,7 @@
             systemStatusIcon.classList.remove('fa-check-circle');
             systemStatusIcon.classList.add('fa-exclamation-circle');
             systemStatusIcon.style.color = 'yellow';
+
             document.getElementById('mqtt-status').textContent = 'Error';
             document.getElementById('connection-status').textContent = 'Error';
             document.getElementById('signal-range').textContent = 'N/A';
@@ -772,6 +797,26 @@
                 systemStatusIcon.style.color = 'red';
             }
         }, 1000);
+
+        function updateConnectionInfo() {
+            const connectionStatus = 'Connected';
+            const signalRange = '200 meters';
+            const signalStrength = '-70 dBm';
+            const networkStatus = 'Online';
+            const ipAddress = '192.168.1.100';
+            const networkName = 'Al Nakhla Network';
+            const loraPower = '20 dBm';
+
+            document.getElementById('connection-status').textContent = connectionStatus;
+            document.getElementById('signal-range').textContent = signalRange;
+            document.getElementById('signal-strength').textContent = signalStrength;
+            document.getElementById('network-status').textContent = networkStatus;
+            document.getElementById('ip-address').textContent = ipAddress;
+            document.getElementById('network-name').textContent = networkName;
+            document.getElementById('lora-power').textContent = loraPower;
+        }
+
+        window.onload = updateConnectionInfo;
     </script>
 </body>
 </html>
