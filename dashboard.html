@@ -9,9 +9,9 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #005f46; /* Updated background color */
+            background-color: #005f46;
             color: #e0e0e0;
-            display: none; /* Hide body initially */
+            display: none; 
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -53,7 +53,7 @@
         }
 
         .logo-side {
-            width: 150px; /* Adjust width as needed */
+            width: 150px; 
             height: auto;
             margin-right: 20px;
         }
@@ -246,6 +246,34 @@
             text-shadow: 0 0 5px #ff5722;
         }
 
+        .engineer-dashboard {
+            background: #3b3b3b;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            min-width: 250px;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            width: 300px;
+        }
+
+        .status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .status .label {
+            font-weight: bold;
+        }
+
+        .status .value {
+            font-family: monospace;
+        }
+        
         @media (max-width: 768px) {
             .dashboard {
                 flex-direction: column;
@@ -421,6 +449,42 @@
                 </div>
                 <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm"></i>
             </div>
+
+            <div class="engineer-dashboard">
+                <div class="card-header">Connection Information</div>
+                <div class="status">
+                    <div class="label">Connection Status:</div>
+                    <div class="value" id="connection-status">Checking...</div>
+                </div>
+                <div class="status">
+                    <div class="label">Signal Range:</div>
+                    <div class="value" id="signal-range">Checking...</div>
+                </div>
+                <div class="status">
+                    <div class="label">Signal Strength:</div>
+                    <div class="value" id="signal-strength">Checking...</div>
+                </div>
+                <div class="status">
+                    <div class="label">MQTT Status:</div>
+                    <div class="value" id="mqtt-status">Checking...</div>
+                </div>
+                <div class="status">
+                    <div class="label">Network Status:</div>
+                    <div class="value" id="network-status">Checking...</div>
+                </div>
+                <div class="status">
+                    <div class="label">IP Address:</div>
+                    <div class="value" id="ip-address">Checking...</div>
+                </div>
+                <div class="status">
+                    <div class="label">Network Name:</div>
+                    <div class="value" id="network-name">Checking...</div>
+                </div>
+                <div class="status">
+                    <div class="label">LoRa Power:</div>
+                    <div class="value" id="lora-power">Checking...</div>
+                </div>
+            </div>
         </div>
 
         <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
@@ -431,9 +495,9 @@
     <script>
         function checkAuthentication() {
             if (localStorage.getItem("authenticated") !== "true") {
-                window.location.href = "index.html"; // Redirect to login page if not authenticated
+                window.location.href = "index.html"; 
             } else {
-                document.body.style.display = "flex"; // Show body if authenticated
+                document.body.style.display = "flex"; 
             }
         }
 
@@ -443,7 +507,6 @@
         let isConnected = false;
         let audioContext;
 
-        // Create audio context and handle potential errors
         try {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         } catch (error) {
@@ -451,12 +514,9 @@
         }
 
         let alarmBuffer;
+        const alarmSoundUrl = 'https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav';
 
-        // Make sure to get the sound file from the same origin
-         const alarmSoundUrl = 'https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav'; // Replace with the path to your sound file
-
-        // Handle the audio context state correctly
-        audioContext.suspend();  // Start in suspended state
+        audioContext.suspend();  
         audioContext.onstatechange = function () {
             if (audioContext.state === 'suspended') {
                 console.log("Audio context suspended.");
@@ -475,7 +535,6 @@
 
         function playAlarmSound() {
             if (alarmBuffer) {
-                // Resume audio context to allow playback
                 audioContext.resume().then(() => {
                     const alarmSource = audioContext.createBufferSource();
                     alarmSource.buffer = alarmBuffer;
@@ -608,7 +667,7 @@
         const options = {
             username: 'firepump',
             password: '044313187Ki@',
-            clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
+            clientId: mqttjs_${Math.random().toString(16).substr(2, 8)},
         };
 
         const mqttClient = mqtt.connect('wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt', options);
@@ -621,12 +680,26 @@
                     console.log('Subscribed to fire-pump/status');
                 }
             });
+            mqttClient.subscribe('fire-pump/connection-info', function (err) {
+                if (!err) {
+                    console.log('Subscribed to fire-pump/connection-info');
+                }
+            });
         });
 
         mqttClient.on('message', function (topic, message) {
             if (topic === 'fire-pump/status') {
                 const data = JSON.parse(message.toString());
                 handleStatusUpdates(data);
+            } else if (topic === 'fire-pump/connection-info') {
+                const data = JSON.parse(message.toString());
+                document.getElementById('connection-status').textContent = data.connectionStatus;
+                document.getElementById('signal-range').textContent = data.signalRange;
+                document.getElementById('signal-strength').textContent = data.signalStrength;
+                document.getElementById('network-status').textContent = data.networkStatus;
+                document.getElementById('ip-address').textContent = data.ipAddress;
+                document.getElementById('network-name').textContent = data.networkName;
+                document.getElementById('lora-power').textContent = data.loraPower;
             }
         });
 
@@ -637,6 +710,14 @@
             systemStatusIcon.classList.remove('fa-check-circle');
             systemStatusIcon.classList.add('fa-exclamation-circle');
             systemStatusIcon.style.color = 'yellow';
+            document.getElementById('mqtt-status').textContent = 'Error';
+            document.getElementById('connection-status').textContent = 'Error';
+            document.getElementById('signal-range').textContent = 'N/A';
+            document.getElementById('signal-strength').textContent = 'N/A';
+            document.getElementById('network-status').textContent = 'Error';
+            document.getElementById('ip-address').textContent = 'Error';
+            document.getElementById('network-name').textContent = 'Error';
+            document.getElementById('lora-power').textContent = 'Error';
         });
 
         function updateBuzzerState() {
