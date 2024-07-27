@@ -476,12 +476,12 @@
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
         function checkAuthentication() {
-            const userType = localStorage.getItem("userType");
+            const userType = localStorage.getItem("username");
             if (localStorage.getItem("authenticated") !== "true") {
                 window.location.href = "index.html";
             } else {
                 document.body.style.display = "flex";
-                if (userType !== "engineer") {
+                if (userType !== "Engineer") {
                     document.getElementById("connection-info").style.display = "none";
                 }
             }
@@ -489,7 +489,7 @@
 
         function logout() {
             localStorage.removeItem("authenticated");
-            localStorage.removeItem("userType");
+            localStorage.removeItem("username");
             window.location.href = "index.html";
         }
 
