@@ -29,17 +29,18 @@
             font-size: 1.5em;
             margin-bottom: 10px;
         }
-        .status {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+        .status-table {
+            width: 100%;
+            border-collapse: collapse;
         }
-        .status .label {
+        .status-table th, .status-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .status-table th {
+            background-color: #f2f2f2;
             font-weight: bold;
-        }
-        .status .value {
-            font-family: monospace;
         }
         .footer {
             margin-top: 20px;
@@ -64,38 +65,40 @@
     <div class="container">
         <div class="card">
             <div class="card-header">Connection Information</div>
-            <div class="status">
-                <div class="label">Connection Status:</div>
-                <div class="value" id="connection-status">Checking...</div>
-            </div>
-            <div class="status">
-                <div class="label">Signal Range:</div>
-                <div class="value" id="signal-range">Checking...</div>
-            </div>
-            <div class="status">
-                <div class="label">Signal Strength:</div>
-                <div class="value" id="signal-strength">Checking...</div>
-            </div>
-            <div class="status">
-                <div class="label">MQTT Status:</div>
-                <div class="value" id="mqtt-status">Checking...</div>
-            </div>
-            <div class="status">
-                <div class="label">Network Status:</div>
-                <div class="value" id="network-status">Checking...</div>
-            </div>
-            <div class="status">
-                <div class="label">IP Address:</div>
-                <div class="value" id="ip-address">Checking...</div>
-            </div>
-            <div class="status">
-                <div class="label">Network Name:</div>
-                <div class="value" id="network-name">Checking...</div>
-            </div>
-            <div class="status">
-                <div class="label">LoRa Power:</div>
-                <div class="value" id="lora-power">Checking...</div>
-            </div>
+            <table class="status-table">
+                <tr>
+                    <th>Connection Status</th>
+                    <td id="connection-status">Checking...</td>
+                </tr>
+                <tr>
+                    <th>Signal Range</th>
+                    <td id="signal-range">N/A</td>
+                </tr>
+                <tr>
+                    <th>Signal Strength</th>
+                    <td id="signal-strength">N/A</td>
+                </tr>
+                <tr>
+                    <th>MQTT Status</th>
+                    <td id="mqtt-status">Checking...</td>
+                </tr>
+                <tr>
+                    <th>Network Status</th>
+                    <td id="network-status">N/A</td>
+                </tr>
+                <tr>
+                    <th>IP Address</th>
+                    <td id="ip-address">N/A</td>
+                </tr>
+                <tr>
+                    <th>Network Name</th>
+                    <td id="network-name">N/A</td>
+                </tr>
+                <tr>
+                    <th>LoRa Power</th>
+                    <td id="lora-power">N/A</td>
+                </tr>
+            </table>
         </div>
     </div>
     <div class="footer">
@@ -163,5 +166,3 @@
     </script>
 </body>
 </html>
-
-
