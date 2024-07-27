@@ -130,23 +130,18 @@
 
         mqttClient.on('connect', function () {
             console.log('Connected to MQTT broker');
-            mqttClient.subscribe('fire-pump/connection-info', function (err) {
+            mqttClient.subscribe('fire-pump/status', function (err) {
                 if (!err) {
-                    console.log('Subscribed to fire-pump/connection-info');
+                    console.log('Subscribed to fire-pump/status');
                 }
             });
         });
 
         mqttClient.on('message', function (topic, message) {
-            if (topic === 'fire-pump/connection-info') {
+            if (topic === 'fire-pump/status') {
+                console.log('Message received:', message.toString());
                 const data = JSON.parse(message.toString());
-                document.getElementById('connection-status').textContent = data.connectionStatus;
-                document.getElementById('signal-range').textContent = data.signalRange;
-                document.getElementById('signal-strength').textContent = data.signalStrength;
-                document.getElementById('network-status').textContent = data.networkStatus;
-                document.getElementById('ip-address').textContent = data.ipAddress;
-                document.getElementById('network-name').textContent = data.networkName;
-                document.getElementById('lora-power').textContent = data.loraPower;
+                updateDashboard(data);
             }
         });
 
@@ -154,7 +149,19 @@
             console.error('MQTT error:', error);
             document.getElementById('connection-status').textContent = 'Disconnected';
         });
+
+        function updateDashboard(data) {
+            document.getElementById('connection-status').textContent = data.RXTX ? 'Connected' : 'Disconnected';
+            document.getElementById('signal-range').textContent = 'N/A'; // Placeholder, replace with actual data if available
+            document.getElementById('signal-strength').textContent = 'N/A'; // Placeholder, replace with actual data if available
+            document.getElementById('mqtt-status').textContent = data.RXMQTT ? 'Connected' : 'Disconnected';
+            document.getElementById('network-status').textContent = 'N/A'; // Placeholder, replace with actual data if available
+            document.getElementById('ip-address').textContent = 'N/A'; // Placeholder, replace with actual data if available
+            document.getElementById('network-name').textContent = 'N/A'; // Placeholder, replace with actual data if available
+            document.getElementById('lora-power').textContent = 'N/A'; // Placeholder, replace with actual data if available
+        }
     </script>
 </body>
 </html>
+
 
