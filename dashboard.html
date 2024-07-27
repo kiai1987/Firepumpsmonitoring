@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fire Pump Monitoring Dashboard</title>
+    <title>Al Nakhla Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
@@ -41,6 +41,7 @@
             display: flex;
             align-items: center;
             width: 100%;
+            justify-content: space-between; /* Add space for logout */
         }
 
         .logo {
@@ -49,7 +50,6 @@
             color: #007bff;
             margin-bottom: 10px;
             text-shadow: 0 0 5px #007bff;
-            flex: 1;
         }
 
         .logo-side {
@@ -246,6 +246,18 @@
             text-shadow: 0 0 5px #ff5722;
         }
 
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
         @media (max-width: 768px) {
             .dashboard {
                 flex-direction: column;
@@ -261,13 +273,22 @@
                 padding: 10px;
             }
         }
+
+        .hidden-engineer {
+            display: none;
+        }
+
+        .hidden-operator {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo" class="logo-side">
-            <div class="logo">Fire Pump Monitoring System</div>
+            <div class="logo">Al Nakhla Dashboard</div>
+            <button class="logout-button" onclick="logout()">Logout</button>
         </div>
 
         <div id="alarm-box"></div>
@@ -276,6 +297,8 @@
             <input type="checkbox" id="buzzer-switch" checked>
         </div>
         <div class="dashboard">
+
+            <!-- Fire Pump Monitoring Section -->
             <div class="card">
                 <div class="card-header">Jockey Pump</div>
                 <div class="gauge-value" id="jockey-pressure"></div>
@@ -423,9 +446,49 @@
             </div>
         </div>
 
+        <div class="dashboard hidden-operator">
+            <!-- Engineer-Specific Cards -->
+            <div class="card">
+                <div class="card-header">Connection Information</div>
+                <table class="status-table">
+                    <tr>
+                        <th>Connection Status</th>
+                        <td id="connection-status">Checking...</td>
+                    </tr>
+                    <tr>
+                        <th>Signal Range</th>
+                        <td id="signal-range">N/A</td>
+                    </tr>
+                    <tr>
+                        <th>Signal Strength</th>
+                        <td id="signal-strength">N/A</td>
+                    </tr>
+                    <tr>
+                        <th>MQTT Status</th>
+                        <td id="mqtt-status">Checking...</td>
+                    </tr>
+                    <tr>
+                        <th>Network Status</th>
+                        <td id="network-status">N/A</td>
+                    </tr>
+                    <tr>
+                        <th>IP Address</th>
+                        <td id="ip-address">N/A</td>
+                    </tr>
+                    <tr>
+                        <th>Network Name</th>
+                        <td id="network-name">N/A</td>
+                    </tr>
+                    <tr>
+                        <th>LoRa Power</th>
+                        <td id="lora-power">N/A</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
         <div class="footer">
             Created by Al Nakhla Engineering Dep. (Eng. Youssef)
-            <button onclick="logout()">Logout</button>
         </div>
         <i id="system-status" class="fas fa-check-circle"></i>
     </div>
@@ -433,15 +496,23 @@
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
         function checkAuthentication() {
-            if (localStorage.getItem("authenticated") !== "true") {
-                window.location.href = "index.html";
+            const userType = localStorage.getItem("userType");
+
+            if (userType === "operator") {
+                document.querySelectorAll('.hidden-operator').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('.hidden-engineer').forEach(el => el.style.display = 'block');
+            } else if (userType === "engineer") {
+                document.querySelectorAll('.hidden-operator').forEach(el => el.style.display = 'block');
+                document.querySelectorAll('.hidden-engineer').forEach(el => el.style.display = 'block');
             } else {
-                document.body.style.display = "flex";
+                window.location.href = "index.html";
             }
+
+            document.body.style.display = "flex";
         }
 
         function logout() {
-            localStorage.removeItem("authenticated");
+            localStorage.removeItem("userType");
             window.location.href = "index.html";
         }
 
@@ -600,6 +671,13 @@
                 systemStatusIcon.classList.add('fa-check-circle');
                 systemStatusIcon.style.color = 'green';
             }
+
+            // Update the network and connection information (Engineer Dashboard)
+            document.getElementById('connection-status').textContent = data.RXTX ? 'Connected' : 'Disconnected';
+            document.getElementById('network-status').textContent = data.networkStatus; 
+            document.getElementById('ip-address').textContent = data.ipAddress; 
+            document.getElementById('network-name').textContent = data.networkName; 
+            document.getElementById('lora-power').textContent = data.loraPower; 
         }
 
         function setAllLedsBlank() {
