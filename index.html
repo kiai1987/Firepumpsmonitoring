@@ -58,12 +58,17 @@
         .login-container button:hover {
             background-color: #00332b;
         }
+
+        .login-container h2 {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
         <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo">
-        <input type="text" id="username" placeholder="User">
+        <h2>Fire Pump Monitoring Dashboard</h2>
+        <input type="text" id="username" placeholder="Username">
         <input type="password" id="password" placeholder="Password">
         <button onclick="login()">Login</button>
     </div>
@@ -78,15 +83,14 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            if ((username === engineerUsername && password === engineerPassword) || 
-                (username === securityUsername && password === securityPassword)) {
+            if (username === engineerUsername && password === engineerPassword) {
                 localStorage.setItem("authenticated", "true");
-                localStorage.setItem("username", username);
-                if (username === engineerUsername) {
-                    window.location.href = "engineer_dashboard.html";
-                } else {
-                    window.location.href = "dashboard.html";
-                }
+                localStorage.setItem("userType", "engineer"); // Store user type
+                window.location.href = "dashboard.html"; // Redirect to main dashboard 
+            } else if (username === securityUsername && password === securityPassword) {
+                localStorage.setItem("authenticated", "true");
+                localStorage.setItem("userType", "operator"); // Store user type
+                window.location.href = "dashboard.html"; // Redirect to main dashboard 
             } else {
                 alert("Incorrect username or password. Please try again.");
             }
@@ -94,12 +98,7 @@
 
         window.onload = function() {
             if (localStorage.getItem("authenticated") === "true") {
-                const username = localStorage.getItem("username");
-                if (username === "Engineer") {
-                    window.location.href = "engineer_dashboard.html";
-                } else {
-                    window.location.href = "dashboard.html";
-                }
+                window.location.href = "dashboard.html"; // Redirect based on user type
             }
         }
     </script>
