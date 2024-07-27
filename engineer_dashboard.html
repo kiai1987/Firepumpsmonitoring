@@ -460,10 +460,11 @@
         </div>
 
         <div class="connection-info" id="connection-info">
+            <p>Connection Status: <span id="connection-status">N/A</span></p>
             <p>Network Status: <span id="network-status">N/A</span></p>
             <p>IP Address: <span id="ip-address">N/A</span></p>
-            <p>LoRa Connection: <span id="lora-connection">N/A</span></p>
-            <p>MQTT Connection: <span id="mqtt-connection">N/A</span></p>
+            <p>Network Name: <span id="network-name">N/A</span></p>
+            <p>LoRa Power: <span id="lora-power">N/A</span></p>
         </div>
 
         <div class="footer">
@@ -580,6 +581,12 @@
             updateSelector('jockey', data.JPM);
             updateSelector('main', data.MPM);
             updateSelector('diesel', data.DPM);
+
+            document.getElementById('connection-status').textContent = data.RXTX ? 'Connected' : 'Disconnected';
+            document.getElementById('network-status').textContent = data.networkStatus; 
+            document.getElementById('ip-address').textContent = data.ipAddress; 
+            document.getElementById('network-name').textContent = data.networkName; 
+            document.getElementById('lora-power').textContent = data.loraPower; 
 
             const alarmBox = document.getElementById('alarm-box');
             alarmBox.textContent = '';
