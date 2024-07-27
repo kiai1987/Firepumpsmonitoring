@@ -62,21 +62,15 @@
         .login-container h2 {
             margin-bottom: 20px;
         }
-
-        .login-container .error {
-            color: red;
-            margin-top: 10px;
-        }
     </style>
 </head>
 <body>
     <div class="login-container">
         <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo">
         <h2>Fire Pump Monitoring Dashboard</h2>
-        <input type="text" id="username" placeholder="Username" required>
-        <input type="password" id="password" placeholder="Password" required>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
         <button onclick="login()">Login</button>
-        <div class="error" id="error-message"></div>
     </div>
 
     <script>
@@ -88,7 +82,6 @@
         function login() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const errorMessage = document.getElementById('error-message');
 
             if ((username === engineerUsername && password === engineerPassword) || 
                 (username === securityUsername && password === securityPassword)) {
@@ -100,13 +93,13 @@
                     window.location.href = "dashboard.html";
                 }
             } else {
-                errorMessage.textContent = "Incorrect username or password. Please try again.";
+                alert("Incorrect username or password. Please try again.");
             }
         }
 
         window.onload = function() {
+            const username = localStorage.getItem("username");
             if (localStorage.getItem("authenticated") === "true") {
-                const username = localStorage.getItem("username");
                 if (username === "Engineer") {
                     window.location.href = "engineer_dashboard.html";
                 } else {
