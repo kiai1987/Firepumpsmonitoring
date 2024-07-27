@@ -1,185 +1,185 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineer Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #005f46;
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .container {
-            width: 80%;
-            margin-top: 20px;
-        }
-        .card {
-            background-color: #ffffff;
-            color: #000000;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .card-header {
-            font-size: 1.5em;
-            margin-bottom: 10px;
-        }
-        .status-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .status-table th, .status-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        .status-table th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-        .footer {
-            margin-top: 20px;
-            font-size: 0.8em;
-        }
-        .logo {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .logo img {
-            height: 50px;
-            margin-right: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="logo">
-        <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo">
-        <h1>Engineer Dashboard</h1>
-    </div>
-    <div class="container">
-        <div class="card">
-            <div class="card-header">Connection Information</div>
-            <table class="status-table">
-                <tr>
-                    <th>Connection Status</th>
-                    <td id="connection-status">Checking...</td>
-                </tr>
-                <tr>
-                    <th>Signal Range</th>
-                    <td id="signal-range">N/A</td>
-                </tr>
-                <tr>
-                    <th>Signal Strength</th>
-                    <td id="signal-strength">N/A</td>
-                </tr>
-                <tr>
-                    <th>MQTT Status</th>
-                    <td id="mqtt-status">Checking...</td>
-                </tr>
-                <tr>
-                    <th>Network Status</th>
-                    <td id="network-status">N/A</td>
-                </tr>
-                <tr>
-                    <th>IP Address</th>
-                    <td id="ip-address">N/A</td>
-                </tr>
-                <tr>
-                    <th>Network Name</th>
-                    <td id="network-name">N/A</td>
-                </tr>
-                <tr>
-                    <th>LoRa Power</th>
-                    <td id="lora-power">N/A</td>
-                </tr>
-            </table>
-        </div>
-    </div>
-    <div class="footer">
-        Created by Al Nakhla Engineering Dep. (Eng. Youssef)
-        <button onclick="logout()">Logout</button>
-    </div>
-
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <script>
-        function checkAuthentication() {
-            if (localStorage.getItem("authenticated") !== "true") {
-                window.location.href = "index.html";
-            } else {
-                document.body.style.display = "flex";
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Engineer Dashboard</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #005f46;
+                color: #ffffff;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
             }
-        }
+            .container {
+                width: 80%;
+                margin-top: 20px;
+            }
+            .card {
+                background-color: #ffffff;
+                color: #000000;
+                padding: 20px;
+                margin-bottom: 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+            .card-header {
+                font-size: 1.5em;
+                margin-bottom: 10px;
+            }
+            .status-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .status-table th, .status-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            .status-table th {
+                background-color: #f2f2f2;
+                font-weight: bold;
+            }
+            .footer {
+                margin-top: 20px;
+                font-size: 0.8em;
+            }
+            .logo {
+                display: flex;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+            .logo img {
+                height: 50px;
+                margin-right: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="logo">
+            <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo">
+            <h1>Engineer Dashboard</h1>
+        </div>
+        <div class="container">
+            <div class="card">
+                <div class="card-header">Connection Information</div>
+                <table class="status-table">
+                    <tr>
+                        <th>Connection Status</th>
+                        <td id="connection-status">Checking...</td>
+                    </tr>
+                    <tr>
+                        <th>Signal Range</th>
+                        <td id="signal-range">N/A</td>
+                    </tr>
+                    <tr>
+                        <th>Signal Strength</th>
+                        <td id="signal-strength">N/A</td>
+                    </tr>
+                    <tr>
+                        <th>MQTT Status</th>
+                        <td id="mqtt-status">Checking...</td>
+                    </tr>
+                    <tr>
+                        <th>Network Status</th>
+                        <td id="network-status">N/A</td>
+                    </tr>
+                    <tr>
+                        <th>IP Address</th>
+                        <td id="ip-address">N/A</td>
+                    </tr>
+                    <tr>
+                        <th>Network Name</th>
+                        <td id="network-name">N/A</td>
+                    </tr>
+                    <tr>
+                        <th>LoRa Power</th>
+                        <td id="lora-power">N/A</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="footer">
+            Created by Al Nakhla Engineering Dep. (Eng. Youssef)
+            <button onclick="logout()">Logout</button>
+        </div>
 
-        function logout() {
-            localStorage.removeItem("authenticated");
-            window.location.href = "index.html";
-        }
+        <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+        <script>
+            function checkAuthentication() {
+                if (localStorage.getItem("authenticated") !== "true") {
+                    window.location.href = "index.html";
+                } else {
+                    document.body.style.display = "flex";
+                }
+            }
 
-        window.onload = checkAuthentication;
+            function logout() {
+                localStorage.removeItem("authenticated");
+                window.location.href = "index.html";
+            }
 
-        // MQTT connection
-        const options = {
-            username: 'firepump',
-            password: '044313187Ki@',
-            clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
-        };
+            window.onload = checkAuthentication;
 
-        const mqttClient = mqtt.connect('wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt', options);
+            // MQTT connection
+            const options = {
+                username: 'firepump',
+                password: '044313187Ki@',
+                clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
+            };
 
-        mqttClient.on('connect', function () {
-            console.log('Connected to MQTT broker');
-            mqttClient.subscribe('fire-pump/status', function (err) {
-                if (!err) {
-                    console.log('Subscribed to fire-pump/status');
+            const mqttClient = mqtt.connect('wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt', options);
+
+            mqttClient.on('connect', function () {
+                console.log('Connected to MQTT broker');
+                mqttClient.subscribe('fire-pump/status', function (err) {
+                    if (!err) {
+                        console.log('Subscribed to fire-pump/status');
+                    }
+                });
+            });
+
+            mqttClient.on('message', function (topic, message) {
+                if (topic === 'fire-pump/status') {
+                    console.log('Message received:', message.toString());
+                    const data = JSON.parse(message.toString());
+                    updateDashboard(data);
                 }
             });
-        });
 
-        mqttClient.on('message', function (topic, message) {
-            if (topic === 'fire-pump/status') {
-                console.log('Message received:', message.toString());
-                const data = JSON.parse(message.toString());
-                updateDashboard(data);
+            mqttClient.on('error', function (error) {
+                console.error('MQTT error:', error);
+                document.getElementById('connection-status').textContent = 'Disconnected';
+            });
+
+            function updateDashboard(data) {
+                document.getElementById('connection-status').textContent = data.RXTX ? 'Connected' : 'Disconnected';
+                document.getElementById('signal-range').textContent = 'N/A'; // Placeholder, replace with actual data if available
+                document.getElementById('signal-strength').textContent = 'N/A'; // Placeholder, replace with actual data if available
+                document.getElementById('mqtt-status').textContent = data.RXMQTT ? 'Connected' : 'Disconnected';
+                document.getElementById('network-status').textContent = data.networkStatus; // Update with received data
+                document.getElementById('ip-address').textContent = data.ipAddress; // Update with received data
+                document.getElementById('network-name').textContent = data.networkName; // Update with received data
+                document.getElementById('lora-power').textContent = data.loraPower; // Update with received data
+
+                // Update other values:
+                document.getElementById('JP').textContent = data.JP;
+                document.getElementById('JPT').textContent = data.JPT;
+                document.getElementById('MP').textContent = data.MP;
+                document.getElementById('MPT').textContent = data.MPT;
+                document.getElementById('DP').textContent = data.DP;
+                document.getElementById('DPT').textContent = data.DPT;
+                document.getElementById('SS1').textContent = data.SS1;
+                document.getElementById('SS2').textContent = data.SS2;
+                document.getElementById('FS').textContent = data.FS;
+                document.getElementById('TH').textContent = data.TH;
+                document.getElementById('WP').textContent = data.WP;
+                document.getElementById('JPM').textContent = data.JPM;
+                document.getElementById('MPM').textContent = data.MPM;
+                document.getElementById('DPM').textContent = data.DPM;
             }
-        });
-
-        mqttClient.on('error', function (error) {
-            console.error('MQTT error:', error);
-            document.getElementById('connection-status').textContent = 'Disconnected';
-        });
-
-        function updateDashboard(data) {
-            document.getElementById('connection-status').textContent = data.RXTX ? 'Connected' : 'Disconnected';
-            document.getElementById('signal-range').textContent = 'N/A'; // Placeholder, replace with actual data if available
-            document.getElementById('signal-strength').textContent = 'N/A'; // Placeholder, replace with actual data if available
-            document.getElementById('mqtt-status').textContent = data.RXMQTT ? 'Connected' : 'Disconnected';
-            document.getElementById('network-status').textContent = 'N/A'; // Placeholder, replace with actual data if available
-            document.getElementById('ip-address').textContent = 'N/A'; // Placeholder, replace with actual data if available
-            document.getElementById('network-name').textContent = 'N/A'; // Placeholder, replace with actual data if available
-            document.getElementById('lora-power').textContent = 'N/A'; // Placeholder, replace with actual data if available
-
-            // Update other values:
-            document.getElementById('JP').textContent = data.JP;
-            document.getElementById('JPT').textContent = data.JPT;
-            document.getElementById('MP').textContent = data.MP;
-            document.getElementById('MPT').textContent = data.MPT;
-            document.getElementById('DP').textContent = data.DP;
-            document.getElementById('DPT').textContent = data.DPT;
-            document.getElementById('SS1').textContent = data.SS1;
-            document.getElementById('SS2').textContent = data.SS2;
-            document.getElementById('FS').textContent = data.FS;
-            document.getElementById('TH').textContent = data.TH;
-            document.getElementById('WP').textContent = data.WP;
-            document.getElementById('JPM').textContent = data.JPM;
-            document.getElementById('MPM').textContent = data.MPM;
-            document.getElementById('DPM').textContent = data.DPM;
-        }
-    </script>
-</body>
-</html>
+        </script>
+    </body>
+    </html>
