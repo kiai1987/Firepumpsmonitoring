@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #005f46;
+            background-color: #005f46; /* Updated background color */
             color: #e0e0e0;
             display: none; /* Hide body initially */
             justify-content: center;
@@ -53,26 +53,9 @@
         }
 
         .logo-side {
-            width: 150px;
+            width: 150px; /* Adjust width as needed */
             height: auto;
             margin-right: 20px;
-        }
-
-        .logout {
-            cursor: pointer;
-            padding: 10px 20px;
-            background-color: #004d40;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            position: absolute;
-            top: 20px;
-            right: 20px;
-        }
-
-        .logout:hover {
-            background-color: #00332b;
         }
 
         .dashboard {
@@ -287,8 +270,6 @@
             <div class="logo">Fire Pump Monitoring System</div>
         </div>
 
-        <button class="logout" onclick="logout()">Logout</button>
-
         <div id="alarm-box"></div>
         <div class="buzzer-switch">
             <label for="buzzer-switch">Buzzer Alarm:</label>
@@ -442,7 +423,10 @@
             </div>
         </div>
 
-        <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
+        <div class="footer">
+            Created by Al Nakhla Engineering Dep. (Eng. Youssef)
+            <button onclick="logout()">Logout</button>
+        </div>
         <i id="system-status" class="fas fa-check-circle"></i>
     </div>
 
@@ -450,9 +434,9 @@
     <script>
         function checkAuthentication() {
             if (localStorage.getItem("authenticated") !== "true") {
-                window.location.href = "index.html";
+                window.location.href = "index.html"; // Redirect to login page if not authenticated
             } else {
-                document.body.style.display = "flex";
+                document.body.style.display = "flex"; // Show body if authenticated
             }
         }
 
@@ -467,6 +451,7 @@
         let isConnected = false;
         let audioContext;
 
+        // Create audio context and handle potential errors
         try {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         } catch (error) {
@@ -475,9 +460,11 @@
 
         let alarmBuffer;
 
-        const alarmSoundUrl = 'https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav';
+        // Make sure to get the sound file from the same origin
+        const alarmSoundUrl = 'https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav'; // Replace with the path to your sound file
 
-        audioContext.suspend();
+        // Handle the audio context state correctly
+        audioContext.suspend();  // Start in suspended state
         audioContext.onstatechange = function () {
             if (audioContext.state === 'suspended') {
                 console.log("Audio context suspended.");
@@ -496,6 +483,7 @@
 
         function playAlarmSound() {
             if (alarmBuffer) {
+                // Resume audio context to allow playback
                 audioContext.resume().then(() => {
                     const alarmSource = audioContext.createBufferSource();
                     alarmSource.buffer = alarmBuffer;
@@ -644,7 +632,6 @@
         });
 
         mqttClient.on('message', function (topic, message) {
-            console.log('MQTT message received:', topic, message.toString());
             if (topic === 'fire-pump/status') {
                 const data = JSON.parse(message.toString());
                 handleStatusUpdates(data);
