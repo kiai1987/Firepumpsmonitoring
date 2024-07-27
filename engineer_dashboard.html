@@ -461,6 +461,9 @@
 
         <div class="connection-info" id="connection-info">
             <p>Connection Status: <span id="connection-status">N/A</span></p>
+            <p>Signal Range: <span id="signal-range">N/A</span></p>
+            <p>Signal Strength: <span id="signal-strength">N/A</span></p>
+            <p>MQTT Status: <span id="mqtt-status">N/A</span></p>
             <p>Network Status: <span id="network-status">N/A</span></p>
             <p>IP Address: <span id="ip-address">N/A</span></p>
             <p>Network Name: <span id="network-name">N/A</span></p>
@@ -583,6 +586,9 @@
             updateSelector('diesel', data.DPM);
 
             document.getElementById('connection-status').textContent = data.RXTX ? 'Connected' : 'Disconnected';
+            document.getElementById('signal-range').textContent = data.signalRange;
+            document.getElementById('signal-strength').textContent = data.signalStrength;
+            document.getElementById('mqtt-status').textContent = data.mqttStatus ? 'Connected' : 'Disconnected';
             document.getElementById('network-status').textContent = data.networkStatus; 
             document.getElementById('ip-address').textContent = data.ipAddress; 
             document.getElementById('network-name').textContent = data.networkName; 
