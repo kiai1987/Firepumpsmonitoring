@@ -78,14 +78,14 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            if (username === engineerUsername && password === engineerPassword) {
+            if ((username === engineerUsername && password === engineerPassword) || 
+                (username === securityUsername && password === securityPassword)) {
                 localStorage.setItem("authenticated", "true"); // Store authentication state
-                localStorage.setItem("userRole", "engineer"); // Store user role
-                window.location.href = "engineer_dashboard.html"; // Redirect to engineer dashboard
-            } else if (username === securityUsername && password === securityPassword) {
-                localStorage.setItem("authenticated", "true"); // Store authentication state
-                localStorage.setItem("userRole", "security"); // Store user role
-                window.location.href = "dashboard.html"; // Redirect to security dashboard
+                if (username === engineerUsername) {
+                    window.location.href = "engineer_dashboard.html"; // Redirect to engineer dashboard
+                } else {
+                    window.location.href = "dashboard.html"; // Redirect to main dashboard
+                }
             } else {
                 alert("Incorrect username or password. Please try again.");
             }
@@ -93,11 +93,11 @@
 
         window.onload = function() {
             if (localStorage.getItem("authenticated") === "true") {
-                const userRole = localStorage.getItem("userRole");
-                if (userRole === "engineer") {
-                    window.location.href = "engineer_dashboard.html"; // Redirect to engineer dashboard if already authenticated
-                } else if (userRole === "security") {
-                    window.location.href = "dashboard.html"; // Redirect to security dashboard if already authenticated
+                const username = localStorage.getItem("username");
+                if (username === "Engineer") {
+                    window.location.href = "engineer_dashboard.html";
+                } else {
+                    window.location.href = "dashboard.html";
                 }
             }
         }
