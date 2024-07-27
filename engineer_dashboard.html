@@ -123,6 +123,7 @@
 
         window.onload = checkAuthentication;
 
+        // MQTT connection
         const options = {
             username: 'firepump',
             password: '044313187Ki@',
@@ -162,6 +163,22 @@
             document.getElementById('ip-address').textContent = 'N/A'; // Placeholder, replace with actual data if available
             document.getElementById('network-name').textContent = 'N/A'; // Placeholder, replace with actual data if available
             document.getElementById('lora-power').textContent = 'N/A'; // Placeholder, replace with actual data if available
+
+            // Update other values:
+            document.getElementById('JP').textContent = data.JP;
+            document.getElementById('JPT').textContent = data.JPT;
+            document.getElementById('MP').textContent = data.MP;
+            document.getElementById('MPT').textContent = data.MPT;
+            document.getElementById('DP').textContent = data.DP;
+            document.getElementById('DPT').textContent = data.DPT;
+            document.getElementById('SS1').textContent = data.SS1;
+            document.getElementById('SS2').textContent = data.SS2;
+            document.getElementById('FS').textContent = data.FS;
+            document.getElementById('TH').textContent = data.TH;
+            document.getElementById('WP').textContent = data.WP;
+            document.getElementById('JPM').textContent = data.JPM;
+            document.getElementById('MPM').textContent = data.MPM;
+            document.getElementById('DPM').textContent = data.DPM;
         }
     </script>
 </body>
