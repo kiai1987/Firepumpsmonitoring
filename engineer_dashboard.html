@@ -36,51 +36,25 @@
         }
 
         .header {
+            text-align: center;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             width: 100%;
-            justify-content: space-between;
-            margin-bottom: 20px;
         }
 
         .logo {
             font-size: 32px;
             font-weight: 700;
             color: #007bff;
-            margin-bottom: 10px;
             text-shadow: 0 0 5px #007bff;
+            flex: 1;
         }
 
         .logo-side {
             width: 150px;
             height: auto;
-        }
-
-        .dashboard-title {
-            font-size: 32px;
-            font-weight: 700;
-            color: #007bff;
-            margin-bottom: 10px;
-            text-shadow: 0 0 5px #007bff;
-            flex: 1;
-            text-align: center;
-        }
-
-        .logout-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .logout-button:hover {
-            background-color: #0056b3;
+            margin-right: 20px;
         }
 
         .dashboard {
@@ -253,27 +227,6 @@
             color: #e0e0e0;
         }
 
-        .connection-info {
-            background: #00796b;
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            margin-top: 20px;
-            width: 100%;
-        }
-
-        .connection-info table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .connection-info th, .connection-info td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-
         #system-status {
             font-size: 100px;
             color: green;
@@ -292,6 +245,37 @@
             text-shadow: 0 0 5px #ff5722;
         }
 
+        .connection-info {
+            background: #005f46;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .connection-info h3 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .connection-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .connection-info table, .connection-info th, .connection-info td {
+            border: 1px solid #007bff;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .connection-info th {
+            background-color: #007bff;
+            color: white;
+        }
+
         @media (max-width: 768px) {
             .dashboard {
                 flex-direction: column;
@@ -307,14 +291,73 @@
                 padding: 10px;
             }
         }
+
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .logout-button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <button class="logout-button" onclick="logout()">Logout</button>
         <div class="header">
             <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo" class="logo-side">
-            <div class="dashboard-title">Fire Pump Monitoring System</div>
+            <div class="logo">Fire Pump Monitoring Dashboard</div>
+            <button class="logout-button" onclick="logout()">Logout</button>
+        </div>
+
+        <div class="connection-info">
+            <h3>Connection Information</h3>
+            <table>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Connection Status</td>
+                    <td id="connection-status">Unknown</td>
+                </tr>
+                <tr>
+                    <td>Signal Range</td>
+                    <td id="signal-range">Unknown</td>
+                </tr>
+                <tr>
+                    <td>Signal Strength</td>
+                    <td id="signal-strength">Unknown</td>
+                </tr>
+                <tr>
+                    <td>MQTT Status</td>
+                    <td id="mqtt-status">Unknown</td>
+                </tr>
+                <tr>
+                    <td>Network Status</td>
+                    <td id="network-status">Unknown</td>
+                </tr>
+                <tr>
+                    <td>IP Address</td>
+                    <td id="ip-address">Unknown</td>
+                </tr>
+                <tr>
+                    <td>Network Name</td>
+                    <td id="network-name">Unknown</td>
+                </tr>
+                <tr>
+                    <td>LoRa Power</td>
+                    <td id="lora-power">Unknown</td>
+                </tr>
+            </table>
         </div>
 
         <div id="alarm-box"></div>
@@ -323,44 +366,151 @@
             <input type="checkbox" id="buzzer-switch" checked>
         </div>
         <div class="dashboard">
-            <!-- Add your dashboard cards here -->
-        </div>
+            <div class="card">
+                <div class="card-header">Jockey Pump</div>
+                <div class="gauge-value" id="jockey-pressure"></div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="jockey-pump-run"></div>
+                        <div>RUN</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="jockey-pump-off"></div>
+                        <div>OFF</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="jockey-pump-trip"></div>
+                        <div>TRIP</div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-label">Mode</div>
+                        <select class="control-input" id="jockey-mode">
+                            <option value="0">Off</option>
+                            <option value="1">Manual</option>
+                            <option value="2">Auto</option>
+                        </select>
+                    </div>
+                </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm"></i>
+            </div>
 
-        <div class="connection-info" id="connection-info">
-            <table>
-                <tr>
-                    <th>Connection Status</th>
-                    <td id="connection-status">N/A</td>
-                </tr>
-                <tr>
-                    <th>Signal Range</th>
-                    <td id="signal-range">N/A</td>
-                </tr>
-                <tr>
-                    <th>Signal Strength</th>
-                    <td id="signal-strength">N/A</td>
-                </tr>
-                <tr>
-                    <th>MQTT Status</th>
-                    <td id="mqtt-status">N/A</td>
-                </tr>
-                <tr>
-                    <th>Network Status</th>
-                    <td id="network-status">N/A</td>
-                </tr>
-                <tr>
-                    <th>IP Address</th>
-                    <td id="ip-address">N/A</td>
-                </tr>
-                <tr>
-                    <th>Network Name</th>
-                    <td id="network-name">N/A</td>
-                </tr>
-                <tr>
-                    <th>LoRa Power</th>
-                    <td id="lora-power">N/A</td>
-                </tr>
-            </table>
+            <div class="card">
+                <div class="card-header">Main Pump</div>
+                <div class="gauge-value" id="main-pressure"></div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="main-pump-run"></div>
+                        <div>RUN</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="main-pump-off"></div>
+                        <div>OFF</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="main-pump-trip"></div>
+                        <div>TRIP</div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-label">Mode</div>
+                        <select class="control-input" id="main-mode">
+                            <option value="0">Off</option>
+                            <option value="1">Manual</option>
+                            <option value="2">Auto</option>
+                        </select>
+                    </div>
+                </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="main-alarm"></i>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Diesel Pump</div>
+                <div class="gauge-value" id="diesel-pressure"></div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="diesel-pump-run"></div>
+                        <div>RUN</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="diesel-pump-off"></div>
+                        <div>OFF</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="diesel-pump-trip"></div>
+                        <div>TRIP</div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-label">Mode</div>
+                        <select class="control-input" id="diesel-mode">
+                            <option value="0">Off</option>
+                            <option value="1">Manual</option>
+                            <option value="2">Auto</option>
+                        </select>
+                    </div>
+                </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="diesel-alarm"></i>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Room Temperature & Humidity</div>
+                <div class="value temperature" id="room-temperature">--°C</div>
+                <div class="value humidity" id="room-humidity">--%</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Water Pressure</div>
+                <div class="value pressure" id="water-pressure">0</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Smoke Detector 1</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="smoke-detector-1-active"></div>
+                        <div>ACTIVE</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="smoke-detector-1-inactive"></div>
+                        <div>INACTIVE</div>
+                    </div>
+                </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-1-alarm"></i>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Smoke Detector 2</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="smoke-detector-2-active"></div>
+                        <div>ACTIVE</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="smoke-detector-2-inactive"></div>
+                        <div>INACTIVE</div>
+                    </div>
+                </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-2-alarm"></i>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Water Flood Sensor</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="flood-sensor-active"></div>
+                        <div>ACTIVE</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="flood-sensor-inactive"></div>
+                        <div>INACTIVE</div>
+                    </div>
+                </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm"></i>
+            </div>
         </div>
 
         <div class="footer">
@@ -372,20 +522,15 @@
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
         function checkAuthentication() {
-            const userType = localStorage.getItem("username");
             if (localStorage.getItem("authenticated") !== "true") {
                 window.location.href = "index.html";
             } else {
                 document.body.style.display = "flex";
-                if (userType !== "Engineer") {
-                    document.getElementById("connection-info").style.display = "none";
-                }
             }
         }
 
         function logout() {
             localStorage.removeItem("authenticated");
-            localStorage.removeItem("username");
             window.location.href = "index.html";
         }
 
@@ -481,7 +626,7 @@
             document.getElementById('connection-status').textContent = data.RXTX ? 'Connected' : 'Disconnected';
             document.getElementById('signal-range').textContent = data.signalRange;
             document.getElementById('signal-strength').textContent = data.signalStrength;
-            document.getElementById('mqtt-status').textContent = data.mqttStatus ? 'Connected' : 'Disconnected';
+            document.getElementById('mqtt-status').textContent = data.RXMQTT ? 'Connected' : 'Disconnected';
             document.getElementById('network-status').textContent = data.networkStatus; 
             document.getElementById('ip-address').textContent = data.ipAddress; 
             document.getElementById('network-name').textContent = data.networkName; 
