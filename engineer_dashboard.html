@@ -245,37 +245,6 @@
             text-shadow: 0 0 5px #ff5722;
         }
 
-        .connection-info {
-            background: #005f46;
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 20px;
-            width: 100%;
-        }
-
-        .connection-info h3 {
-            margin: 0 0 10px;
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .connection-info table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .connection-info table, .connection-info th, .connection-info td {
-            border: 1px solid #007bff;
-            padding: 8px;
-            text-align: left;
-        }
-
-        .connection-info th {
-            background-color: #007bff;
-            color: white;
-        }
-
         @media (max-width: 768px) {
             .dashboard {
                 flex-direction: column;
@@ -291,40 +260,18 @@
                 padding: 10px;
             }
         }
-
-        .logout-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .logout-button:hover {
-            background-color: #0056b3;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo" class="logo-side">
-            <div class="logo">Fire Pump Monitoring Dashboard</div>
-            <button class="logout-button" onclick="logout()">Logout</button>
+            <div class="logo">Fire Pump Monitoring System</div>
+            <button onclick="logout()" style="position: absolute; top: 20px; right: 20px;">Logout</button>
         </div>
 
         <div class="connection-info">
-            <h3>Connection Information</h3>
             <table>
-                <tr>
-                    <th>Parameter</th>
-                    <th>Value</th>
-                </tr>
                 <tr>
                     <td>Connection Status</td>
                     <td id="connection-status">Unknown</td>
