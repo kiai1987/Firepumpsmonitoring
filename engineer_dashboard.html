@@ -24,7 +24,7 @@
             border-radius: 15px;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
             padding: 20px;
-            max-width: 1000px;
+            max-width: 1200px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -73,8 +73,9 @@
 
         .dashboard, .connection-info {
             display: none;
-            flex-direction: column;
-            align-items: center;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
             width: 100%;
             margin-top: 20px;
         }
@@ -88,13 +89,11 @@
             border-radius: 10px;
             padding: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            min-width: 250px;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            margin-bottom: 20px;
-            width: 100%;
-            max-width: 400px;
+            margin: 10px;
+            width: calc(50% - 40px); /* Adjusted for margin */
         }
 
         .card-header {
@@ -259,7 +258,7 @@
         }
 
         @media (max-width: 768px) {
-            .dashboard {
+            .dashboard, .connection-info {
                 flex-direction: column;
                 align-items: center;
             }
@@ -443,40 +442,43 @@
         </div>
 
         <div id="connection-info" class="connection-info">
-            <table>
-                <tr>
-                    <th>Connection Status</th>
-                    <td id="connection-status">Unknown</td>
-                </tr>
-                <tr>
-                    <th>Signal Range</th>
-                    <td id="signal-range">Unknown</td>
-                </tr>
-                <tr>
-                    <th>Signal Strength</th>
-                    <td id="signal-strength">Unknown</td>
-                </tr>
-                <tr>
-                    <th>MQTT Status</th>
-                    <td id="mqtt-status">Unknown</td>
-                </tr>
-                <tr>
-                    <th>Network Status</th>
-                    <td id="network-status">Unknown</td>
-                </tr>
-                <tr>
-                    <th>IP Address</th>
-                    <td id="ip-address">Unknown</td>
-                </tr>
-                <tr>
-                    <th>Network Name</th>
-                    <td id="network-name">Unknown</td>
-                </tr>
-                <tr>
-                    <th>LoRa Power</th>
-                    <td id="lora-power">Unknown</td>
-                </tr>
-            </table>
+            <div class="card">
+                <div class="card-header">Connection Info</div>
+                <table>
+                    <tr>
+                        <th>Connection Status</th>
+                        <td id="connection-status">Unknown</td>
+                    </tr>
+                    <tr>
+                        <th>Signal Range</th>
+                        <td id="signal-range">Unknown</td>
+                    </tr>
+                    <tr>
+                        <th>Signal Strength</th>
+                        <td id="signal-strength">Unknown</td>
+                    </tr>
+                    <tr>
+                        <th>MQTT Status</th>
+                        <td id="mqtt-status">Unknown</td>
+                    </tr>
+                    <tr>
+                        <th>Network Status</th>
+                        <td id="network-status">Unknown</td>
+                    </tr>
+                    <tr>
+                        <th>IP Address</th>
+                        <td id="ip-address">Unknown</td>
+                    </tr>
+                    <tr>
+                        <th>Network Name</th>
+                        <td id="network-name">Unknown</td>
+                    </tr>
+                    <tr>
+                        <th>LoRa Power</th>
+                        <td id="lora-power">Unknown</td>
+                    </tr>
+                </table>
+            </div>
         </div>
 
         <div class="footer">
@@ -750,7 +752,7 @@
             const currentTime = Date.now();
             const elapsedTime = currentTime - lastMessageTime;
 
-            if (elapsedTime > 10000) {
+            if (elapsedTime > 20000) {
                 const alarmBox = document.getElementById('alarm-box');
                 alarmBox.textContent = '';
                 setAllLedsBlank();
