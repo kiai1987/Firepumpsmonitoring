@@ -11,12 +11,11 @@
             font-family: 'Roboto', sans-serif;
             background-color: #005f46;
             color: #e0e0e0;
-            display: none;
+            display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
             padding: 20px;
         }
 
@@ -25,22 +24,18 @@
             border-radius: 15px;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
             padding: 20px;
-            max-width: 100%;
+            max-width: 1000px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 50px;
-            overflow-y: auto;
-            height: calc(100vh - 100px);
-            position: relative;
+            height: calc(100vh - 40px);
         }
 
         .header {
-            text-align: center;
-            margin-bottom: 20px;
             display: flex;
             align-items: center;
             width: 100%;
+            justify-content: space-between;
         }
 
         .logo {
@@ -48,20 +43,44 @@
             font-weight: 700;
             color: #007bff;
             text-shadow: 0 0 5px #007bff;
-            flex: 1;
         }
 
         .logo-side {
             width: 150px;
             height: auto;
-            margin-right: 20px;
         }
 
-        .dashboard {
+        .button-group {
+            margin-top: 20px;
             display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
+            gap: 10px;
+        }
+
+        .button-group button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .button-group button:hover {
+            background-color: #0056b3;
+        }
+
+        .dashboard, .connection-info {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .dashboard.active, .connection-info.active {
+            display: flex;
         }
 
         .card {
@@ -73,8 +92,9 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
-            position: relative;
-            width: 300px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 400px;
         }
 
         .card-header {
@@ -179,18 +199,6 @@
             font-size: 16px;
         }
 
-        .control-input option[value="0"] {
-            background-color: #f44336;
-        }
-
-        .control-input option[value="1"] {
-            background-color: #fff;
-        }
-
-        .control-input option[value="2"] {
-            background-color: #007bff;
-        }
-
         .alarm-icon {
             position: absolute;
             top: 10px;
@@ -201,23 +209,6 @@
 
         .alarm-icon.hidden {
             display: none;
-        }
-
-        .buzzer-switch {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .buzzer-switch label {
-            font-size: 18px;
-            margin-right: 10px;
-            font-weight: bold;
-        }
-
-        .buzzer-switch input {
-            transform: scale(1.5);
         }
 
         .footer {
@@ -245,6 +236,28 @@
             text-shadow: 0 0 5px #ff5722;
         }
 
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #616161;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #3b3b3b;
+        }
+
+        td {
+            background-color: #4b4b4b;
+        }
+
         @media (max-width: 768px) {
             .dashboard {
                 flex-direction: column;
@@ -270,49 +283,18 @@
             <button onclick="logout()" style="position: absolute; top: 20px; right: 20px;">Logout</button>
         </div>
 
-        <div class="connection-info">
-            <table>
-                <tr>
-                    <td>Connection Status</td>
-                    <td id="connection-status">Unknown</td>
-                </tr>
-                <tr>
-                    <td>Signal Range</td>
-                    <td id="signal-range">Unknown</td>
-                </tr>
-                <tr>
-                    <td>Signal Strength</td>
-                    <td id="signal-strength">Unknown</td>
-                </tr>
-                <tr>
-                    <td>MQTT Status</td>
-                    <td id="mqtt-status">Unknown</td>
-                </tr>
-                <tr>
-                    <td>Network Status</td>
-                    <td id="network-status">Unknown</td>
-                </tr>
-                <tr>
-                    <td>IP Address</td>
-                    <td id="ip-address">Unknown</td>
-                </tr>
-                <tr>
-                    <td>Network Name</td>
-                    <td id="network-name">Unknown</td>
-                </tr>
-                <tr>
-                    <td>LoRa Power</td>
-                    <td id="lora-power">Unknown</td>
-                </tr>
-            </table>
+        <div class="button-group">
+            <button onclick="showDashboard()">Fire Dashboard</button>
+            <button onclick="showConnectionInfo()">Connection Info</button>
         </div>
 
         <div id="alarm-box"></div>
-        <div class="buzzer-switch">
-            <label for="buzzer-switch">Buzzer Alarm:</label>
-            <input type="checkbox" id="buzzer-switch" checked>
-        </div>
-        <div class="dashboard">
+        
+        <div id="fire-dashboard" class="dashboard active">
+            <div class="buzzer-switch">
+                <label for="buzzer-switch">Buzzer Alarm:</label>
+                <input type="checkbox" id="buzzer-switch" checked>
+            </div>
             <div class="card">
                 <div class="card-header">Jockey Pump</div>
                 <div class="gauge-value" id="jockey-pressure"></div>
@@ -460,6 +442,43 @@
             </div>
         </div>
 
+        <div id="connection-info" class="connection-info">
+            <table>
+                <tr>
+                    <th>Connection Status</th>
+                    <td id="connection-status">Unknown</td>
+                </tr>
+                <tr>
+                    <th>Signal Range</th>
+                    <td id="signal-range">Unknown</td>
+                </tr>
+                <tr>
+                    <th>Signal Strength</th>
+                    <td id="signal-strength">Unknown</td>
+                </tr>
+                <tr>
+                    <th>MQTT Status</th>
+                    <td id="mqtt-status">Unknown</td>
+                </tr>
+                <tr>
+                    <th>Network Status</th>
+                    <td id="network-status">Unknown</td>
+                </tr>
+                <tr>
+                    <th>IP Address</th>
+                    <td id="ip-address">Unknown</td>
+                </tr>
+                <tr>
+                    <th>Network Name</th>
+                    <td id="network-name">Unknown</td>
+                </tr>
+                <tr>
+                    <th>LoRa Power</th>
+                    <td id="lora-power">Unknown</td>
+                </tr>
+            </table>
+        </div>
+
         <div class="footer">
             Created by Al Nakhla Engineering Dep. (Eng. Youssef)
         </div>
@@ -479,6 +498,16 @@
         function logout() {
             localStorage.removeItem("authenticated");
             window.location.href = "index.html";
+        }
+
+        function showDashboard() {
+            document.getElementById('fire-dashboard').classList.add('active');
+            document.getElementById('connection-info').classList.remove('active');
+        }
+
+        function showConnectionInfo() {
+            document.getElementById('connection-info').classList.add('active');
+            document.getElementById('fire-dashboard').classList.remove('active');
         }
 
         window.onload = checkAuthentication;
