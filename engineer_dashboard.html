@@ -9,22 +9,23 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #005f46;
-            color: #e0e0e0;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
-            padding: 20px;
+            overflow: hidden;
         }
 
         .container {
-            background: #282828;
+            background: #ffffff;
             border-radius: 15px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
             padding: 20px;
             max-width: 1200px;
+            width: 90%;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -36,27 +37,25 @@
             display: flex;
             align-items: center;
             width: 100%;
-            justify-content: center;
-            flex-direction: column;
+            justify-content: space-between;
             margin-bottom: 20px;
         }
 
         .logo {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             color: #007bff;
-            text-shadow: 0 0 5px #007bff;
         }
 
-        .logo-side {
+        .logo img {
             width: 150px;
             height: auto;
+            margin-right: 20px;
         }
 
         .button-group {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
         }
 
         .button-group button {
@@ -79,42 +78,41 @@
             flex-wrap: wrap;
             justify-content: center;
             width: 100%;
-            max-height: 50%;
+            gap: 20px;
         }
 
         .card {
-            background: #3b3b3b;
+            background: #f9f9f9;
             border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex-basis: 45%;
+            display: flex;
             flex-direction: column;
             align-items: center;
-            text-align: center;
-            margin: 10px;
-            width: calc(50% - 20px); /* Adjusted for two rows */
         }
 
         .card-header {
             font-size: 18px;
             font-weight: bold;
-            color: #007bff;
-            margin-bottom: 10px;
-            text-transform: uppercase;
+            color: #333;
+            margin-bottom: 15px;
         }
 
         .value {
             font-size: 24px;
             font-weight: bold;
-            margin-bottom: 10px;
+            color: #007bff;
+            margin-bottom: 15px;
         }
 
         .status-indicators {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             margin-bottom: 15px;
-            width: 100%;
-            gap: 10px;
+            gap: 20px;
         }
 
         .status {
@@ -124,10 +122,10 @@
         }
 
         .led {
-            width: 40px;
-            height: 40px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
-            border: 2px solid #333;
+            margin-bottom: 5px;
         }
 
         .led-run {
@@ -139,31 +137,11 @@
         }
 
         .led-trip {
-            background-color: #FFFF33;
-        }
-
-        .led-active {
-            background-color: #f44336;
-        }
-
-        .led-inactive {
-            background-color: #4caf50;
+            background-color: #ffc107;
         }
 
         .led-blank {
-            background-color: #333;
-        }
-
-        .sensor-icon {
-            font-size: 30px;
-            margin-bottom: 10px;
-        }
-
-        .gauge-value {
-            font-size: 28px;
-            font-weight: bold;
-            color: #e0e0e0;
-            margin-bottom: 10px;
+            background-color: #ddd;
         }
 
         .controls {
@@ -188,31 +166,19 @@
         .control-input {
             width: 100px;
             padding: 8px;
-            border: 1px solid #616161;
+            border: 1px solid #ccc;
             border-radius: 5px;
-            background-color: #4b4b4b;
-            color: #e0e0e0;
+            background-color: #f4f4f4;
+            color: #333;
             text-align: center;
             font-size: 16px;
-        }
-
-        .alarm-icon {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: #ff5722;
-            font-size: 24px;
-        }
-
-        .alarm-icon.hidden {
-            display: none;
         }
 
         .footer {
             text-align: center;
             margin-top: 10px;
-            font-size: 16px;
-            color: #e0e0e0;
+            font-size: 14px;
+            color: #888;
         }
 
         #system-status {
@@ -222,46 +188,14 @@
         }
 
         #alarm-box {
-            background: #ff5722;
+            background: #f44336;
             color: white;
             padding: 15px;
             border-radius: 5px;
             text-align: center;
             margin-bottom: 10px;
-            font-size: 20px;
-            font-weight: bold;
-            text-shadow: 0 0 5px #ff5722;
-        }
-
-        #connection-info {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        .info-card {
-            background: #3b3b3b;
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            width: calc(33.33% - 20px); /* Adjusted for margin */
-        }
-
-        .info-card-header {
-            font-size: 18px;
-            font-weight: bold;
-            color: #007bff;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .info-card-value {
             font-size: 16px;
-            color: #e0e0e0;
+            font-weight: bold;
         }
 
         @media (max-width: 768px) {
@@ -270,13 +204,22 @@
                 align-items: center;
             }
 
-            .card, .info-card {
-                width: 90%;
+            .card {
+                width: 100%;
             }
 
             .container {
-                margin-top: 0;
                 padding: 10px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .logo img {
+                margin-right: 0;
             }
         }
     </style>
@@ -284,11 +227,12 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo" class="logo-side">
-            <div class="logo">Fire Pump Monitoring System</div>
+            <div class="logo">
+                <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo">
+                Fire Pump Monitoring System
+            </div>
+            <button onclick="logout()">Logout</button>
         </div>
-
-        <button onclick="logout()" style="position: absolute; top: 20px; right: 20px;">Logout</button>
 
         <div class="button-group">
             <button onclick="showDashboard()">Fire Dashboard</button>
@@ -300,18 +244,18 @@
         <div id="fire-dashboard" class="dashboard active">
             <div class="card">
                 <div class="card-header">Jockey Pump</div>
-                <div class="gauge-value" id="jockey-pressure">0</div>
+                <div class="value" id="jockey-pressure">0</div>
                 <div class="status-indicators">
                     <div class="status">
-                        <div class="led led-off" id="jockey-pump-run"></div>
+                        <div class="led led-blank" id="jockey-pump-run"></div>
                         <div>RUN</div>
                     </div>
                     <div class="status">
-                        <div class="led led-off" id="jockey-pump-off"></div>
+                        <div class="led led-blank" id="jockey-pump-off"></div>
                         <div>OFF</div>
                     </div>
                     <div class="status">
-                        <div class="led led-off" id="jockey-pump-trip"></div>
+                        <div class="led led-blank" id="jockey-pump-trip"></div>
                         <div>TRIP</div>
                     </div>
                 </div>
@@ -325,23 +269,22 @@
                         </select>
                     </div>
                 </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm"></i>
             </div>
 
             <div class="card">
                 <div class="card-header">Main Pump</div>
-                <div class="gauge-value" id="main-pressure">0</div>
+                <div class="value" id="main-pressure">0</div>
                 <div class="status-indicators">
                     <div class="status">
-                        <div class="led led-off" id="main-pump-run"></div>
+                        <div class="led led-blank" id="main-pump-run"></div>
                         <div>RUN</div>
                     </div>
                     <div class="status">
-                        <div class="led led-off" id="main-pump-off"></div>
+                        <div class="led led-blank" id="main-pump-off"></div>
                         <div>OFF</div>
                     </div>
                     <div class="status">
-                        <div class="led led-off" id="main-pump-trip"></div>
+                        <div class="led led-blank" id="main-pump-trip"></div>
                         <div>TRIP</div>
                     </div>
                 </div>
@@ -355,23 +298,22 @@
                         </select>
                     </div>
                 </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="main-alarm"></i>
             </div>
 
             <div class="card">
                 <div class="card-header">Diesel Pump</div>
-                <div class="gauge-value" id="diesel-pressure">0</div>
+                <div class="value" id="diesel-pressure">0</div>
                 <div class="status-indicators">
                     <div class="status">
-                        <div class="led led-off" id="diesel-pump-run"></div>
+                        <div class="led led-blank" id="diesel-pump-run"></div>
                         <div>RUN</div>
                     </div>
                     <div class="status">
-                        <div class="led led-off" id="diesel-pump-off"></div>
+                        <div class="led led-blank" id="diesel-pump-off"></div>
                         <div>OFF</div>
                     </div>
                     <div class="status">
-                        <div class="led led-off" id="diesel-pump-trip"></div>
+                        <div class="led led-blank" id="diesel-pump-trip"></div>
                         <div>TRIP</div>
                     </div>
                 </div>
@@ -385,98 +327,94 @@
                         </select>
                     </div>
                 </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="diesel-alarm"></i>
             </div>
 
             <div class="card">
                 <div class="card-header">Room Temperature & Humidity</div>
-                <div class="value temperature" id="room-temperature">--°C</div>
-                <div class="value humidity" id="room-humidity">--%</div>
+                <div class="value" id="room-temperature">--°C</div>
+                <div class="value" id="room-humidity">--%</div>
             </div>
 
             <div class="card">
                 <div class="card-header">Water Pressure</div>
-                <div class="value pressure" id="water-pressure">0</div>
+                <div class="value" id="water-pressure">0</div>
             </div>
 
             <div class="card">
                 <div class="card-header">Smoke Detector 1</div>
                 <div class="status-indicators">
                     <div class="status">
-                        <div class="led led-inactive" id="smoke-detector-1-active"></div>
+                        <div class="led led-blank" id="smoke-detector-1-active"></div>
                         <div>ACTIVE</div>
                     </div>
                     <div class="status">
-                        <div class="led led-inactive" id="smoke-detector-1-inactive"></div>
+                        <div class="led led-blank" id="smoke-detector-1-inactive"></div>
                         <div>INACTIVE</div>
                     </div>
                 </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-1-alarm"></i>
             </div>
 
             <div class="card">
                 <div class="card-header">Smoke Detector 2</div>
                 <div class="status-indicators">
                     <div class="status">
-                        <div class="led led-inactive" id="smoke-detector-2-active"></div>
+                        <div class="led led-blank" id="smoke-detector-2-active"></div>
                         <div>ACTIVE</div>
                     </div>
                     <div class="status">
-                        <div class="led led-inactive" id="smoke-detector-2-inactive"></div>
+                        <div class="led led-blank" id="smoke-detector-2-inactive"></div>
                         <div>INACTIVE</div>
                     </div>
                 </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-2-alarm"></i>
             </div>
 
             <div class="card">
                 <div class="card-header">Water Flood Sensor</div>
                 <div class="status-indicators">
                     <div class="status">
-                        <div class="led led-inactive" id="flood-sensor-active"></div>
+                        <div class="led led-blank" id="flood-sensor-active"></div>
                         <div>ACTIVE</div>
                     </div>
                     <div class="status">
-                        <div class="led led-inactive" id="flood-sensor-inactive"></div>
+                        <div class="led led-blank" id="flood-sensor-inactive"></div>
                         <div>INACTIVE</div>
                     </div>
                 </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm"></i>
             </div>
         </div>
 
-        <div id="connection-info" class="connection-info" style="display: none;">
-            <div class="info-card">
-                <div class="info-card-header">Connection Status</div>
-                <div class="info-card-value" id="connection-status">Unknown</div>
+        <div id="connection-info" class="dashboard" style="display: none;">
+            <div class="card">
+                <div class="card-header">Connection Status</div>
+                <div class="value" id="connection-status">Unknown</div>
             </div>
-            <div class="info-card">
-                <div class="info-card-header">Signal Range</div>
-                <div class="info-card-value" id="signal-range">Unknown</div>
+            <div class="card">
+                <div class="card-header">Signal Range</div>
+                <div class="value" id="signal-range">Unknown</div>
             </div>
-            <div class="info-card">
-                <div class="info-card-header">Signal Strength</div>
-                <div class="info-card-value" id="signal-strength">Unknown</div>
+            <div class="card">
+                <div class="card-header">Signal Strength</div>
+                <div class="value" id="signal-strength">Unknown</div>
             </div>
-            <div class="info-card">
-                <div class="info-card-header">MQTT Status</div>
-                <div class="info-card-value" id="mqtt-status">Unknown</div>
+            <div class="card">
+                <div class="card-header">MQTT Status</div>
+                <div class="value" id="mqtt-status">Unknown</div>
             </div>
-            <div class="info-card">
-                <div class="info-card-header">Network Status</div>
-                <div class="info-card-value" id="network-status">Unknown</div>
+            <div class="card">
+                <div class="card-header">Network Status</div>
+                <div class="value" id="network-status">Unknown</div>
             </div>
-            <div class="info-card">
-                <div class="info-card-header">IP Address</div>
-                <div class="info-card-value" id="ip-address">Unknown</div>
+            <div class="card">
+                <div class="card-header">IP Address</div>
+                <div class="value" id="ip-address">Unknown</div>
             </div>
-            <div class="info-card">
-                <div class="info-card-header">Network Name</div>
-                <div class="info-card-value" id="network-name">Unknown</div>
+            <div class="card">
+                <div class="card-header">Network Name</div>
+                <div class="value" id="network-name">Unknown</div>
             </div>
-            <div class="info-card">
-                <div class="info-card-header">LoRa Power</div>
-                <div class="info-card-value" id="lora-power">Unknown</div>
+            <div class="card">
+                <div class="card-header">LoRa Power</div>
+                <div class="value" id="lora-power">Unknown</div>
             </div>
         </div>
 
