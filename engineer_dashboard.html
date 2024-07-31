@@ -36,9 +36,7 @@
             display: flex;
             align-items: center;
             width: 100%;
-            justify-content: center;
-            flex-direction: column;
-            margin-bottom: 20px;
+            justify-content: space-between;
         }
 
         .logo {
@@ -74,16 +72,12 @@
             background-color: #0056b3;
         }
 
-        .dashboard, .connection-info {
-            display: none;
-            flex-direction: row;
+        .dashboard {
+            display: flex;
             flex-wrap: wrap;
             justify-content: center;
             width: 100%;
-        }
-
-        .dashboard.active, .connection-info.active {
-            display: flex;
+            margin-top: 20px;
         }
 
         .card {
@@ -95,7 +89,7 @@
             align-items: center;
             text-align: center;
             margin: 10px;
-            width: calc(50% - 40px); /* Adjusted for margin */
+            width: calc(33.33% - 40px); /* Adjusted for margin */
         }
 
         .card-header {
@@ -237,30 +231,8 @@
             text-shadow: 0 0 5px #ff5722;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        table, th, td {
-            border: 1px solid #616161;
-        }
-
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #3b3b3b;
-        }
-
-        td {
-            background-color: #4b4b4b;
-        }
-
         @media (max-width: 768px) {
-            .dashboard, .connection-info {
+            .dashboard {
                 flex-direction: column;
                 align-items: center;
             }
@@ -290,23 +262,23 @@
             <button onclick="showConnectionInfo()">Connection Info</button>
         </div>
 
-        <div id="alarm-box"></div>
-        
+        <div id="alarm-box">No alarms</div>
+
         <div id="fire-dashboard" class="dashboard active">
             <div class="card">
                 <div class="card-header">Jockey Pump</div>
-                <div class="gauge-value" id="jockey-pressure"></div>
+                <div class="gauge-value" id="jockey-pressure">0</div>
                 <div class="status-indicators">
                     <div class="status">
-                        <div class="led" id="jockey-pump-run"></div>
+                        <div class="led led-off" id="jockey-pump-run"></div>
                         <div>RUN</div>
                     </div>
                     <div class="status">
-                        <div class="led" id="jockey-pump-off"></div>
+                        <div class="led led-off" id="jockey-pump-off"></div>
                         <div>OFF</div>
                     </div>
                     <div class="status">
-                        <div class="led" id="jockey-pump-trip"></div>
+                        <div class="led led-off" id="jockey-pump-trip"></div>
                         <div>TRIP</div>
                     </div>
                 </div>
@@ -325,18 +297,18 @@
 
             <div class="card">
                 <div class="card-header">Main Pump</div>
-                <div class="gauge-value" id="main-pressure"></div>
+                <div class="gauge-value" id="main-pressure">0</div>
                 <div class="status-indicators">
                     <div class="status">
-                        <div class="led" id="main-pump-run"></div>
+                        <div class="led led-off" id="main-pump-run"></div>
                         <div>RUN</div>
                     </div>
                     <div class="status">
-                        <div class="led" id="main-pump-off"></div>
+                        <div class="led led-off" id="main-pump-off"></div>
                         <div>OFF</div>
                     </div>
                     <div class="status">
-                        <div class="led" id="main-pump-trip"></div>
+                        <div class="led led-off" id="main-pump-trip"></div>
                         <div>TRIP</div>
                     </div>
                 </div>
@@ -355,18 +327,18 @@
 
             <div class="card">
                 <div class="card-header">Diesel Pump</div>
-                <div class="gauge-value" id="diesel-pressure"></div>
+                <div class="gauge-value" id="diesel-pressure">0</div>
                 <div class="status-indicators">
                     <div class="status">
-                        <div class="led" id="diesel-pump-run"></div>
+                        <div class="led led-off" id="diesel-pump-run"></div>
                         <div>RUN</div>
                     </div>
                     <div class="status">
-                        <div class="led" id="diesel-pump-off"></div>
+                        <div class="led led-off" id="diesel-pump-off"></div>
                         <div>OFF</div>
                     </div>
                     <div class="status">
-                        <div class="led" id="diesel-pump-trip"></div>
+                        <div class="led led-off" id="diesel-pump-trip"></div>
                         <div>TRIP</div>
                     </div>
                 </div>
@@ -398,11 +370,11 @@
                 <div class="card-header">Smoke Detector 1</div>
                 <div class="status-indicators">
                     <div class="status">
-                        <div class="led" id="smoke-detector-1-active"></div>
+                        <div class="led led-inactive" id="smoke-detector-1-active"></div>
                         <div>ACTIVE</div>
                     </div>
                     <div class="status">
-                        <div class="led" id="smoke-detector-1-inactive"></div>
+                        <div class="led led-inactive" id="smoke-detector-1-inactive"></div>
                         <div>INACTIVE</div>
                     </div>
                 </div>
@@ -413,11 +385,11 @@
                 <div class="card-header">Smoke Detector 2</div>
                 <div class="status-indicators">
                     <div class="status">
-                        <div class="led" id="smoke-detector-2-active"></div>
+                        <div class="led led-inactive" id="smoke-detector-2-active"></div>
                         <div>ACTIVE</div>
                     </div>
                     <div class="status">
-                        <div class="led" id="smoke-detector-2-inactive"></div>
+                        <div class="led led-inactive" id="smoke-detector-2-inactive"></div>
                         <div>INACTIVE</div>
                     </div>
                 </div>
@@ -428,11 +400,11 @@
                 <div class="card-header">Water Flood Sensor</div>
                 <div class="status-indicators">
                     <div class="status">
-                        <div class="led" id="flood-sensor-active"></div>
+                        <div class="led led-inactive" id="flood-sensor-active"></div>
                         <div>ACTIVE</div>
                     </div>
                     <div class="status">
-                        <div class="led" id="flood-sensor-inactive"></div>
+                        <div class="led led-inactive" id="flood-sensor-inactive"></div>
                         <div>INACTIVE</div>
                     </div>
                 </div>
@@ -440,7 +412,7 @@
             </div>
         </div>
 
-        <div id="connection-info" class="connection-info">
+        <div id="connection-info" class="connection-info" style="display: none;">
             <div class="card">
                 <div class="card-header">Connection Info</div>
                 <table>
@@ -502,13 +474,13 @@
         }
 
         function showDashboard() {
-            document.getElementById('fire-dashboard').classList.add('active');
-            document.getElementById('connection-info').classList.remove('active');
+            document.getElementById('fire-dashboard').style.display = 'flex';
+            document.getElementById('connection-info').style.display = 'none';
         }
 
         function showConnectionInfo() {
-            document.getElementById('connection-info').classList.add('active');
-            document.getElementById('fire-dashboard').classList.remove('active');
+            document.getElementById('connection-info').style.display = 'flex';
+            document.getElementById('fire-dashboard').style.display = 'none';
         }
 
         window.onload = checkAuthentication;
@@ -610,7 +582,7 @@
             document.getElementById('lora-power').textContent = data.loraPower; 
 
             const alarmBox = document.getElementById('alarm-box');
-            alarmBox.textContent = '';
+            alarmBox.textContent = 'No alarms';
 
             let alarmActive = false;
 
@@ -753,7 +725,7 @@
 
             if (elapsedTime > 20000) {
                 const alarmBox = document.getElementById('alarm-box');
-                alarmBox.textContent = '';
+                alarmBox.textContent = 'No alarms';
                 setAllLedsBlank();
 
                 if (!isConnected) {
