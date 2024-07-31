@@ -248,6 +248,8 @@
             text-align: left;
             padding: 8px;
             border-bottom: 1px solid #616161;
+            /* Adjusted widths for two-line display */
+            width: 50%; /* Make each column 50% width */
         }
 
         .connection-info th {
@@ -273,6 +275,11 @@
 
             .connection-info table {
                 width: 90%;
+            }
+
+            /* Adjust for mobile */
+            .connection-info th, .connection-info td {
+                width: 100%; /* Make columns take full width on mobile */
             }
         }
     </style>
@@ -448,32 +455,24 @@
                     <tr>
                         <th>Connection Status</th>
                         <td id="connection-status">Unknown</td>
-                    </tr>
-                    <tr>
                         <th>Signal Range</th>
                         <td id="signal-range">Unknown</td>
                     </tr>
                     <tr>
                         <th>Signal Strength</th>
                         <td id="signal-strength">Unknown</td>
-                    </tr>
-                    <tr>
                         <th>MQTT Status</th>
                         <td id="mqtt-status">Unknown</td>
                     </tr>
                     <tr>
                         <th>Network Status</th>
                         <td id="network-status">Unknown</td>
-                    </tr>
-                    <tr>
                         <th>IP Address</th>
                         <td id="ip-address">Unknown</td>
                     </tr>
                     <tr>
                         <th>Network Name</th>
                         <td id="network-name">Unknown</td>
-                    </tr>
-                    <tr>
                         <th>LoRa Power</th>
                         <td id="lora-power">Unknown</td>
                     </tr>
