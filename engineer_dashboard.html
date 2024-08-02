@@ -734,7 +734,7 @@
             clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
         };
 
-        const mqttClient = mqtt.connect('wss://hummingbird.rmq.cloudamqp.com:443', options);
+        const mqttClient = mqtt.connect('wss://hummingbird.rmq.cloudamqp.com:1883', options);
 
         mqttClient.on('connect', function () {
             console.log('Connected to MQTT broker');
