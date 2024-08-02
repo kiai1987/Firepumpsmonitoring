@@ -391,8 +391,7 @@
             <div class="card">
                 <div class="card-header">Room Temperature & Humidity</div>
                 <div class="value temperature" id="room-temperature">--°C</div>
-                <div class="value humidity" id="room-humidity">--%</div>
-            </div>
+                <div class="value humidity" id="room-humidity">--%</            </div>
 
             <div class="card">
                 <div class="card-header">Water Pressure</div>
@@ -566,7 +565,7 @@
         }
 
         function updateSelector(selectorGroup, mode) {
-            const selector = document.getElementById(${selectorGroup}-mode);
+            const selector = document.getElementById(`${selectorGroup}-mode`);
             selector.value = mode;
         }
 
@@ -685,12 +684,12 @@
         }
 
         const options = {
-            username: 'firepump',
-            password: '044313187Ki@',
-            clientId: mqttjs_${Math.random().toString(16).substr(2, 8)},
+            username: 'shortjaguar328',
+            password: 'GkPMFUvImx2PSXwZ',
+            clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
         };
 
-        const mqttClient = mqtt.connect('wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt', options);
+        const mqttClient = mqtt.connect('wss://shortjaguar328.cloud.shiftr.io:8883', options);
 
         mqttClient.on('connect', function () {
             console.log('Connected to MQTT broker');
