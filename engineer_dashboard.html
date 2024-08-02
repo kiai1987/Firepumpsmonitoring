@@ -813,6 +813,12 @@
                 systemStatusIcon.classList.add('fa-exclamation-circle');
                 systemStatusIcon.style.color = 'red';
             }
+
+            // Update connection status in real-time
+            document.getElementById('wifi-ssid').textContent = WiFi.SSID();
+            document.getElementById('ip-address').textContent = WiFi.localIP().toString();
+            document.getElementById('wifi-status').textContent = (WiFi.status() == WL_CONNECTED) ? "Connected" : "Disconnected";
+
         }, 1000);
 
         function showSection(sectionId) {
