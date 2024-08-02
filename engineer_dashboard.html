@@ -270,7 +270,8 @@
 
         .buttons {
             display: flex;
-            justify-content: space-around;
+            justify-content: center;
+            gap: 10px;
             margin-bottom: 20px;
             width: 100%;
         }
@@ -287,6 +288,26 @@
 
         .nav-button:hover {
             background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        table, th, td {
+            border: 1px solid #616161;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
         }
 
         @media (max-width: 768px) {
@@ -474,9 +495,40 @@
         <div id="connection-info" class="section hidden">
             <div class="card">
                 <div class="card-header">Connection Information</div>
-                <div class="gauge-value">WiFi SSID: <span id="wifi-ssid">--</span></div>
-                <div class="gauge-value">IP Address: <span id="ip-address">--</span></div>
-                <div class="gauge-value">WiFi Status: <span id="wifi-status">--</span></div>
+                <table>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>WiFi SSID</td>
+                        <td id="wifi-ssid">--</td>
+                    </tr>
+                    <tr>
+                        <td>IP Address</td>
+                        <td id="ip-address">--</td>
+                    </tr>
+                    <tr>
+                        <td>WiFi Status</td>
+                        <td id="wifi-status">--</td>
+                    </tr>
+                    <tr>
+                        <td>Signal Range</td>
+                        <td id="signal-range">--</td>
+                    </tr>
+                    <tr>
+                        <td>Signal Strength</td>
+                        <td id="signal-strength">--</td>
+                    </tr>
+                    <tr>
+                        <td>MQTT Status</td>
+                        <td id="mqtt-status">--</td>
+                    </tr>
+                    <tr>
+                        <td>LoRa Power</td>
+                        <td id="lora-power">--</td>
+                    </tr>
+                </table>
             </div>
         </div>
 
@@ -596,6 +648,10 @@
             document.getElementById('wifi-ssid').textContent = data.WiFiSSID;
             document.getElementById('ip-address').textContent = data.WiFiIP;
             document.getElementById('wifi-status').textContent = data.WiFiStatus;
+            document.getElementById('signal-range').textContent = data.signalRange;
+            document.getElementById('signal-strength').textContent = data.signalStrength;
+            document.getElementById('mqtt-status').textContent = data.mqttStatus;
+            document.getElementById('lora-power').textContent = data.loraPower;
 
             const alarmBox = document.getElementById('alarm-box');
             alarmBox.textContent = '';
