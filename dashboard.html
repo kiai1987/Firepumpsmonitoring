@@ -314,7 +314,7 @@
         <div class="dashboard">
             <div class="card">
                 <div class="card-header">Jockey Pump</div>
-                <div class="gauge-value" id="jockey-pressure"></div>
+                <div class="gauge-value" id="jockey-pressure">--</div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="jockey-pump-run"></div>
@@ -344,7 +344,7 @@
 
             <div class="card">
                 <div class="card-header">Main Pump</div>
-                <div class="gauge-value" id="main-pressure"></div>
+                <div class="gauge-value" id="main-pressure">--</div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="main-pump-run"></div>
@@ -374,7 +374,7 @@
 
             <div class="card">
                 <div class="card-header">Diesel Pump</div>
-                <div class="gauge-value" id="diesel-pressure"></div>
+                <div class="gauge-value" id="diesel-pressure">--</div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="diesel-pump-run"></div>
@@ -410,7 +410,7 @@
 
             <div class="card">
                 <div class="card-header">Water Pressure</div>
-                <div class="value pressure" id="water-pressure">0</div>
+                <div class="value pressure" id="water-pressure">--</div>
             </div>
 
             <div class="card">
@@ -662,7 +662,7 @@
             clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
         };
 
-        const mqttClient = mqtt.connect('wss://shortjaguar328.cloud.shiftr.io:1883', options);
+        const mqttClient = mqtt.connect('wss://shortjaguar328.cloud.shiftr.io:443', options);
 
         mqttClient.on('connect', function () {
             console.log('Connected to MQTT broker');
