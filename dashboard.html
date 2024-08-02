@@ -246,17 +246,6 @@
             color: #e0e0e0;
         }
 
-        .connection-info {
-            background: #00796b;
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            margin-top: 20px;
-            width: 100%;
-            display: none;
-        }
-
         #system-status {
             font-size: 100px;
             color: green;
@@ -450,13 +439,6 @@
             </div>
         </div>
 
-        <div class="connection-info" id="connection-info">
-            <p>Network Status: <span id="network-status">N/A</span></p>
-            <p>IP Address: <span id="ip-address">N/A</span></p>
-            <p>LoRa Connection: <span id="lora-connection">N/A</span></p>
-            <p>MQTT Connection: <span id="mqtt-connection">N/A</span></p>
-        </div>
-
         <div class="footer">
             Created by Al Nakhla Engineering Dep. (Eng. Youssef)
         </div>
@@ -471,9 +453,6 @@
                 window.location.href = "index.html";
             } else {
                 document.body.style.display = "flex";
-                if (userType !== "engineer") {
-                    document.getElementById("connection-info").style.display = "none";
-                }
             }
         }
 
