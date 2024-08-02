@@ -23,8 +23,8 @@
         password: 'GkPMFUvImx2PSXwZ',
     };
 
-    // Change the URL to ws and use the appropriate port
-    const mqttClient = mqtt.connect('ws://shortjaguar328.cloud.shiftr.io:1883', options);
+    // Change the URL to wss and ensure the port is correct for WSS
+    const mqttClient = mqtt.connect('wss://shortjaguar328.cloud.shiftr.io:8883', options);
 
     mqttClient.on('connect', function () {
         console.log('Connected to MQTT broker');
