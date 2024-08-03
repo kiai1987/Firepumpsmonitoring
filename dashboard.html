@@ -693,7 +693,7 @@
             const currentTime = Date.now();
             const elapsedTime = currentTime - lastMessageTime;
 
-            if (elapsedTime > 10000) {
+            if (elapsedTime > 20000) {
                 const alarmBox = document.getElementById('alarm-box');
                 alarmBox.textContent = '';
                 setAllLedsBlank();
