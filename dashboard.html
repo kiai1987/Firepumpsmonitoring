@@ -627,12 +627,12 @@
         }
 
         const options = {
-            username: 'shortjaguar328',
-            password: 'GkPMFUvImx2PSXwZ',
+            username: 'ztlnecjr:ztlnecjr',
+            password: '4NB17ZJuWd2p_xzoea2j9pcYL7mseFgg',
             clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
         };
 
-        const mqttClient = mqtt.connect('wss://shortjaguar328.cloud.shiftr.io:443', options);
+        const mqttClient = mqtt.connect('wss://hummingbird.rmq.cloudamqp.com:8883', options);
 
         mqttClient.on('connect', function () {
             console.log('Connected to MQTT broker');
