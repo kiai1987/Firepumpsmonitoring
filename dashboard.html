@@ -11,7 +11,7 @@
             font-family: 'Roboto', sans-serif;
             background-color: #005f46;
             color: #e0e0e0;
-            display: none;
+            display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -29,18 +29,18 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 50px;
             overflow-y: auto;
             height: calc(100vh - 100px);
             position: relative;
         }
 
         .header {
-            text-align: center;
-            margin-bottom: 20px;
             display: flex;
             align-items: center;
             width: 100%;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-direction: column;
         }
 
         .logo {
@@ -49,13 +49,37 @@
             color: #007bff;
             margin-bottom: 10px;
             text-shadow: 0 0 5px #007bff;
-            flex: 1;
         }
 
         .logo-side {
             width: 150px;
             height: auto;
-            margin-right: 20px;
+        }
+
+        .dashboard-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #007bff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px #007bff;
+            text-align: center;
+        }
+
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .logout-button:hover {
+            background-color: #0056b3;
         }
 
         .dashboard {
@@ -84,12 +108,6 @@
             color: #007bff;
             margin-bottom: 10px;
             text-transform: uppercase;
-        }
-
-        .value {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
         }
 
         .status-indicators {
@@ -265,9 +283,10 @@
 </head>
 <body>
     <div class="container">
+        <button class="logout-button" onclick="logout()">Logout</button>
         <div class="header">
             <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo" class="logo-side">
-            <div class="logo">Fire Pump Monitoring System</div>
+            <div class="dashboard-title">Fire Pump Monitoring System</div>
         </div>
 
         <div id="alarm-box"></div>
@@ -278,7 +297,6 @@
         <div class="dashboard">
             <div class="card">
                 <div class="card-header">Jockey Pump</div>
-                <div class="gauge-value" id="jockey-pressure"></div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="jockey-pump-run"></div>
@@ -308,7 +326,6 @@
 
             <div class="card">
                 <div class="card-header">Main Pump</div>
-                <div class="gauge-value" id="main-pressure"></div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="main-pump-run"></div>
@@ -338,7 +355,6 @@
 
             <div class="card">
                 <div class="card-header">Diesel Pump</div>
-                <div class="gauge-value" id="diesel-pressure"></div>
                 <div class="status-indicators">
                     <div class="status">
                         <div class="led" id="diesel-pump-run"></div>
@@ -425,7 +441,6 @@
 
         <div class="footer">
             Created by Al Nakhla Engineering Dep. (Eng. Youssef)
-            <button onclick="logout()">Logout</button>
         </div>
         <i id="system-status" class="fas fa-check-circle"></i>
     </div>
@@ -433,6 +448,7 @@
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
         function checkAuthentication() {
+            const userType = localStorage.getItem("userType");
             if (localStorage.getItem("authenticated") !== "true") {
                 window.location.href = "index.html";
             } else {
@@ -442,6 +458,7 @@
 
         function logout() {
             localStorage.removeItem("authenticated");
+            localStorage.removeItem("userType");
             window.location.href = "index.html";
         }
 
