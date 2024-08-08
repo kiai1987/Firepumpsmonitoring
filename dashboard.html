@@ -680,8 +680,7 @@
             systemStatusIcon.classList.remove('fa-check-circle');
             systemStatusIcon.classList.add('fa-exclamation-circle');
             systemStatusIcon.style.color = 'red';
-            // Try to reconnect after a delay
-            setTimeout(connectMqtt, 5000);
+            setTimeout(connectMqtt, 60000); // Reconnect after 1 minute
         }
 
         function updateBuzzerState() {
@@ -717,7 +716,7 @@
             const currentTime = Date.now();
             const elapsedTime = currentTime - lastMessageTime;
 
-            if (elapsedTime > 10000) {
+            if (elapsedTime > 60000) { // 1 minute for connection errors
                 const alarmBox = document.getElementById('alarm-box');
                 alarmBox.textContent = '';
                 setAllLedsBlank();
