@@ -467,6 +467,7 @@
         let lastMessageTime = Date.now();
         let isConnected = false;
         let audioContext;
+        let isPageVisible = true;
 
         try {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -735,6 +736,20 @@
                 systemStatusIcon.style.color = 'red';
             }
         }, 1000);
+
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') {
+                console.log("Page is visible.");
+                isPageVisible = true;
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            } else {
+                console.log("Page is hidden.");
+                isPageVisible = false;
+            }
+        });
 
         connectMqtt();
     </script>
