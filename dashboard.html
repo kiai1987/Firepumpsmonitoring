@@ -264,6 +264,30 @@
             text-shadow: 0 0 5px #ff5722;
         }
 
+        .card .value {
+            font-size: 36px; /* Make the text bigger */
+            font-weight: bold;
+            color: #e0e0e0;
+            text-align: center;
+            margin: 20px 0; /* Add margin to center the text vertically */
+        }
+
+        .card .value.temperature {
+            font-size: 48px; /* Increase the font size for temperature */
+        }
+
+        .card .value.humidity {
+            font-size: 48px; /* Increase the font size for humidity */
+        }
+
+        .card .temperature-humidity {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%; /* Make sure it takes the full height of the card */
+        }
+
         @media (max-width: 768px) {
             .dashboard {
                 flex-direction: column;
@@ -384,8 +408,10 @@
 
             <div class="card">
                 <div class="card-header">Room Temperature & Humidity</div>
-                <div class="value temperature" id="room-temperature">--°C</div>
-                <div class="value humidity" id="room-humidity">--%</div>
+                <div class="temperature-humidity">
+                    <div class="value temperature" id="room-temperature">--°C</div>
+                    <div class="value humidity" id="room-humidity">--%</div>
+                </div>
             </div>
 
             <div class="card">
