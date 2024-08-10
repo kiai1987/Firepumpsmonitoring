@@ -627,6 +627,8 @@
             });
         }
 
+        const mqtt_server_primary = "wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt";
+        const mqtt_server_secondary = "wss://279f2d6397444dbcbeb4eaa4897960f7.s1.eu.hivemq.cloud:8884/mqtt";
         const options = {
             username: 'firepump',
             password: '044313187Ki@',
@@ -635,11 +637,11 @@
 
         let mqttClient;
 
-        function connectMqtt() {
-            mqttClient = mqtt.connect('wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt', options);
+        function connectMqtt(server) {
+            mqttClient = mqtt.connect(server, options);
 
             mqttClient.on('connect', function () {
-                console.log('Connected to MQTT broker');
+                console.log(`Connected to MQTT broker: ${server}`);
                 isConnected = true;
                 mqttClient.subscribe('fire-pump/status', function (err) {
                     if (!err) {
@@ -658,13 +660,13 @@
             mqttClient.on('error', function (error) {
                 console.error('MQTT error:', error);
                 isConnected = false;
-                handleConnectionLoss();
+                handleConnectionLoss(server);
             });
 
             mqttClient.on('close', function () {
                 console.log('MQTT connection closed');
                 isConnected = false;
-                handleConnectionLoss();
+                handleConnectionLoss(server);
             });
 
             mqttClient.on('reconnect', function () {
@@ -672,7 +674,7 @@
             });
         }
 
-        function handleConnectionLoss() {
+        function handleConnectionLoss(server) {
             const alarmBox = document.getElementById('alarm-box');
             alarmBox.textContent = 'Receiver-MQTT Communication Failed';
             setAllLedsBlank();
@@ -681,7 +683,15 @@
             systemStatusIcon.classList.remove('fa-check-circle');
             systemStatusIcon.classList.add('fa-exclamation-circle');
             systemStatusIcon.style.color = 'red';
-            setTimeout(connectMqtt, 60000); // Reconnect after 1 minute
+
+            // Try connecting to the secondary server if the primary fails
+            if (server === mqtt_server_primary) {
+                console.log('Attempting to connect to secondary MQTT server...');
+                connectMqtt(mqtt_server_secondary);
+            } else {
+                console.log('Reconnecting to primary MQTT server in 1 minute...');
+                setTimeout(() => connectMqtt(mqtt_server_primary), 60000); // Reconnect after 1 minute
+            }
         }
 
         function updateBuzzerState() {
@@ -751,7 +761,8 @@
             }
         });
 
-        connectMqtt();
+        // Start by connecting to the primary MQTT server
+        connectMqtt(mqtt_server_primary);
     </script>
 </body>
 </html>
