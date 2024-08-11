@@ -277,6 +277,7 @@
             justify-content: center;
             align-items: center;
             gap: 5px; /* Reduce the gap between temperature and humidity */
+            height: 100%; /* Full height to align properly */
         }
 
         @media (max-width: 768px) {
@@ -407,7 +408,7 @@
 
             <div class="card">
                 <div class="card-header">Water Pressure</div>
-                <div class="value pressure" id="water-pressure">0</div>
+                <div class="value pressure" id="water-pressure">0 Bar</div>
             </div>
 
             <div class="card">
@@ -563,7 +564,7 @@
 
             document.getElementById('room-temperature').textContent = data.TH.split(',')[0] + '°C';
             document.getElementById('room-humidity').textContent = data.TH.split(',')[1] + '%';
-            document.getElementById('water-pressure').textContent = data.WP;
+            document.getElementById('water-pressure').textContent = data.WP + ' Bar';
 
             updateSelector('jockey', data.JPM);
             updateSelector('main', data.MPM);
@@ -610,14 +611,10 @@
                 alarmActive = true;
             }
 
-            if (!data.RXTX) {
-                alarmBox.textContent += 'Receiver-Transmitter Communication Failed; ';
+            if (!data.RXTX || !data.RXMQTT) {
+                alarmBox.textContent += 'Communication Failed; ';
                 playAlarmSound();
-                alarmActive = true;
-            }
-            if (!data.RXMQTT) {
-                alarmBox.textContent += 'Receiver-MQTT Communication Failed; ';
-                playAlarmSound();
+                setAllLedsBlank();  // Set all indicators to blank if there's a connection error
                 alarmActive = true;
             }
 
@@ -626,10 +623,6 @@
                 systemStatusIcon.classList.remove('fa-check-circle');
                 systemStatusIcon.classList.add('fa-exclamation-circle');
                 systemStatusIcon.style.color = 'red';
-            } else if (data.connected === false) {
-                systemStatusIcon.classList.remove('fa-check-circle');
-                systemStatusIcon.classList.add('fa-exclamation-circle');
-                systemStatusIcon.style.color = 'yellow';
             } else {
                 systemStatusIcon.classList.remove('fa-exclamation-circle');
                 systemStatusIcon.classList.add('fa-check-circle');
@@ -642,6 +635,9 @@
             leds.forEach(led => {
                 led.className = 'led led-blank';
             });
+            document.getElementById('room-temperature').textContent = '--°C';
+            document.getElementById('room-humidity').textContent = '--%';
+            document.getElementById('water-pressure').textContent = '0 Bar';
         }
 
         const mqtt_server_primary = "wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt";
