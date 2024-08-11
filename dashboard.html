@@ -265,19 +265,10 @@
         }
 
         .card .value {
-            font-size: 36px; /* Make the text bigger */
+            font-size: 36px; /* Set the font size */
             font-weight: bold;
             color: #e0e0e0;
             text-align: center;
-            margin: 20px 0; /* Add margin to center the text vertically */
-        }
-
-        .card .value.temperature {
-            font-size: 36px; /* Increase the font size for temperature */
-        }
-
-        .card .value.humidity {
-            font-size: 36px; /* Increase the font size for humidity */
         }
 
         .card .temperature-humidity {
@@ -285,7 +276,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100%; /* Make sure it takes the full height of the card */
+            gap: 5px; /* Reduce the gap between temperature and humidity */
         }
 
         @media (max-width: 768px) {
@@ -786,6 +777,11 @@
                 isPageVisible = false;
             }
         });
+
+        // Auto-refresh the page every 10 minutes (600000 ms)
+        setInterval(function() {
+            location.reload();
+        }, 600000);
 
         // Start by connecting to the primary MQTT server
         connectMqtt(mqtt_server_primary);
