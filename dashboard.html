@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
+        /* Add your existing styles here */
         body {
             font-family: 'Roboto', sans-serif;
             background-color: #005f46;
@@ -132,24 +133,16 @@
             border: 2px solid #333;
         }
 
-        .led-run {
-            background-color: #4caf50;
+        .led-alarm {
+            background-color: #f44336;
         }
 
-        .led-off {
-            background-color: #f44336;
+        .led-normal {
+            background-color: #4caf50;
         }
 
         .led-trip {
             background-color: #FFFF33;
-        }
-
-        .led-active {
-            background-color: #f44336;
-        }
-
-        .led-inactive {
-            background-color: #4caf50;
         }
 
         .led-blank {
@@ -265,7 +258,7 @@
         }
 
         .card .value {
-            font-size: 36px; /* Set the font size */
+            font-size: 36px;
             font-weight: bold;
             color: #e0e0e0;
             text-align: center;
@@ -276,8 +269,29 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 5px; /* Reduce the gap between temperature and humidity */
-            height: 100%; /* Full height to align properly */
+            gap: 5px;
+            height: 100%;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
         }
 
         @media (max-width: 768px) {
@@ -306,6 +320,10 @@
         </div>
 
         <div id="alarm-box"></div>
+        <div class="buttons">
+            <button class="button" id="acknowledge-button" onclick="acknowledgeAlarm()">Acknowledge Alarm</button>
+            <button class="button" id="reset-button" onclick="resetAlarm()">Reset</button>
+        </div>
         <div class="buzzer-switch">
             <label for="buzzer-switch">Buzzer Alarm:</label>
             <input type="checkbox" id="buzzer-switch" checked>
@@ -412,48 +430,33 @@
             </div>
 
             <div class="card">
-                <div class="card-header">Smoke Detector 1</div>
+                <div class="card-header">Smoke Detector</div>
                 <div class="status-indicators">
                     <div class="status">
-                        <div class="led" id="smoke-detector-1-active"></div>
-                        <div>ACTIVE</div>
+                        <div class="led" id="smoke-detector-alarm"></div>
+                        <div>ALARM</div>
                     </div>
                     <div class="status">
-                        <div class="led" id="smoke-detector-1-inactive"></div>
-                        <div>INACTIVE</div>
+                        <div class="led" id="smoke-detector-normal"></div>
+                        <div>NORMAL</div>
                     </div>
                 </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-1-alarm"></i>
-            </div>
-
-            <div class="card">
-                <div class="card-header">Smoke Detector 2</div>
-                <div class="status-indicators">
-                    <div class="status">
-                        <div class="led" id="smoke-detector-2-active"></div>
-                        <div>ACTIVE</div>
-                    </div>
-                    <div class="status">
-                        <div class="led" id="smoke-detector-2-inactive"></div>
-                        <div>INACTIVE</div>
-                    </div>
-                </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-2-alarm"></i>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-alarm-icon"></i>
             </div>
 
             <div class="card">
                 <div class="card-header">Water Flood Sensor</div>
                 <div class="status-indicators">
                     <div class="status">
-                        <div class="led" id="flood-sensor-active"></div>
-                        <div>ACTIVE</div>
+                        <div class="led" id="flood-sensor-alarm"></div>
+                        <div>ALARM</div>
                     </div>
                     <div class="status">
-                        <div class="led" id="flood-sensor-inactive"></div>
-                        <div>INACTIVE</div>
+                        <div class="led" id="flood-sensor-normal"></div>
+                        <div>NORMAL</div>
                     </div>
                 </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm"></i>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm-icon"></i>
             </div>
         </div>
 
@@ -465,6 +468,7 @@
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
+        // Add your existing script code here, along with the updates for acknowledge and reset functionality
         function checkAuthentication() {
             const userType = localStorage.getItem("userType");
             if (localStorage.getItem("authenticated") !== "true") {
@@ -486,6 +490,7 @@
         let isConnected = false;
         let audioContext;
         let isPageVisible = true;
+        let alarmSilenced = false;
 
         try {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -515,7 +520,7 @@
             }).catch(error => console.error('Error loading alarm sound:', error));
 
         function playAlarmSound() {
-            if (alarmBuffer) {
+            if (alarmBuffer && !alarmSilenced) {
                 audioContext.resume().then(() => {
                     const alarmSource = audioContext.createBufferSource();
                     alarmSource.buffer = alarmBuffer;
@@ -555,12 +560,10 @@
             updateLedStatus('diesel-pump-off', !data.DP, 'led-off');
             updateLedStatus('diesel-pump-trip', data.DPT, 'led-trip');
 
-            updateLedStatus('smoke-detector-1-active', data.SS1, 'led-active');
-            updateLedStatus('smoke-detector-1-inactive', !data.SS1, 'led-inactive');
-            updateLedStatus('smoke-detector-2-active', data.SS2, 'led-active');
-            updateLedStatus('smoke-detector-2-inactive', !data.SS2, 'led-inactive');
-            updateLedStatus('flood-sensor-active', data.FS, 'led-active');
-            updateLedStatus('flood-sensor-inactive', !data.FS, 'led-inactive');
+            updateLedStatus('smoke-detector-alarm', data.SS1, 'led-alarm');
+            updateLedStatus('smoke-detector-normal', !data.SS1, 'led-normal');
+            updateLedStatus('flood-sensor-alarm', data.FS, 'led-alarm');
+            updateLedStatus('flood-sensor-normal', !data.FS, 'led-normal');
 
             document.getElementById('room-temperature').textContent = data.TH.split(',')[0] + '°C';
             document.getElementById('room-humidity').textContent = data.TH.split(',')[1] + '%';
@@ -591,17 +594,12 @@
                 alarmActive = true;
             }
             if (data.SS1) {
-                alarmBox.textContent += 'Smoke Detector 1 Active; ';
-                playAlarmSound();
-                alarmActive = true;
-            }
-            if (data.SS2) {
-                alarmBox.textContent += 'Smoke Detector 2 Active; ';
+                alarmBox.textContent += 'Smoke Detector Alarm; ';
                 playAlarmSound();
                 alarmActive = true;
             }
             if (data.FS) {
-                alarmBox.textContent += 'Water Flood Sensor Active; ';
+                alarmBox.textContent += 'Water Flood Sensor Alarm; ';
                 playAlarmSound();
                 alarmActive = true;
             }
@@ -614,7 +612,7 @@
             if (!data.RXTX || !data.RXMQTT) {
                 alarmBox.textContent += 'Communication Failed; ';
                 playAlarmSound();
-                setAllLedsBlank();  // Set all indicators to blank if there's a connection error
+                setAllLedsBlank();
                 alarmActive = true;
             }
 
@@ -638,6 +636,18 @@
             document.getElementById('room-temperature').textContent = '--°C';
             document.getElementById('room-humidity').textContent = '--%';
             document.getElementById('water-pressure').textContent = '0 Bar';
+        }
+
+        function acknowledgeAlarm() {
+            alarmSilenced = true;
+            console.log("Alarm acknowledged.");
+            audioContext.suspend();
+        }
+
+        function resetAlarm() {
+            alarmSilenced = false;
+            console.log("Alarm reset.");
+            audioContext.resume();
         }
 
         const mqtt_server_primary = "wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt";
@@ -703,7 +713,7 @@
                 connectMqtt(mqtt_server_secondary);
             } else {
                 console.log('Reconnecting to primary MQTT server in 1 minute...');
-                setTimeout(() => connectMqtt(mqtt_server_primary), 60000); // Reconnect after 1 minute
+                setTimeout(() => connectMqtt(mqtt_server_primary), 60000);
             }
         }
 
