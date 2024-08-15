@@ -222,23 +222,6 @@
             display: none;
         }
 
-        .buzzer-switch {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .buzzer-switch label {
-            font-size: 18px;
-            margin-right: 10px;
-            font-weight: bold;
-        }
-
-        .buzzer-switch input {
-            transform: scale(1.5);
-        }
-
         .footer {
             text-align: center;
             margin-top: 10px;
@@ -282,7 +265,8 @@
 
         .buttons {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
+            gap: 20px;
             width: 100%;
             margin-top: 20px;
         }
@@ -330,10 +314,6 @@
         <div class="buttons">
             <button class="button" id="acknowledge-button" onclick="acknowledgeAlarm()">Acknowledge Alarm</button>
             <button class="button" id="reset-button" onclick="resetAlarm()">Reset</button>
-        </div>
-        <div class="buzzer-switch">
-            <label for="buzzer-switch">Buzzer Alarm:</label>
-            <input type="checkbox" id="buzzer-switch" checked>
         </div>
         <div class="dashboard">
             <div class="card">
@@ -609,11 +589,6 @@
                 playAlarmSound();
                 alarmActive = true;
             }
-            if (data.BZ) {
-                alarmBox.textContent += 'Buzzer Active; ';
-                playAlarmSound();
-                alarmActive = true;
-            }
 
             if (!data.RXTX || !data.RXMQTT) {
                 alarmBox.textContent += 'Communication Failed; ';
@@ -723,18 +698,6 @@
             }
         }
 
-        function updateBuzzerState() {
-            const buzzerSwitch = document.getElementById('buzzer-switch');
-            const state = buzzerSwitch.checked ? 'on' : 'off';
-            mqttClient.publish('firepumpmonitoring/buzzer', state, function (err) {
-                if (err) {
-                    console.error('Error publishing buzzer state:', err);
-                } else {
-                    console.log('Buzzer state published:', state);
-                }
-            });
-        }
-
         document.querySelectorAll('.control-input').forEach(input => {
             input.addEventListener('change', function () {
                 const selectorGroup = this.id.split('-')[0];
@@ -749,8 +712,6 @@
                 });
             });
         });
-
-        document.getElementById('buzzer-switch').addEventListener('change', updateBuzzerState);
 
         setInterval(function () {
             const currentTime = Date.now();
