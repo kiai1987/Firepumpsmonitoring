@@ -268,11 +268,7 @@
             justify-content: center;
             gap: 20px;
             width: 100%;
-            margin-top: 40px;
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            margin-top: 20px;
         }
 
         .button {
@@ -303,12 +299,6 @@
                 margin-top: 0;
                 padding: 10px;
             }
-
-            .buttons {
-                flex-direction: column;
-                gap: 10px;
-                bottom: 10px;
-            }
         }
     </style>
 </head>
@@ -321,7 +311,10 @@
         </div>
 
         <div id="alarm-box"></div>
-        
+        <div class="buttons">
+            <button class="button" id="acknowledge-button" onclick="acknowledgeAlarm()">Acknowledge Alarm</button>
+            <button class="button" id="reset-button" onclick="resetAlarm()">Reset</button>
+        </div>
         <div class="dashboard">
             <div class="card">
                 <div class="card-header">Jockey Pump</div>
@@ -458,11 +451,6 @@
             Created by Al Nakhla Engineering Dep. (Eng. Youssef)
         </div>
         <i id="system-status" class="fas fa-check-circle"></i>
-    </div>
-
-    <div class="buttons">
-        <button class="button" id="acknowledge-button" onclick="acknowledgeAlarm()">Acknowledge Alarm</button>
-        <button class="button" id="reset-button" onclick="resetAlarm()">Reset</button>
     </div>
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
