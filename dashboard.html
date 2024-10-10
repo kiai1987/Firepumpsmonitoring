@@ -150,12 +150,42 @@
             margin-bottom: 10px;
         }
 
+        .controls {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .control-label {
+            font-size: 16px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .control-input {
+            width: 100px;
+            padding: 8px;
+            border: 1px solid #616161;
+            border-radius: 5px;
+            background-color: #4b4b4b;
+            color: #e0e0e0;
+            text-align: center;
+            font-size: 16px;
+        }
+
         .buttons {
             display: flex;
             justify-content: center;
             gap: 20px;
             width: 100%;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         .button {
@@ -170,6 +200,14 @@
 
         .button:hover {
             background-color: #0056b3;
+        }
+
+        #alarm-box {
+            color: #f44336;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
         }
 
         @media (max-width: 768px) {
@@ -214,6 +252,16 @@
                         <div>TRIP</div>
                     </div>
                 </div>
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-label">Mode</div>
+                        <select class="control-input" id="jockey-mode">
+                            <option value="0">Off</option>
+                            <option value="1">Manual</option>
+                            <option value="2">Auto</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <div class="card">
@@ -232,6 +280,16 @@
                         <div>TRIP</div>
                     </div>
                 </div>
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-label">Mode</div>
+                        <select class="control-input" id="main-mode">
+                            <option value="0">Off</option>
+                            <option value="1">Manual</option>
+                            <option value="2">Auto</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <div class="card">
@@ -248,6 +306,16 @@
                     <div class="status">
                         <div class="led" id="diesel-pump-trip"></div>
                         <div>TRIP</div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-label">Mode</div>
+                        <select class="control-input" id="diesel-mode">
+                            <option value="0">Off</option>
+                            <option value="1">Manual</option>
+                            <option value="2">Auto</option>
+                        </select>
                     </div>
                 </div>
             </div>
