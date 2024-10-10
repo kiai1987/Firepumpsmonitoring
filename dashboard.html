@@ -38,17 +38,8 @@
             display: flex;
             align-items: center;
             width: 100%;
-            justify-content: center;
+            justify-content: space-between;
             margin-bottom: 20px;
-            flex-direction: column;
-        }
-
-        .logo {
-            font-size: 32px;
-            font-weight: 700;
-            color: #007bff;
-            margin-bottom: 10px;
-            text-shadow: 0 0 5px #007bff;
         }
 
         .logo-side {
@@ -60,15 +51,11 @@
             font-size: 32px;
             font-weight: 700;
             color: #007bff;
-            margin-bottom: 10px;
             text-shadow: 0 0 5px #007bff;
             text-align: center;
         }
 
         .logout-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
             background-color: #007bff;
             color: white;
             border: none;
@@ -112,11 +99,10 @@
 
         .status-indicators {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-around;
             align-items: center;
             margin-bottom: 15px;
             width: 100%;
-            gap: 10px;
         }
 
         .status {
@@ -126,10 +112,11 @@
         }
 
         .led {
-            width: 40px;
-            height: 40px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             border: 2px solid #333;
+            margin-bottom: 5px;
         }
 
         .led-run {
@@ -156,111 +143,11 @@
             background-color: #333; /* Blank state */
         }
 
-        .sensor-icon {
-            font-size: 30px;
-            margin-bottom: 10px;
-        }
-
         .gauge-value {
             font-size: 28px;
             font-weight: bold;
             color: #e0e0e0;
             margin-bottom: 10px;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .control-label {
-            font-size: 16px;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        .control-input {
-            width: 100px;
-            padding: 8px;
-            border: 1px solid #616161;
-            border-radius: 5px;
-            background-color: #4b4b4b;
-            color: #e0e0e0;
-            text-align: center;
-            font-size: 16px;
-        }
-
-        .control-input option[value="0"] {
-            background-color: #f44336;
-        }
-
-        .control-input option[value="1"] {
-            background-color: #fff;
-        }
-
-        .control-input option[value="2"] {
-            background-color: #007bff;
-        }
-
-        .alarm-icon {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: #ff5722;
-            font-size: 24px;
-        }
-
-        .alarm-icon.hidden {
-            display: none;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 16px;
-            color: #e0e0e0;
-        }
-
-        #system-status {
-            font-size: 100px;
-            color: green;
-            margin-top: 20px;
-        }
-
-        #alarm-box {
-            background: #ff5722;
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 20px;
-            font-weight: bold;
-            text-shadow: 0 0 5px #ff5722;
-        }
-
-        .card .value {
-            font-size: 36px;
-            font-weight: bold;
-            color: #e0e0e0;
-            text-align: center;
-        }
-
-        .card .temperature-humidity {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 5px;
-            height: 100%;
         }
 
         .buttons {
@@ -294,20 +181,15 @@
             .card {
                 width: 90%;
             }
-
-            .container {
-                margin-top: 0;
-                padding: 10px;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <button class="logout-button" onclick="logout()">Logout</button>
         <div class="header">
             <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo" class="logo-side">
             <div class="dashboard-title">Fire Pump Monitoring System</div>
+            <button class="logout-button" onclick="logout()">Logout</button>
         </div>
 
         <div id="alarm-box"></div>
@@ -332,17 +214,6 @@
                         <div>TRIP</div>
                     </div>
                 </div>
-                <div class="controls">
-                    <div class="control-group">
-                        <div class="control-label">Mode</div>
-                        <select class="control-input" id="jockey-mode">
-                            <option value="0">Off</option>
-                            <option value="1">Manual</option>
-                            <option value="2">Auto</option>
-                        </select>
-                    </div>
-                </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm"></i>
             </div>
 
             <div class="card">
@@ -361,17 +232,6 @@
                         <div>TRIP</div>
                     </div>
                 </div>
-                <div class="controls">
-                    <div class="control-group">
-                        <div class="control-label">Mode</div>
-                        <select class="control-input" id="main-mode">
-                            <option value="0">Off</option>
-                            <option value="1">Manual</option>
-                            <option value="2">Auto</option>
-                        </select>
-                    </div>
-                </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="main-alarm"></i>
             </div>
 
             <div class="card">
@@ -390,30 +250,17 @@
                         <div>TRIP</div>
                     </div>
                 </div>
-                <div class="controls">
-                    <div class="control-group">
-                        <div class="control-label">Mode</div>
-                        <select class="control-input" id="diesel-mode">
-                            <option value="0">Off</option>
-                            <option value="1">Manual</option>
-                            <option value="2">Auto</option>
-                        </select>
-                    </div>
-                </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="diesel-alarm"></i>
             </div>
 
             <div class="card">
                 <div class="card-header">Room Temperature & Humidity</div>
-                <div class="temperature-humidity">
-                    <div class="value temperature" id="room-temperature">--°C</div>
-                    <div class="value humidity" id="room-humidity">--%</div>
-                </div>
+                <div class="gauge-value" id="room-temperature">--°C</div>
+                <div class="gauge-value" id="room-humidity">--%</div>
             </div>
 
             <div class="card">
                 <div class="card-header">Water Pressure</div>
-                <div class="value pressure" id="water-pressure">0 Bar</div>
+                <div class="gauge-value" id="water-pressure">0 Bar</div>
             </div>
 
             <div class="card">
@@ -428,7 +275,6 @@
                         <div>NORMAL</div>
                     </div>
                 </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-alarm-icon"></i>
             </div>
 
             <div class="card">
@@ -443,7 +289,6 @@
                         <div>NORMAL</div>
                     </div>
                 </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm-icon"></i>
             </div>
         </div>
 
@@ -526,11 +371,6 @@
             }
         }
 
-        function updateSelector(selectorGroup, mode) {
-            const selector = document.getElementById(`${selectorGroup}-mode`);
-            selector.value = mode;
-        }
-
         function handleStatusUpdates(data) {
             console.log('Received data:', data);
             lastMessageTime = Date.now();
@@ -554,10 +394,6 @@
             document.getElementById('room-temperature').textContent = data.TH.split(',')[0] + '°C';
             document.getElementById('room-humidity').textContent = data.TH.split(',')[1] + '%';
             document.getElementById('water-pressure').textContent = data.WP + ' Bar';
-
-            updateSelector('jockey', data.JPM);
-            updateSelector('main', data.MPM);
-            updateSelector('diesel', data.DPM);
 
             const alarmBox = document.getElementById('alarm-box');
             alarmBox.textContent = '';
@@ -698,21 +534,6 @@
             }
         }
 
-        document.querySelectorAll('.control-input').forEach(input => {
-            input.addEventListener('change', function () {
-                const selectorGroup = this.id.split('-')[0];
-                const selectedMode = this.value;
-                const payload = JSON.stringify({ group: selectorGroup, mode: selectedMode });
-                mqttClient.publish('fire-pump/mode', payload, function (err) {
-                    if (err) {
-                        console.error('Error publishing pump mode:', err);
-                    } else {
-                        console.log('Pump mode published:', payload);
-                    }
-                });
-            });
-        });
-
         setInterval(function () {
             const currentTime = Date.now();
             const elapsedTime = currentTime - lastMessageTime;
@@ -736,20 +557,6 @@
                 systemStatusIcon.style.color = 'red';
             }
         }, 1000);
-
-        // Handle page visibility change
-        document.addEventListener('visibilitychange', function () {
-            if (document.visibilityState === 'visible') {
-                console.log("Page is visible.");
-                isPageVisible = true;
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume();
-                }
-            } else {
-                console.log("Page is hidden.");
-                isPageVisible = false;
-            }
-        });
 
         // Auto-refresh the page every 10 minutes (600000 ms)
         setInterval(function() {
