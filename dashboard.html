@@ -553,7 +553,10 @@
 
             document.getElementById('room-temperature').textContent = data.TH.split(',')[0] + '°C';
             document.getElementById('room-humidity').textContent = data.TH.split(',')[1] + '%';
-            document.getElementById('water-pressure').textContent = data.WP + ' Bar';
+
+            // Convert MPa to Bar and display
+            const pressureInBar = (parseFloat(data.WP) * 10).toFixed(2);
+            document.getElementById('water-pressure').textContent = pressureInBar + ' Bar';
 
             updateSelector('jockey', data.JPM);
             updateSelector('main', data.MPM);
