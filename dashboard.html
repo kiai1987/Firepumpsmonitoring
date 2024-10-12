@@ -198,6 +198,18 @@
             font-size: 16px;
         }
 
+        .control-input option[value="0"] {
+            background-color: #f44336;
+        }
+
+        .control-input option[value="1"] {
+            background-color: #fff;
+        }
+
+        .control-input option[value="2"] {
+            background-color: #007bff;
+        }
+
         .alarm-icon {
             position: absolute;
             top: 10px;
@@ -304,9 +316,93 @@
             <button class="button" id="reset-button" onclick="resetAlarm()">Reset</button>
         </div>
         <div class="dashboard">
-            <!-- Jockey Pump Card -->
-            <!-- Main Pump Card -->
-            <!-- Diesel Pump Card -->
+            <div class="card">
+                <div class="card-header">Jockey Pump</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="jockey-pump-run"></div>
+                        <div>RUN</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="jockey-pump-off"></div>
+                        <div>OFF</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="jockey-pump-trip"></div>
+                        <div>TRIP</div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-label">Mode</div>
+                        <select class="control-input" id="jockey-mode">
+                            <option value="0">Off</option>
+                            <option value="1">Manual</option>
+                            <option value="2">Auto</option>
+                        </select>
+                    </div>
+                </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm"></i>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Main Pump</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="main-pump-run"></div>
+                        <div>RUN</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="main-pump-off"></div>
+                        <div>OFF</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="main-pump-trip"></div>
+                        <div>TRIP</div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-label">Mode</div>
+                        <select class="control-input" id="main-mode">
+                            <option value="0">Off</option>
+                            <option value="1">Manual</option>
+                            <option value="2">Auto</option>
+                        </select>
+                    </div>
+                </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="main-alarm"></i>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Diesel Pump</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="diesel-pump-run"></div>
+                        <div>RUN</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="diesel-pump-off"></div>
+                        <div>OFF</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="diesel-pump-trip"></div>
+                        <div>TRIP</div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-label">Mode</div>
+                        <select class="control-input" id="diesel-mode">
+                            <option value="0">Off</option>
+                            <option value="1">Manual</option>
+                            <option value="2">Auto</option>
+                        </select>
+                    </div>
+                </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="diesel-alarm"></i>
+            </div>
+
             <div class="card">
                 <div class="card-header">Room Temperature & Humidity</div>
                 <div class="temperature-humidity">
@@ -320,8 +416,35 @@
                 <div class="value pressure" id="water-pressure">0 Bar</div>
             </div>
 
-            <!-- Smoke Detector Card -->
-            <!-- Water Flood Sensor Card -->
+            <div class="card">
+                <div class="card-header">Smoke Detector</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="smoke-detector-alarm"></div>
+                        <div>ALARM</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="smoke-detector-normal"></div>
+                        <div>NORMAL</div>
+                    </div>
+                </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-alarm-icon"></i>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Water Flood Sensor</div>
+                <div class="status-indicators">
+                    <div class="status">
+                        <div class="led" id="flood-sensor-alarm"></div>
+                        <div>ALARM</div>
+                    </div>
+                    <div class="status">
+                        <div class="led" id="flood-sensor-normal"></div>
+                        <div>NORMAL</div>
+                    </div>
+                </div>
+                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm-icon"></i>
+            </div>
         </div>
 
         <div class="footer">
@@ -430,15 +553,7 @@
 
             document.getElementById('room-temperature').textContent = data.TH.split(',')[0] + '°C';
             document.getElementById('room-humidity').textContent = data.TH.split(',')[1] + '%';
-
-            // Convert MPa to Bar and display
-            let pressureInBar = parseFloat(data.WP);
-            if (!isNaN(pressureInBar)) {
-                pressureInBar = (pressureInBar * 10).toFixed(2);  // Convert MPa to Bar
-                document.getElementById('water-pressure').textContent = pressureInBar + ' Bar';
-            } else {
-                document.getElementById('water-pressure').textContent = 'N/A';  // Display N/A if data is invalid
-            }
+            document.getElementById('water-pressure').textContent = data.WP + ' Bar';
 
             updateSelector('jockey', data.JPM);
             updateSelector('main', data.MPM);
