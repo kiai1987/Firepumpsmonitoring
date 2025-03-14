@@ -3,262 +3,252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fire Pump Monitoring System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>Advanced Fire Pump Monitoring</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #00b4d8;
+            --secondary: #0077b6;
+            --background: #0a1929;
+            --card-bg: #132f4c;
+            --danger: #e63946;
+            --warning: #ffb703;
+            --success: #2a9d8f;
+            --text-light: #e0e0e0;
+        }
+
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #005f46;
-            color: #e0e0e0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text-light);
             margin: 0;
             padding: 20px;
-            display: flex;
-            justify-content: center;
             min-height: 100vh;
         }
 
         .container {
-            background: #282828;
-            border-radius: 15px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            width: 100%;
-            max-width: 1200px;
-            position: relative;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         .header {
             text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            width: 180px;
             margin-bottom: 20px;
         }
 
-        .logo-side {
-            width: 150px;
-            margin-bottom: 10px;
-        }
-
         .dashboard-title {
-            font-size: 32px;
-            color: #007bff;
-            text-shadow: 0 0 5px #007bff;
-            margin: 10px 0;
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin: 0;
+            letter-spacing: -0.5px;
         }
 
-        .dashboard {
+        .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
         }
 
         .card {
-            background: #3b3b3b;
-            border-radius: 10px;
-            padding: 20px;
-            position: relative;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
         }
 
         .card-header {
-            font-size: 20px;
-            color: #007bff;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-        }
-
-        .status-indicators {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 25px;
             display: flex;
-            justify-content: space-around;
-            margin: 15px 0;
+            align-items: center;
+            gap: 12px;
         }
 
-        .status {
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .status-item {
             text-align: center;
+            padding: 18px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .led {
-            width: 40px;
-            height: 40px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
-            margin: 5px auto;
-            border: 2px solid #333;
+            margin: 0 auto 12px;
+            box-shadow: 0 0 12px currentColor;
+            transition: all 0.3s ease;
         }
 
-        .led-run { background: #4caf50; }
-        .led-off { background: #f44336; }
-        .led-trip { background: #ffeb3b; }
-        .led-alarm { background: #f44336; }
-        .led-normal { background: #4caf50; }
-        .led-blank { background: #333; }
+        .pressure-gauge {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            margin: 25px 0;
+        }
+
+        .gauge-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .gauge-value {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .gauge-unit {
+            color: #a0a0a0;
+            font-size: 1.2rem;
+        }
+
+        .sensor-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .sensor-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
 
         .sensor-value {
-            font-size: 36px;
-            font-weight: bold;
-            text-align: center;
+            font-size: 2.2rem;
+            font-weight: 600;
             margin: 15px 0;
         }
 
-        .controls {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        select.control-input {
-            padding: 8px;
-            background: #4b4b4b;
-            color: #fff;
-            border: 1px solid #616161;
-            border-radius: 5px;
-        }
-
-        #alarm-box {
-            background: #ff5722;
+        .alert-banner {
+            background: linear-gradient(135deg, var(--danger), #c1121f);
             color: white;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 15px 0;
-            text-align: center;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 25px;
             display: none;
+            align-items: center;
+            gap: 15px;
+            animation: pulse 1.5s infinite;
         }
 
-        #system-status {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            font-size: 60px;
-            color: #4caf50;
-        }
-
-        .logout-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <button class="logout-button" onclick="logout()">Logout</button>
-        
         <div class="header">
-            <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" class="logo-side">
+            <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" class="logo">
             <h1 class="dashboard-title">Fire Pump Monitoring System</h1>
         </div>
 
-        <div id="alarm-box"></div>
+        <div class="alert-banner" id="alarm-box">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="alarm-text"></span>
+        </div>
 
-        <div class="dashboard">
-            <!-- Jockey Pump -->
+        <div class="dashboard-grid">
+            <!-- Pressure Monitoring -->
             <div class="card">
-                <div class="card-header">Jockey Pump</div>
-                <div class="status-indicators">
-                    <div class="status">
-                        <div class="led" id="jockey-run"></div>
-                        RUN
-                    </div>
-                    <div class="status">
-                        <div class="led" id="jockey-off"></div>
-                        OFF
-                    </div>
-                    <div class="status">
-                        <div class="led" id="jockey-trip"></div>
-                        TRIP
-                    </div>
+                <div class="card-header">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Water Pressure
                 </div>
-                <div class="controls">
-                    <select class="control-input" id="jockey-mode">
-                        <option value="0">Off</option>
-                        <option value="1">Manual</option>
-                        <option value="2">Auto</option>
-                    </select>
+                <div class="pressure-gauge">
+                    <div class="gauge-container">
+                        <div class="gauge-value" id="pressure-value">0.0</div>
+                        <div class="gauge-unit">BAR</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Main Pump -->
+            <!-- Pump Status -->
             <div class="card">
-                <div class="card-header">Main Pump</div>
-                <div class="status-indicators">
-                    <div class="status">
-                        <div class="led" id="main-run"></div>
-                        RUN
-                    </div>
-                    <div class="status">
-                        <div class="led" id="main-off"></div>
-                        OFF
-                    </div>
-                    <div class="status">
-                        <div class="led" id="main-trip"></div>
-                        TRIP
-                    </div>
+                <div class="card-header">
+                    <i class="fas fa-industry"></i>
+                    Pump Status
                 </div>
-                <div class="controls">
-                    <select class="control-input" id="main-mode">
-                        <option value="0">Off</option>
-                        <option value="1">Manual</option>
-                        <option value="2">Auto</option>
-                    </select>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="led" id="pump-run"></div>
+                        RUNNING
+                    </div>
+                    <div class="status-item">
+                        <div class="led" id="pump-off"></div>
+                        STOPPED
+                    </div>
+                    <div class="status-item">
+                        <div class="led" id="pump-trip"></div>
+                        TRIPPED
+                    </div>
                 </div>
             </div>
 
-            <!-- Diesel Pump -->
+            <!-- Environmental Sensors -->
             <div class="card">
-                <div class="card-header">Diesel Pump</div>
-                <div class="status-indicators">
-                    <div class="status">
-                        <div class="led" id="diesel-run"></div>
-                        RUN
-                    </div>
-                    <div class="status">
-                        <div class="led" id="diesel-off"></div>
-                        OFF
-                    </div>
-                    <div class="status">
-                        <div class="led" id="diesel-trip"></div>
-                        TRIP
-                    </div>
+                <div class="card-header">
+                    <i class="fas fa-cloud-sun"></i>
+                    Environment
                 </div>
-                <div class="controls">
-                    <select class="control-input" id="diesel-mode">
-                        <option value="0">Off</option>
-                        <option value="1">Manual</option>
-                        <option value="2">Auto</option>
-                    </select>
+                <div class="sensor-group">
+                    <div class="sensor-card">
+                        <div class="sensor-value" id="temperature">--</div>
+                        <div class="gauge-unit">TEMPERATURE (°C)</div>
+                    </div>
+                    <div class="sensor-card">
+                        <div class="sensor-value" id="humidity">--</div>
+                        <div class="gauge-unit">HUMIDITY (%)</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Sensors -->
+            <!-- Safety Systems -->
             <div class="card">
-                <div class="card-header">Environmental Sensors</div>
-                <div class="sensor-value" id="temperature">-- °C</div>
-                <div class="sensor-value" id="humidity">-- %</div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">Water Pressure</div>
-                <div class="sensor-value" id="pressure">-- Bar</div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">Safety Sensors</div>
-                <div class="status-indicators">
-                    <div class="status">
-                        <div class="led" id="smoke-alarm"></div>
-                        SMOKE
+                <div class="card-header">
+                    <i class="fas fa-shield-alt"></i>
+                    Safety Systems
+                </div>
+                <div class="sensor-group">
+                    <div class="sensor-card">
+                        <div class="led" id="smoke-status"></div>
+                        <div class="gauge-unit">SMOKE DETECTOR</div>
                     </div>
-                    <div class="status">
-                        <div class="led" id="flood-alarm"></div>
-                        FLOOD
+                    <div class="sensor-card">
+                        <div class="led" id="flood-status"></div>
+                        <div class="gauge-unit">FLOOD SENSOR</div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <i id="system-status" class="fas fa-check-circle"></i>
     </div>
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
@@ -271,7 +261,7 @@
             options: {
                 username: 'firepump',
                 password: '044313187Ki@',
-                clientId: 'web-' + Math.random().toString(16).slice(2)
+                clientId: 'web-client-' + Math.random().toString(36).substr(2, 9)
             }
         };
 
@@ -279,14 +269,14 @@
         let lastUpdate = Date.now();
 
         function connectMQTT(serverIndex = 0) {
-            if (mqttClient) mqttClient.end();
+            if(mqttClient) mqttClient.end();
 
             mqttClient = mqtt.connect(MQTT_CONFIG.servers[serverIndex], MQTT_CONFIG.options);
 
             mqttClient.on('connect', () => {
-                console.log('Connected to:', MQTT_CONFIG.servers[serverIndex]);
+                console.log('Connected to MQTT broker');
                 mqttClient.subscribe('fire-pump/status', (err) => {
-                    if (!err) console.log('Subscribed to updates');
+                    if(!err) console.log('Subscribed to updates');
                 });
             });
 
@@ -294,10 +284,10 @@
                 lastUpdate = Date.now();
                 try {
                     const data = JSON.parse(message.toString());
-                    updateUI(data);
+                    updateDashboard(data);
                     checkAlarms(data);
-                } catch (error) {
-                    console.error('Data error:', error);
+                } catch(error) {
+                    console.error('Data parsing error:', error);
                 }
             });
 
@@ -307,73 +297,76 @@
             });
         }
 
-        function updateUI(data) {
-            // Pumps
-            updatePump('jockey', data.JP, data.JPT, data.JPM);
-            updatePump('main', data.MP, data.MPT, data.MPM);
-            updatePump('diesel', data.DP, data.DPT, data.DPM);
+        function updateDashboard(data) {
+            // Update pressure display
+            const pressureValue = parseFloat(data.WP);
+            document.getElementById('pressure-value').textContent = 
+                isNaN(pressureValue) ? '--' : pressureValue.toLocaleString(undefined, {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1
+                });
 
-            // Sensors
+            // Update pump status
+            updateStatus('pump-run', data.JP);
+            updateStatus('pump-off', !data.JP);
+            updateStatus('pump-trip', data.JPT);
+
+            // Update environmental sensors
             const [temp, humidity] = data.TH.split(',');
-            document.getElementById('temperature').textContent = `${temp} °C`;
-            document.getElementById('humidity').textContent = `${humidity} %`;
-            document.getElementById('pressure').textContent = 
-                `${parseFloat(data.WP).toFixed(1)} Bar`;
+            document.getElementById('temperature').textContent = temp || '--';
+            document.getElementById('humidity').textContent = humidity || '--';
 
-            // Safety sensors
-            document.getElementById('smoke-alarm').className = 
-                `led ${data.SS1 ? 'led-alarm' : 'led-normal'}`;
-            document.getElementById('flood-alarm').className = 
-                `led ${data.FS ? 'led-alarm' : 'led-normal'}`;
+            // Update safety sensors
+            updateStatus('smoke-status', data.SS1, 'danger');
+            updateStatus('flood-status', data.FS, 'danger');
         }
 
-        function updatePump(type, running, tripped, mode) {
-            const baseId = type.toLowerCase();
-            document.getElementById(`${baseId}-run`).className = 
-                `led ${running ? 'led-run' : 'led-blank'}`;
-            document.getElementById(`${baseId}-off`).className = 
-                `led ${!running ? 'led-off' : 'led-blank'}`;
-            document.getElementById(`${baseId}-trip`).className = 
-                `led ${tripped ? 'led-trip' : 'led-blank'}`;
-            document.getElementById(`${baseId}-mode`).value = mode;
+        function updateStatus(elementId, condition, type = 'normal') {
+            const element = document.getElementById(elementId);
+            if(!element) return;
+
+            const statusColors = {
+                normal: {
+                    true: '#4caf50',
+                    false: '#2d4052'
+                },
+                danger: {
+                    true: '#e63946',
+                    false: '#4caf50'
+                }
+            };
+
+            element.style.backgroundColor = statusColors[type][condition];
+            element.style.boxShadow = `0 0 15px ${statusColors[type][condition]}`;
         }
 
         function checkAlarms(data) {
             const alarms = [];
-            if (data.JPT) alarms.push('Jockey Pump Tripped');
-            if (data.MPT) alarms.push('Main Pump Tripped');
-            if (data.DPT) alarms.push('Diesel Pump Tripped');
-            if (data.SS1) alarms.push('Smoke Detected');
-            if (data.FS) alarms.push('Flood Detected');
+            if(data.JPT) alarms.push('Pump Tripped');
+            if(data.SS1) alarms.push('Smoke Detected');
+            if(data.FS) alarms.push('Flood Detected');
 
             const alarmBox = document.getElementById('alarm-box');
-            if (alarms.length) {
-                alarmBox.textContent = alarms.join(' • ');
-                alarmBox.style.display = 'block';
+            const alarmText = document.getElementById('alarm-text');
+            
+            if(alarms.length > 0) {
+                alarmText.textContent = `ALARM: ${alarms.join(' • ')}`;
+                alarmBox.style.display = 'flex';
             } else {
                 alarmBox.style.display = 'none';
             }
         }
 
-        function logout() {
-            if (mqttClient) mqttClient.end();
-            window.location.href = 'login.html';
-        }
-
-        // Initial connection
+        // Initialize connection
         connectMQTT();
 
-        // Monitor connection status
+        // Connection monitoring
         setInterval(() => {
-            const statusIcon = document.getElementById('system-status');
             const timeDiff = Date.now() - lastUpdate;
-            
-            if (timeDiff > 60000) {
-                statusIcon.style.color = '#f44336';
-                statusIcon.className = 'fas fa-exclamation-circle';
-            } else {
-                statusIcon.style.color = '#4caf50';
-                statusIcon.className = 'fas fa-check-circle';
+            if(timeDiff > 60000) {
+                document.getElementById('alarm-text').textContent = 
+                    'No data received in last 60 seconds';
+                document.getElementById('alarm-box').style.display = 'flex';
             }
         }, 5000);
     </script>
