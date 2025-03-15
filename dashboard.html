@@ -12,13 +12,13 @@
             font-family: 'Roboto', sans-serif;
             background-color: #121212; /* Dark background */
             color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
             overflow: hidden;
-            padding: 20px;
         }
 
         .container {
@@ -26,22 +26,21 @@
             border-radius: 15px;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
             padding: 20px;
-            max-width: 100%;
+            width: 100%;
+            max-width: 1200px;
             display: flex;
             flex-direction: column;
             align-items: center;
             overflow-y: auto;
             height: calc(100vh - 100px);
-            position: relative;
         }
 
         .header {
             display: flex;
             align-items: center;
-            width: 100%;
             justify-content: center;
-            margin-bottom: 20px;
             flex-direction: column;
+            margin-bottom: 20px;
         }
 
         .logo-side {
@@ -77,12 +76,24 @@
             transform: scale(1.05);
         }
 
-        .dashboard {
+        /* Dashboard Sections */
+        .dashboard-section {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #4caf50; /* Green accent */
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
-            width: 100%;
-            margin-top: 20px;
         }
 
         .card {
@@ -235,7 +246,7 @@
         }
 
         @media (max-width: 768px) {
-            .dashboard {
+            .dashboard-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -258,140 +269,157 @@
             <button class="button" id="acknowledge-button" onclick="acknowledgeAlarm()">Acknowledge Alarm</button>
             <button class="button" id="reset-button" onclick="resetAlarm()">Reset</button>
         </div>
-        <div class="dashboard">
-            <!-- Jockey Pump Card -->
-            <div class="card">
-                <div class="card-header">Jockey Pump</div>
-                <div class="status-indicators">
-                    <div class="status">
-                        <div class="led" id="jockey-pump-run"></div>
-                        <div>RUN</div>
-                    </div>
-                    <div class="status">
-                        <div class="led" id="jockey-pump-off"></div>
-                        <div>OFF</div>
-                    </div>
-                    <div class="status">
-                        <div class="led" id="jockey-pump-trip"></div>
-                        <div>TRIP</div>
-                    </div>
-                </div>
-                <div class="controls">
-                    <div class="control-group">
-                        <div class="control-label">Mode</div>
-                        <select class="control-input" id="jockey-mode">
-                            <option value="0">Off</option>
-                            <option value="1">Manual</option>
-                            <option value="2">Auto</option>
-                        </select>
-                    </div>
-                </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm"></i>
-            </div>
 
-            <!-- Main Pump Card -->
-            <div class="card">
-                <div class="card-header">Main Pump</div>
-                <div class="status-indicators">
-                    <div class="status">
-                        <div class="led" id="main-pump-run"></div>
-                        <div>RUN</div>
+        <!-- Pumps Section -->
+        <div class="dashboard-section">
+            <div class="section-title">Pumps</div>
+            <div class="dashboard-grid">
+                <!-- Jockey Pump Card -->
+                <div class="card">
+                    <div class="card-header">Jockey Pump</div>
+                    <div class="status-indicators">
+                        <div class="status">
+                            <div class="led" id="jockey-pump-run"></div>
+                            <div>RUN</div>
+                        </div>
+                        <div class="status">
+                            <div class="led" id="jockey-pump-off"></div>
+                            <div>OFF</div>
+                        </div>
+                        <div class="status">
+                            <div class="led" id="jockey-pump-trip"></div>
+                            <div>TRIP</div>
+                        </div>
                     </div>
-                    <div class="status">
-                        <div class="led" id="main-pump-off"></div>
-                        <div>OFF</div>
+                    <div class="controls">
+                        <div class="control-group">
+                            <div class="control-label">Mode</div>
+                            <select class="control-input" id="jockey-mode">
+                                <option value="0">Off</option>
+                                <option value="1">Manual</option>
+                                <option value="2">Auto</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="status">
-                        <div class="led" id="main-pump-trip"></div>
-                        <div>TRIP</div>
-                    </div>
+                    <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm"></i>
                 </div>
-                <div class="controls">
-                    <div class="control-group">
-                        <div class="control-label">Mode</div>
-                        <select class="control-input" id="main-mode">
-                            <option value="0">Off</option>
-                            <option value="1">Manual</option>
-                            <option value="2">Auto</option>
-                        </select>
-                    </div>
-                </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="main-alarm"></i>
-            </div>
 
-            <!-- Diesel Pump Card -->
-            <div class="card">
-                <div class="card-header">Diesel Pump</div>
-                <div class="status-indicators">
-                    <div class="status">
-                        <div class="led" id="diesel-pump-run"></div>
-                        <div>RUN</div>
+                <!-- Main Pump Card -->
+                <div class="card">
+                    <div class="card-header">Main Pump</div>
+                    <div class="status-indicators">
+                        <div class="status">
+                            <div class="led" id="main-pump-run"></div>
+                            <div>RUN</div>
+                        </div>
+                        <div class="status">
+                            <div class="led" id="main-pump-off"></div>
+                            <div>OFF</div>
+                        </div>
+                        <div class="status">
+                            <div class="led" id="main-pump-trip"></div>
+                            <div>TRIP</div>
+                        </div>
                     </div>
-                    <div class="status">
-                        <div class="led" id="diesel-pump-off"></div>
-                        <div>OFF</div>
+                    <div class="controls">
+                        <div class="control-group">
+                            <div class="control-label">Mode</div>
+                            <select class="control-input" id="main-mode">
+                                <option value="0">Off</option>
+                                <option value="1">Manual</option>
+                                <option value="2">Auto</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="status">
-                        <div class="led" id="diesel-pump-trip"></div>
-                        <div>TRIP</div>
-                    </div>
+                    <i class="fas fa-exclamation-triangle alarm-icon hidden" id="main-alarm"></i>
                 </div>
-                <div class="controls">
-                    <div class="control-group">
-                        <div class="control-label">Mode</div>
-                        <select class="control-input" id="diesel-mode">
-                            <option value="0">Off</option>
-                            <option value="1">Manual</option>
-                            <option value="2">Auto</option>
-                        </select>
+
+                <!-- Diesel Pump Card -->
+                <div class="card">
+                    <div class="card-header">Diesel Pump</div>
+                    <div class="status-indicators">
+                        <div class="status">
+                            <div class="led" id="diesel-pump-run"></div>
+                            <div>RUN</div>
+                        </div>
+                        <div class="status">
+                            <div class="led" id="diesel-pump-off"></div>
+                            <div>OFF</div>
+                        </div>
+                        <div class="status">
+                            <div class="led" id="diesel-pump-trip"></div>
+                            <div>TRIP</div>
+                        </div>
                     </div>
+                    <div class="controls">
+                        <div class="control-group">
+                            <div class="control-label">Mode</div>
+                            <select class="control-input" id="diesel-mode">
+                                <option value="0">Off</option>
+                                <option value="1">Manual</option>
+                                <option value="2">Auto</option>
+                            </select>
+                        </div>
+                    </div>
+                    <i class="fas fa-exclamation-triangle alarm-icon hidden" id="diesel-alarm"></i>
                 </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="diesel-alarm"></i>
             </div>
+        </div>
 
-            <!-- Room Temperature & Humidity Card -->
-            <div class="card">
-                <div class="card-header">Room Temperature & Humidity</div>
-                <div class="value temperature" id="room-temperature">--°C</div>
-                <div class="value humidity" id="room-humidity">--%</div>
-            </div>
-
-            <!-- Water Pressure Card -->
-            <div class="card">
-                <div class="card-header">Water Pressure</div>
-                <div class="value pressure" id="water-pressure">0 Bar</div>
-            </div>
-
-            <!-- Smoke Detector Card -->
-            <div class="card">
-                <div class="card-header">Smoke Detector</div>
-                <div class="status-indicators">
-                    <div class="status">
-                        <div class="led" id="smoke-detector-alarm"></div>
-                        <div>ALARM</div>
-                    </div>
-                    <div class="status">
-                        <div class="led" id="smoke-detector-normal"></div>
-                        <div>NORMAL</div>
-                    </div>
+        <!-- Environment Section -->
+        <div class="dashboard-section">
+            <div class="section-title">Environment</div>
+            <div class="dashboard-grid">
+                <!-- Room Temperature & Humidity Card -->
+                <div class="card">
+                    <div class="card-header">Room Temperature & Humidity</div>
+                    <div class="value temperature" id="room-temperature">--°C</div>
+                    <div class="value humidity" id="room-humidity">--%</div>
                 </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-alarm-icon"></i>
-            </div>
 
-            <!-- Water Flood Sensor Card -->
-            <div class="card">
-                <div class="card-header">Water Flood Sensor</div>
-                <div class="status-indicators">
-                    <div class="status">
-                        <div class="led" id="flood-sensor-alarm"></div>
-                        <div>ALARM</div>
-                    </div>
-                    <div class="status">
-                        <div class="led" id="flood-sensor-normal"></div>
-                        <div>NORMAL</div>
-                    </div>
+                <!-- Water Pressure Card -->
+                <div class="card">
+                    <div class="card-header">Water Pressure</div>
+                    <div class="value pressure" id="water-pressure">0 Bar</div>
                 </div>
-                <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm-icon"></i>
+            </div>
+        </div>
+
+        <!-- Sensors Section -->
+        <div class="dashboard-section">
+            <div class="section-title">Sensors</div>
+            <div class="dashboard-grid">
+                <!-- Smoke Detector Card -->
+                <div class="card">
+                    <div class="card-header">Smoke Detector</div>
+                    <div class="status-indicators">
+                        <div class="status">
+                            <div class="led" id="smoke-detector-alarm"></div>
+                            <div>ALARM</div>
+                        </div>
+                        <div class="status">
+                            <div class="led" id="smoke-detector-normal"></div>
+                            <div>NORMAL</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-alarm-icon"></i>
+                </div>
+
+                <!-- Water Flood Sensor Card -->
+                <div class="card">
+                    <div class="card-header">Water Flood Sensor</div>
+                    <div class="status-indicators">
+                        <div class="status">
+                            <div class="led" id="flood-sensor-alarm"></div>
+                            <div>ALARM</div>
+                        </div>
+                        <div class="status">
+                            <div class="led" id="flood-sensor-normal"></div>
+                            <div>NORMAL</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm-icon"></i>
+                </div>
             </div>
         </div>
 
