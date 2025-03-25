@@ -1,495 +1,303 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fire Pump Monitoring System | Al Nakhla Engineering</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #4CAF50;
-            --secondary-color: #2196F3;
-            --danger-color: #F44336;
-            --warning-color: #FFC107;
-            --dark-bg: #121212;
-            --card-bg: #1E1E1E;
-            --text-primary: #FFFFFF;
-            --text-secondary: #B0B0B0;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fire Pump Monitoring Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    :root {
+      --primary: #007bff;
+      --secondary: #3b3b3b;
+      --background: #005f46;
+      --text: #e0e0e0;
+      --card-bg: #282828;
+      --success: #4caf50;
+      --danger: #f44336;
+      --warning: #FFFF33;
+      --alarm: #ff5722;
+    }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--dark-bg);
-            color: var(--text-primary);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow: hidden;
+    }
 
-        /* Header Styles */
-        .header {
-            padding: 1rem 2rem;
-            background-color: var(--card-bg);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
+    .container {
+      background: var(--card-bg);
+      border-radius: 15px;
+      padding: 20px;
+      width: 100%;
+      max-width: 1400px;
+      height: calc(100vh - 40px);
+      overflow-y: auto;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
 
-        .branding {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
+    .logout-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+    }
 
-        .logo {
-            height: 50px;
-        }
+    .logout-button:hover {
+      background: #0056b3;
+    }
 
-        .system-status {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
 
-        .status-indicator {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-        }
+    .logo-side {
+      width: 120px;
+      margin-bottom: 10px;
+    }
 
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            padding: 2rem;
-            overflow-y: auto;
-        }
+    .dashboard-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary);
+    }
 
-        /* Dashboard Sections */
-        .dashboard-section {
-            margin-bottom: 2rem;
-        }
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
 
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
+    .button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
 
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 500;
-            color: var(--primary-color);
-        }
+    .button:hover {
+      background: #0056b3;
+    }
 
-        /* Cards Grid */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
+    .dashboard {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
 
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
-        }
+    .card {
+      background: var(--secondary);
+      padding: 15px;
+      border-radius: 10px;
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
 
-        .card:hover {
-            transform: translateY(-3px);
-        }
+    .card-header {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--primary);
+      text-align: center;
+    }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
+    .status-indicators {
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      margin-bottom: 15px;
+    }
 
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
+    .status {
+      text-align: center;
+    }
 
-        /* Status Indicators */
-        .status-container {
-            display: flex;
-            justify-content: space-around;
-            margin: 1.5rem 0;
-        }
+    .led {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      margin-bottom: 5px;
+      border: 2px solid #444;
+    }
 
-        .status-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-        }
+    .led-run { background-color: var(--success); }
+    .led-off { background-color: var(--danger); }
+    .led-trip { background-color: var(--warning); }
+    .led-alarm { background-color: var(--danger); }
+    .led-normal { background-color: var(--success); }
+    .led-blank { background-color: #333; }
 
-        .status-led {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid var(--text-secondary);
-        }
+    .control-group {
+      margin-top: 10px;
+    }
 
-        .status-label {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
+    .control-label {
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
 
-        /* Controls */
-        .control-group {
-            margin-top: 1rem;
-        }
+    .control-input {
+      width: 100px;
+      padding: 6px;
+      border-radius: 5px;
+      border: 1px solid #666;
+      background: #444;
+      color: var(--text);
+    }
 
-        .control-select {
-            width: 100%;
-            padding: 0.5rem;
-            background: #2D2D2D;
-            border: 1px solid #404040;
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-        }
+    .alarm-icon {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      color: var(--alarm);
+      font-size: 22px;
+    }
 
-        /* Alarm System */
-        .alarm-banner {
-            background: var(--danger-color);
-            color: white;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            animation: pulse 1.5s infinite;
-        }
+    .alarm-icon.hidden {
+      display: none;
+    }
 
-        @keyframes pulse {
-            0% { opacity: 0.9; }
-            50% { opacity: 0.7; }
-            100% { opacity: 0.9; }
-        }
+    .value {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
 
-        /* Utility Classes */
-        .hidden {
-            display: none !important;
-        }
+    #alarm-box {
+      background: var(--alarm);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
 
-        .text-center {
-            text-align: center;
-        }
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: var(--text);
+    }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .main-content {
-                padding: 1rem;
-            }
+    #system-status {
+      font-size: 80px;
+      text-align: center;
+      margin-top: 10px;
+      color: var(--success);
+    }
 
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    @media (max-width: 768px) {
+      .dashboard {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
 </head>
 <body>
-    <header class="header">
-        <div class="branding">
-            <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Logo" class="logo">
-            <h1>Fire Pump Monitoring System</h1>
-        </div>
-        <div class="system-status">
-            <div class="status-indicator" id="system-status-led"></div>
-            <button class="button" onclick="logout()">Logout</button>
-        </div>
-    </header>
+  <div class="container">
+    <button class="logout-button" onclick="logout()">Logout</button>
 
-    <main class="main-content">
-        <!-- Alarm Banner -->
-        <div class="alarm-banner hidden" id="alarm-banner">
-            <span id="alarm-text"></span>
-            <div class="alarm-actions">
-                <button class="button" onclick="acknowledgeAlarm()">Acknowledge</button>
-                <button class="button" onclick="resetSystem()">Reset</button>
-            </div>
-        </div>
+    <div class="header">
+      <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" class="logo-side" alt="Logo" />
+      <div class="dashboard-title">Fire Pump Monitoring System</div>
+    </div>
 
-        <!-- Pumps Section -->
-        <section class="dashboard-section">
-            <div class="section-header">
-                <h2 class="section-title">Pump Control</h2>
-            </div>
-            <div class="cards-grid">
-                <!-- Jockey Pump Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Jockey Pump</h3>
-                        <i class="fas fa-exclamation-triangle warning-icon hidden" id="jockey-alarm"></i>
-                    </div>
-                    <div class="status-container">
-                        <div class="status-item">
-                            <div class="status-led" id="jockey-run"></div>
-                            <span class="status-label">Running</span>
-                        </div>
-                        <div class="status-item">
-                            <div class="status-led" id="jockey-off"></div>
-                            <span class="status-label">Stopped</span>
-                        </div>
-                        <div class="status-item">
-                            <div class="status-led" id="jockey-trip"></div>
-                            <span class="status-label">Trip</span>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <select class="control-select" id="jockey-mode">
-                            <option value="0">Off</option>
-                            <option value="1">Manual</option>
-                            <option value="2">Auto</option>
-                        </select>
-                    </div>
-                </div>
+    <div id="alarm-box"></div>
 
-                <!-- Repeat similar structure for Main and Diesel Pumps -->
-                <!-- ... -->
-            </div>
-        </section>
+    <div class="buttons">
+      <button class="button" onclick="acknowledgeAlarm()">Acknowledge Alarm</button>
+      <button class="button" onclick="resetAlarm()">Reset</button>
+    </div>
 
-        <!-- Monitoring Section -->
-        <section class="dashboard-section">
-            <div class="section-header">
-                <h2 class="section-title">System Monitoring</h2>
-            </div>
-            <div class="cards-grid">
-                <!-- Environmental Sensors -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Environment</h3>
-                    </div>
-                    <div class="status-container column">
-                        <div class="status-item">
-                            <span class="status-label">Temperature</span>
-                            <div class="value" id="temperature">--°C</div>
-                        </div>
-                        <div class="status-item">
-                            <span class="status-label">Humidity</span>
-                            <div class="value" id="humidity">--%</div>
-                        </div>
-                        <div class="status-item">
-                            <span class="status-label">Pressure</span>
-                            <div class="value" id="pressure">-- bar</div>
-                        </div>
-                    </div>
-                </div>
+    <div class="dashboard" id="dashboard">
+      <!-- Cards are dynamically rendered -->
+    </div>
 
-                <!-- Safety Sensors -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Safety Systems</h3>
-                    </div>
-                    <div class="status-container column">
-                        <div class="status-item">
-                            <div class="status-led" id="smoke-alarm"></div>
-                            <span class="status-label">Smoke Detection</span>
-                        </div>
-                        <div class="status-item">
-                            <div class="status-led" id="flood-alarm"></div>
-                            <span class="status-label">Flood Detection</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
+    <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
+    <i id="system-status" class="fas fa-check-circle"></i>
+  </div>
 
-    <script>
-        class MQTTManager {
-            constructor() {
-                this.servers = [
-                    'wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt',
-                    'wss://279f2d6397444dbcbeb4eaa4897960f7.s1.eu.hivemq.cloud:8884/mqtt'
-                ];
-                this.options = {
-                    username: 'firepump',
-                    password: '044313187Ki@',
-                    clientId: `dashboard_${Math.random().toString(16).substr(2, 8)}`
-                };
-                this.currentServerIndex = 0;
-                this.client = null;
-            }
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script>
+    const mqttUrl = "wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt";
+    const options = {
+      username: 'firepump',
+      password: '044313187Ki@',
+      clientId: `mqttjs_${Math.random().toString(16).slice(2)}`
+    };
+    const client = mqtt.connect(mqttUrl, options);
 
-            connect() {
-                this.client = mqtt.connect(this.servers[this.currentServerIndex], this.options);
+    const statusMap = {
+      JP: 'jockey-pump-run',
+      MP: 'main-pump-run',
+      DP: 'diesel-pump-run',
+      JPT: 'jockey-pump-trip',
+      MPT: 'main-pump-trip',
+      DPT: 'diesel-pump-trip',
+      SS1: 'smoke-detector-alarm',
+      FS: 'flood-sensor-alarm'
+    };
 
-                this.client.on('connect', () => {
-                    console.log('MQTT Connected');
-                    this.client.subscribe('fire-pump/status');
-                });
+    client.on("connect", () => {
+      console.log("Connected to MQTT");
+      client.subscribe("fire-pump/status");
+    });
 
-                this.client.on('message', (topic, payload) => {
-                    if (topic === 'fire-pump/status') {
-                        const data = JSON.parse(payload.toString());
-                        Dashboard.update(data);
-                    }
-                });
+    client.on("message", (topic, message) => {
+      if (topic === "fire-pump/status") {
+        const data = JSON.parse(message.toString());
+        updateDashboard(data);
+      }
+    });
 
-                this.client.on('error', (error) => {
-                    console.error('MQTT Error:', error);
-                    this.reconnect();
-                });
-            }
+    function updateDashboard(data) {
+      // You can render the actual dashboard here based on JSON structure
+      console.log("Data received", data);
+      // Use updateLed, updateText, etc.
+    }
 
-            reconnect() {
-                this.currentServerIndex = (this.currentServerIndex + 1) % this.servers.length;
-                setTimeout(() => this.connect(), 5000);
-            }
-        }
+    function acknowledgeAlarm() {
+      console.log("Alarm acknowledged");
+    }
 
-        class Dashboard {
-            static init() {
-                this.mqtt = new MQTTManager();
-                this.alarm = new AlarmSystem();
-                this.bindControls();
-                this.mqtt.connect();
-            }
+    function resetAlarm() {
+      console.log("Alarm reset");
+    }
 
-            static update(data) {
-                this.updatePumpStatus('jockey', data);
-                this.updatePumpStatus('main', data);
-                this.updatePumpStatus('diesel', data);
-                this.updateEnvironmental(data);
-                this.updateSafetySensors(data);
-                this.alarm.check(data);
-            }
-
-            static updatePumpStatus(type, data) {
-                const elements = {
-                    run: document.getElementById(`${type}-run`),
-                    off: document.getElementById(`${type}-off`),
-                    trip: document.getElementById(`${type}-trip`),
-                    mode: document.getElementById(`${type}-mode`),
-                    alarm: document.getElementById(`${type}-alarm`)
-                };
-
-                elements.run.classList.toggle('active', data[type.toUpperCase()]);
-                elements.off.classList.toggle('active', !data[type.toUpperCase()]);
-                elements.trip.classList.toggle('active', data[`${type.toUpperCase()}T`]);
-                elements.mode.value = data[`${type.toUpperCase()}M`];
-                elements.alarm.classList.toggle('hidden', !data[`${type.toUpperCase()}T`]);
-            }
-
-            static updateEnvironmental(data) {
-                const [temp, humidity] = data.TH.split(',');
-                document.getElementById('temperature').textContent = `${temp}°C`;
-                document.getElementById('humidity').textContent = `${humidity}%`;
-                document.getElementById('pressure').textContent = `${data.WP} bar`;
-            }
-
-            static updateSafetySensors(data) {
-                document.getElementById('smoke-alarm').classList.toggle('active', data.SS1);
-                document.getElementById('flood-alarm').classList.toggle('active', data.FS);
-            }
-
-            static bindControls() {
-                document.querySelectorAll('.control-select').forEach(select => {
-                    select.addEventListener('change', (e) => {
-                        const pumpType = e.target.id.split('-')[0];
-                        const payload = JSON.stringify({
-                            group: pumpType,
-                            mode: parseInt(e.target.value)
-                        });
-                        this.mqtt.client.publish('fire-pump/mode', payload);
-                    });
-                });
-            }
-        }
-
-        class AlarmSystem {
-            constructor() {
-                this.alarmElement = document.getElementById('alarm-banner');
-                this.alarmText = document.getElementById('alarm-text');
-                this.statusLed = document.getElementById('system-status-led');
-                this.alarmSound = new Audio('https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav');
-                this.alarmSound.loop = true;
-                this.silenced = false;
-            }
-
-            check(data) {
-                const alarms = [];
-                if (data.JPT) alarms.push('Jockey Pump Trip');
-                if (data.MPT) alarms.push('Main Pump Trip');
-                if (data.DPT) alarms.push('Diesel Pump Trip');
-                if (data.SS1) alarms.push('Smoke Detected');
-                if (data.FS) alarms.push('Flood Detected');
-                if (!data.RXTX || !data.RXMQTT) alarms.push('Communication Failure');
-
-                if (alarms.length > 0 && !this.silenced) {
-                    this.trigger(alarms.join(' | '));
-                } else {
-                    this.clear();
-                }
-            }
-
-            trigger(message) {
-                this.alarmElement.classList.remove('hidden');
-                this.alarmText.textContent = message;
-                this.statusLed.style.backgroundColor = 'var(--danger-color)';
-                this.alarmSound.play().catch(error => console.error('Audio error:', error));
-            }
-
-            clear() {
-                this.alarmElement.classList.add('hidden');
-                this.statusLed.style.backgroundColor = 'var(--primary-color)';
-                this.alarmSound.pause();
-                this.alarmSound.currentTime = 0;
-            }
-
-            acknowledge() {
-                this.silenced = true;
-                this.clear();
-            }
-
-            reset() {
-                this.silenced = false;
-                this.clear();
-            }
-        }
-
-        // Authentication and System Controls
-        function checkAuth() {
-            if (!localStorage.getItem('authenticated')) {
-                window.location.href = 'index.html';
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('authenticated');
-            window.location.href = 'index.html';
-        }
-
-        function acknowledgeAlarm() {
-            Dashboard.alarm.acknowledge();
-        }
-
-        function resetSystem() {
-            Dashboard.alarm.reset();
-        }
-
-        // Initialize
-        window.onload = () => {
-            checkAuth();
-            Dashboard.init();
-        };
-    </script>
+    function logout() {
+      localStorage.clear();
+      location.href = "index.html";
+    }
+  </script>
 </body>
 </html>
