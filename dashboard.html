@@ -385,3 +385,111 @@
                 elements.off.classList.toggle('active', !data[type.toUpperCase()]);
                 elements.trip.classList.toggle('active', data[`${type.toUpperCase()}T`]);
                 elements.mode.value = data[`${type.toUpperCase()}M`];
+                elements.alarm.classList.toggle('hidden', !data[`${type.toUpperCase()}T`]);
+            }
+
+            static updateEnvironmental(data) {
+                const [temp, humidity] = data.TH.split(',');
+                document.getElementById('temperature').textContent = `${temp}°C`;
+                document.getElementById('humidity').textContent = `${humidity}%`;
+                document.getElementById('pressure').textContent = `${data.WP} bar`;
+            }
+
+            static updateSafetySensors(data) {
+                document.getElementById('smoke-alarm').classList.toggle('active', data.SS1);
+                document.getElementById('flood-alarm').classList.toggle('active', data.FS);
+            }
+
+            static bindControls() {
+                document.querySelectorAll('.control-select').forEach(select => {
+                    select.addEventListener('change', (e) => {
+                        const pumpType = e.target.id.split('-')[0];
+                        const payload = JSON.stringify({
+                            group: pumpType,
+                            mode: parseInt(e.target.value)
+                        });
+                        this.mqtt.client.publish('fire-pump/mode', payload);
+                    });
+                });
+            }
+        }
+
+        class AlarmSystem {
+            constructor() {
+                this.alarmElement = document.getElementById('alarm-banner');
+                this.alarmText = document.getElementById('alarm-text');
+                this.statusLed = document.getElementById('system-status-led');
+                this.alarmSound = new Audio('https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav');
+                this.alarmSound.loop = true;
+                this.silenced = false;
+            }
+
+            check(data) {
+                const alarms = [];
+                if (data.JPT) alarms.push('Jockey Pump Trip');
+                if (data.MPT) alarms.push('Main Pump Trip');
+                if (data.DPT) alarms.push('Diesel Pump Trip');
+                if (data.SS1) alarms.push('Smoke Detected');
+                if (data.FS) alarms.push('Flood Detected');
+                if (!data.RXTX || !data.RXMQTT) alarms.push('Communication Failure');
+
+                if (alarms.length > 0 && !this.silenced) {
+                    this.trigger(alarms.join(' | '));
+                } else {
+                    this.clear();
+                }
+            }
+
+            trigger(message) {
+                this.alarmElement.classList.remove('hidden');
+                this.alarmText.textContent = message;
+                this.statusLed.style.backgroundColor = 'var(--danger-color)';
+                this.alarmSound.play().catch(error => console.error('Audio error:', error));
+            }
+
+            clear() {
+                this.alarmElement.classList.add('hidden');
+                this.statusLed.style.backgroundColor = 'var(--primary-color)';
+                this.alarmSound.pause();
+                this.alarmSound.currentTime = 0;
+            }
+
+            acknowledge() {
+                this.silenced = true;
+                this.clear();
+            }
+
+            reset() {
+                this.silenced = false;
+                this.clear();
+            }
+        }
+
+        // Authentication and System Controls
+        function checkAuth() {
+            if (!localStorage.getItem('authenticated')) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('authenticated');
+            window.location.href = 'index.html';
+        }
+
+        function acknowledgeAlarm() {
+            Dashboard.alarm.acknowledge();
+        }
+
+        function resetSystem() {
+            Dashboard.alarm.reset();
+        }
+
+        // Initialize
+        window.onload = () => {
+            checkAuth();
+            Dashboard.init();
+        };
+    </script>
+</body>
+</html>
