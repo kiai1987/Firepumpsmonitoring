@@ -4,18 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Fire Pump Monitoring Dashboard</title>
+
+  <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <!-- ======================== CSS STYLES ======================== -->
   <style>
     :root {
       --primary: #007bff;
       --secondary: #3b3b3b;
-      --background: #005f46;
+      --bg: #005f46;
       --text: #e0e0e0;
       --card-bg: #282828;
       --success: #4caf50;
       --danger: #f44336;
-      --warning: #ffeb3b;
+      --warning: #FFFF33;
       --alarm: #ff5722;
     }
 
@@ -27,13 +31,14 @@
 
     body {
       font-family: 'Roboto', sans-serif;
-      background-color: var(--background);
+      background-color: var(--bg);
       color: var(--text);
-      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
+      height: 100vh;
       padding: 20px;
+      overflow: hidden;
     }
 
     .container {
@@ -41,7 +46,7 @@
       border-radius: 15px;
       padding: 20px;
       width: 100%;
-      max-width: 1400px;
+      max-width: 1440px;
       height: calc(100vh - 40px);
       overflow-y: auto;
       position: relative;
@@ -49,30 +54,32 @@
       flex-direction: column;
     }
 
+    /* ========== HEADER ========== */
     .logout-button {
       position: absolute;
       top: 20px;
       right: 20px;
-      background: var(--primary);
+      background-color: var(--primary);
       color: white;
+      padding: 10px 20px;
       border: none;
-      padding: 10px 15px;
       border-radius: 5px;
-      font-size: 14px;
       cursor: pointer;
     }
 
     .logout-button:hover {
-      background: #0056b3;
+      background-color: #0056b3;
     }
 
     .header {
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       margin-bottom: 20px;
     }
 
     .logo-side {
-      width: 120px;
+      width: 150px;
       margin-bottom: 10px;
     }
 
@@ -80,6 +87,20 @@
       font-size: 28px;
       font-weight: 700;
       color: var(--primary);
+      text-shadow: 0 0 5px var(--primary);
+      text-align: center;
+    }
+
+    /* ========== DASHBOARD SECTIONS ========== */
+    #alarm-box {
+      background: var(--alarm);
+      color: white;
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      display: none;
     }
 
     .buttons {
@@ -90,16 +111,16 @@
     }
 
     .button {
-      background: var(--primary);
+      background-color: var(--primary);
       color: white;
-      border: none;
       padding: 10px 20px;
+      border: none;
       border-radius: 5px;
       cursor: pointer;
     }
 
     .button:hover {
-      background: #0056b3;
+      background-color: #0056b3;
     }
 
     .dashboard {
@@ -111,47 +132,44 @@
 
     .card {
       background: var(--secondary);
-      padding: 15px;
       border-radius: 10px;
+      padding: 15px;
       width: 300px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      text-align: center;
       position: relative;
     }
 
     .card-header {
       font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 10px;
+      font-weight: bold;
       color: var(--primary);
-      text-align: center;
+      margin-bottom: 10px;
     }
 
     .status-indicators {
       display: flex;
       justify-content: space-around;
-      width: 100%;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
     }
 
     .status {
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .led {
-      width: 35px;
-      height: 35px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
-      margin-bottom: 5px;
-      border: 2px solid #444;
+      border: 2px solid #333;
     }
 
     .led-run { background-color: var(--success); }
     .led-off { background-color: var(--danger); }
     .led-trip { background-color: var(--warning); }
-    .led-alarm { background-color: var(--danger); }
     .led-normal { background-color: var(--success); }
+    .led-alarm { background-color: var(--danger); }
     .led-blank { background-color: #333; }
 
     .control-group {
@@ -159,8 +177,8 @@
     }
 
     .control-label {
+      font-weight: bold;
       margin-bottom: 5px;
-      font-weight: 500;
     }
 
     .control-input {
@@ -176,8 +194,8 @@
       position: absolute;
       top: 10px;
       right: 10px;
+      font-size: 20px;
       color: var(--alarm);
-      font-size: 22px;
     }
 
     .alarm-icon.hidden {
@@ -190,16 +208,6 @@
       margin-bottom: 5px;
     }
 
-    #alarm-box {
-      background: var(--alarm);
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-      text-align: center;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
     .footer {
       margin-top: 20px;
       text-align: center;
@@ -208,9 +216,9 @@
     }
 
     #system-status {
-      font-size: 80px;
+      font-size: 60px;
       text-align: center;
-      margin-top: 10px;
+      margin-top: 15px;
       color: var(--success);
     }
 
@@ -219,9 +227,14 @@
         flex-direction: column;
         align-items: center;
       }
+
+      .card {
+        width: 90%;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <button class="logout-button" onclick="logout()">Logout</button>
@@ -231,7 +244,7 @@
       <div class="dashboard-title">Fire Pump Monitoring System</div>
     </div>
 
-    <div id="alarm-box">System OK</div>
+    <div id="alarm-box"></div>
 
     <div class="buttons">
       <button class="button" onclick="acknowledgeAlarm()">Acknowledge Alarm</button>
@@ -239,7 +252,8 @@
     </div>
 
     <div class="dashboard">
-      <div class="card" id="jockey-card">
+      <!-- Jockey Pump -->
+      <div class="card">
         <div class="card-header">Jockey Pump</div>
         <div class="status-indicators">
           <div class="status"><div class="led" id="jockey-run"></div><div>RUN</div></div>
@@ -257,79 +271,77 @@
         <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm-icon"></i>
       </div>
 
-      <div class="card" id="temperature-card">
-        <div class="card-header">Room Temp & Humidity</div>
-        <div class="value" id="room-temp">--°C</div>
-        <div class="value" id="room-humidity">--%</div>
-      </div>
+      <!-- Additional cards: Main Pump, Diesel Pump, Temp/Humidity, etc. can be added here -->
 
-      <div class="card" id="pressure-card">
-        <div class="card-header">Water Pressure</div>
-        <div class="value" id="water-pressure">-- Bar</div>
-      </div>
     </div>
 
     <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
     <i id="system-status" class="fas fa-check-circle"></i>
   </div>
 
+  <!-- ======================== JAVASCRIPT ======================== -->
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <script>
-    const mqttUrl = "wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt";
-    const options = {
+    const alarmBox = document.getElementById("alarm-box");
+    const systemStatus = document.getElementById("system-status");
+
+    const mqttServer = "wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt";
+    const mqttOptions = {
       username: 'firepump',
       password: '044313187Ki@',
-      clientId: `mqttjs_${Math.random().toString(16).slice(2)}`
+      clientId: 'firepump_' + Math.random().toString(16).substr(2, 8)
     };
 
-    const client = mqtt.connect(mqttUrl, options);
+    const client = mqtt.connect(mqttServer, mqttOptions);
 
     client.on("connect", () => {
-      console.log("MQTT connected");
+      console.log("Connected to MQTT");
       client.subscribe("fire-pump/status");
     });
 
     client.on("message", (topic, message) => {
       if (topic === "fire-pump/status") {
         const data = JSON.parse(message.toString());
-        updateDashboard(data);
+        updateStatus(data);
       }
     });
 
-    function updateDashboard(data) {
-      setLED("jockey-run", data.JP, "led-run");
-      setLED("jockey-off", !data.JP, "led-off");
-      setLED("jockey-trip", data.JPT, "led-trip");
-
-      document.getElementById("room-temp").textContent = data.TH?.split(',')[0] + "°C" || "--°C";
-      document.getElementById("room-humidity").textContent = data.TH?.split(',')[1] + "%" || "--%";
-      document.getElementById("water-pressure").textContent = data.WP + " Bar" || "-- Bar";
+    function updateStatus(data) {
+      // Example: Jockey Pump
+      setLed("jockey-run", data.JP, "led-run");
+      setLed("jockey-off", !data.JP, "led-off");
+      setLed("jockey-trip", data.JPT, "led-trip");
+      document.getElementById("jockey-mode").value = data.JPM;
+      toggleAlarmIcon("jockey-alarm-icon", data.JPT);
 
       if (data.JPT) {
-        showAlarm("Jockey Pump TRIP detected!");
+        showAlarm("Jockey Pump TRIP Detected!");
       } else {
         clearAlarm();
       }
     }
 
-    function setLED(id, active, cls) {
+    function setLed(id, active, className) {
       const led = document.getElementById(id);
-      led.className = "led";
-      led.classList.add(active ? cls : "led-blank");
+      led.className = "led " + (active ? className : "led-blank");
     }
 
-    function showAlarm(text) {
-      document.getElementById("alarm-box").textContent = text;
-      document.getElementById("system-status").className = "fas fa-exclamation-circle";
-      document.getElementById("system-status").style.color = "red";
-      document.getElementById("jockey-alarm-icon").classList.remove("hidden");
+    function toggleAlarmIcon(id, active) {
+      const icon = document.getElementById(id);
+      icon.classList.toggle("hidden", !active);
+    }
+
+    function showAlarm(msg) {
+      alarmBox.style.display = "block";
+      alarmBox.textContent = msg;
+      systemStatus.className = "fas fa-exclamation-circle";
+      systemStatus.style.color = "red";
     }
 
     function clearAlarm() {
-      document.getElementById("alarm-box").textContent = "System OK";
-      document.getElementById("system-status").className = "fas fa-check-circle";
-      document.getElementById("system-status").style.color = "var(--success)";
-      document.getElementById("jockey-alarm-icon").classList.add("hidden");
+      alarmBox.style.display = "none";
+      systemStatus.className = "fas fa-check-circle";
+      systemStatus.style.color = "var(--success)";
     }
 
     function acknowledgeAlarm() {
