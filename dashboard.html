@@ -15,7 +15,7 @@
       --card-bg: #282828;
       --success: #4caf50;
       --danger: #f44336;
-      --warning: #FFFF33;
+      --warning: #ffeb3b;
       --alarm: #ff5722;
     }
 
@@ -34,7 +34,6 @@
       justify-content: center;
       align-items: center;
       padding: 20px;
-      overflow: hidden;
     }
 
     .container {
@@ -232,15 +231,42 @@
       <div class="dashboard-title">Fire Pump Monitoring System</div>
     </div>
 
-    <div id="alarm-box"></div>
+    <div id="alarm-box">System OK</div>
 
     <div class="buttons">
       <button class="button" onclick="acknowledgeAlarm()">Acknowledge Alarm</button>
       <button class="button" onclick="resetAlarm()">Reset</button>
     </div>
 
-    <div class="dashboard" id="dashboard">
-      <!-- Cards are dynamically rendered -->
+    <div class="dashboard">
+      <div class="card" id="jockey-card">
+        <div class="card-header">Jockey Pump</div>
+        <div class="status-indicators">
+          <div class="status"><div class="led" id="jockey-run"></div><div>RUN</div></div>
+          <div class="status"><div class="led" id="jockey-off"></div><div>OFF</div></div>
+          <div class="status"><div class="led" id="jockey-trip"></div><div>TRIP</div></div>
+        </div>
+        <div class="control-group">
+          <div class="control-label">Mode</div>
+          <select class="control-input" id="jockey-mode">
+            <option value="0">Off</option>
+            <option value="1">Manual</option>
+            <option value="2">Auto</option>
+          </select>
+        </div>
+        <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm-icon"></i>
+      </div>
+
+      <div class="card" id="temperature-card">
+        <div class="card-header">Room Temp & Humidity</div>
+        <div class="value" id="room-temp">--°C</div>
+        <div class="value" id="room-humidity">--%</div>
+      </div>
+
+      <div class="card" id="pressure-card">
+        <div class="card-header">Water Pressure</div>
+        <div class="value" id="water-pressure">-- Bar</div>
+      </div>
     </div>
 
     <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
@@ -255,21 +281,11 @@
       password: '044313187Ki@',
       clientId: `mqttjs_${Math.random().toString(16).slice(2)}`
     };
+
     const client = mqtt.connect(mqttUrl, options);
 
-    const statusMap = {
-      JP: 'jockey-pump-run',
-      MP: 'main-pump-run',
-      DP: 'diesel-pump-run',
-      JPT: 'jockey-pump-trip',
-      MPT: 'main-pump-trip',
-      DPT: 'diesel-pump-trip',
-      SS1: 'smoke-detector-alarm',
-      FS: 'flood-sensor-alarm'
-    };
-
     client.on("connect", () => {
-      console.log("Connected to MQTT");
+      console.log("MQTT connected");
       client.subscribe("fire-pump/status");
     });
 
@@ -281,17 +297,47 @@
     });
 
     function updateDashboard(data) {
-      // You can render the actual dashboard here based on JSON structure
-      console.log("Data received", data);
-      // Use updateLed, updateText, etc.
+      setLED("jockey-run", data.JP, "led-run");
+      setLED("jockey-off", !data.JP, "led-off");
+      setLED("jockey-trip", data.JPT, "led-trip");
+
+      document.getElementById("room-temp").textContent = data.TH?.split(',')[0] + "°C" || "--°C";
+      document.getElementById("room-humidity").textContent = data.TH?.split(',')[1] + "%" || "--%";
+      document.getElementById("water-pressure").textContent = data.WP + " Bar" || "-- Bar";
+
+      if (data.JPT) {
+        showAlarm("Jockey Pump TRIP detected!");
+      } else {
+        clearAlarm();
+      }
+    }
+
+    function setLED(id, active, cls) {
+      const led = document.getElementById(id);
+      led.className = "led";
+      led.classList.add(active ? cls : "led-blank");
+    }
+
+    function showAlarm(text) {
+      document.getElementById("alarm-box").textContent = text;
+      document.getElementById("system-status").className = "fas fa-exclamation-circle";
+      document.getElementById("system-status").style.color = "red";
+      document.getElementById("jockey-alarm-icon").classList.remove("hidden");
+    }
+
+    function clearAlarm() {
+      document.getElementById("alarm-box").textContent = "System OK";
+      document.getElementById("system-status").className = "fas fa-check-circle";
+      document.getElementById("system-status").style.color = "var(--success)";
+      document.getElementById("jockey-alarm-icon").classList.add("hidden");
     }
 
     function acknowledgeAlarm() {
-      console.log("Alarm acknowledged");
+      alert("Alarm acknowledged.");
     }
 
     function resetAlarm() {
-      console.log("Alarm reset");
+      clearAlarm();
     }
 
     function logout() {
