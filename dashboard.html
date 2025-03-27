@@ -2,360 +2,91 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fire Pump Monitoring Dashboard</title>
-
-  <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-
-  <!-- ======================== CSS STYLES ======================== -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VFD Monitoring Dashboard</title>
   <style>
-    :root {
-      --primary: #007bff;
-      --secondary: #3b3b3b;
-      --bg: #005f46;
-      --text: #e0e0e0;
-      --card-bg: #282828;
-      --success: #4caf50;
-      --danger: #f44336;
-      --warning: #FFFF33;
-      --alarm: #ff5722;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     body {
-      font-family: 'Roboto', sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #eef2f3, #8e9eab);
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      padding: 20px;
-      overflow: hidden;
+      margin: 0;
     }
-
-    .container {
-      background: var(--card-bg);
-      border-radius: 15px;
-      padding: 20px;
-      width: 100%;
-      max-width: 1440px;
-      height: calc(100vh - 40px);
-      overflow-y: auto;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ========== HEADER ========== */
-    .logout-button {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background-color: var(--primary);
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .logout-button:hover {
-      background-color: #0056b3;
-    }
-
-    .header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .logo-side {
-      width: 150px;
-      margin-bottom: 10px;
-    }
-
-    .dashboard-title {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--primary);
-      text-shadow: 0 0 5px var(--primary);
-      text-align: center;
-    }
-
-    /* ========== DASHBOARD SECTIONS ========== */
-    #alarm-box {
-      background: var(--alarm);
-      color: white;
-      padding: 10px;
-      text-align: center;
-      font-weight: bold;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      display: none;
-    }
-
-    .buttons {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .button {
-      background-color: var(--primary);
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .button:hover {
-      background-color: #0056b3;
-    }
-
     .dashboard {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      max-width: 500px;
+      transition: all 0.3s ease-in-out;
     }
-
-    .card {
-      background: var(--secondary);
-      border-radius: 10px;
-      padding: 15px;
-      width: 300px;
+    h2 {
       text-align: center;
-      position: relative;
+      margin-bottom: 20px;
+      color: #2c3e50;
     }
-
-    .card-header {
-      font-size: 18px;
-      font-weight: bold;
-      color: var(--primary);
-      margin-bottom: 10px;
-    }
-
-    .status-indicators {
+    .row {
       display: flex;
-      justify-content: space-around;
-      margin-bottom: 10px;
+      justify-content: space-between;
+      margin: 12px 0;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f9f9f9;
+      box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.05);
     }
-
-    .status {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .label {
+      font-weight: 600;
+      color: #555;
     }
-
-    .led {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      border: 2px solid #333;
-    }
-
-    .led-run { background-color: var(--success); }
-    .led-off { background-color: var(--danger); }
-    .led-trip { background-color: var(--warning); }
-    .led-normal { background-color: var(--success); }
-    .led-alarm { background-color: var(--danger); }
-    .led-blank { background-color: #333; }
-
-    .control-group {
-      margin-top: 10px;
-    }
-
-    .control-label {
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-
-    .control-input {
-      width: 100px;
-      padding: 6px;
-      border-radius: 5px;
-      border: 1px solid #666;
-      background: #444;
-      color: var(--text);
-    }
-
-    .alarm-icon {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      font-size: 20px;
-      color: var(--alarm);
-    }
-
-    .alarm-icon.hidden {
-      display: none;
-    }
-
     .value {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 5px;
+      font-family: monospace;
+      font-weight: 600;
     }
-
-    .footer {
-      margin-top: 20px;
-      text-align: center;
-      font-size: 14px;
-      color: var(--text);
+    .online {
+      color: #27ae60;
     }
-
-    #system-status {
-      font-size: 60px;
-      text-align: center;
-      margin-top: 15px;
-      color: var(--success);
-    }
-
-    @media (max-width: 768px) {
-      .dashboard {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .card {
-        width: 90%;
-      }
+    .offline {
+      color: #c0392b;
     }
   </style>
 </head>
-
 <body>
-  <div class="container">
-    <button class="logout-button" onclick="logout()">Logout</button>
-
-    <div class="header">
-      <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" class="logo-side" alt="Logo" />
-      <div class="dashboard-title">Fire Pump Monitoring System</div>
-    </div>
-
-    <div id="alarm-box"></div>
-
-    <div class="buttons">
-      <button class="button" onclick="acknowledgeAlarm()">Acknowledge Alarm</button>
-      <button class="button" onclick="resetAlarm()">Reset</button>
-    </div>
-
-    <div class="dashboard">
-      <!-- Jockey Pump -->
-      <div class="card">
-        <div class="card-header">Jockey Pump</div>
-        <div class="status-indicators">
-          <div class="status"><div class="led" id="jockey-run"></div><div>RUN</div></div>
-          <div class="status"><div class="led" id="jockey-off"></div><div>OFF</div></div>
-          <div class="status"><div class="led" id="jockey-trip"></div><div>TRIP</div></div>
-        </div>
-        <div class="control-group">
-          <div class="control-label">Mode</div>
-          <select class="control-input" id="jockey-mode">
-            <option value="0">Off</option>
-            <option value="1">Manual</option>
-            <option value="2">Auto</option>
-          </select>
-        </div>
-        <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm-icon"></i>
-      </div>
-
-      <!-- Additional cards: Main Pump, Diesel Pump, Temp/Humidity, etc. can be added here -->
-
-    </div>
-
-    <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
-    <i id="system-status" class="fas fa-check-circle"></i>
+  <div class="dashboard">
+    <h2>VFD Monitoring Dashboard</h2>
+    <div class="row"><span class="label">VFD 1 Status</span><span id="vfd1" class="value">--</span></div>
+    <div class="row"><span class="label">VFD 2 Status</span><span id="vfd2" class="value">--</span></div>
+    <div class="row"><span class="label">Pressure</span><span id="pressure" class="value">-- bar</span></div>
+    <div class="row"><span class="label">Active VFD</span><span id="active" class="value">--</span></div>
   </div>
 
-  <!-- ======================== JAVASCRIPT ======================== -->
-  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/mqttws31.min.js"></script>
   <script>
-    const alarmBox = document.getElementById("alarm-box");
-    const systemStatus = document.getElementById("system-status");
+    const mqttHost = 'wss://test.mosquitto.org:8081';
+    const topic = 'vfd/status';
+    const clientId = 'web_' + Math.random().toString(16).substr(2, 8);
+    const client = new Paho.MQTT.Client(mqttHost, clientId);
 
-    const mqttServer = "wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt";
-    const mqttOptions = {
-      username: 'firepump',
-      password: '044313187Ki@',
-      clientId: 'firepump_' + Math.random().toString(16).substr(2, 8)
+    client.onConnectionLost = () => console.log("MQTT connection lost");
+    client.onMessageArrived = (message) => {
+      const data = JSON.parse(message.payloadString);
+      document.getElementById('vfd1').textContent = data.vfd1.status;
+      document.getElementById('vfd1').className = data.vfd1.online ? 'value online' : 'value offline';
+      document.getElementById('vfd2').textContent = data.vfd2.status;
+      document.getElementById('vfd2').className = data.vfd2.online ? 'value online' : 'value offline';
+      document.getElementById('pressure').textContent = data.pressure + ' bar';
+      document.getElementById('active').textContent = data.active;
     };
 
-    const client = mqtt.connect(mqttServer, mqttOptions);
-
-    client.on("connect", () => {
-      console.log("Connected to MQTT");
-      client.subscribe("fire-pump/status");
+    client.connect({
+      onSuccess: () => {
+        console.log('MQTT connected');
+        client.subscribe(topic);
+      },
+      useSSL: true
     });
-
-    client.on("message", (topic, message) => {
-      if (topic === "fire-pump/status") {
-        const data = JSON.parse(message.toString());
-        updateStatus(data);
-      }
-    });
-
-    function updateStatus(data) {
-      // Example: Jockey Pump
-      setLed("jockey-run", data.JP, "led-run");
-      setLed("jockey-off", !data.JP, "led-off");
-      setLed("jockey-trip", data.JPT, "led-trip");
-      document.getElementById("jockey-mode").value = data.JPM;
-      toggleAlarmIcon("jockey-alarm-icon", data.JPT);
-
-      if (data.JPT) {
-        showAlarm("Jockey Pump TRIP Detected!");
-      } else {
-        clearAlarm();
-      }
-    }
-
-    function setLed(id, active, className) {
-      const led = document.getElementById(id);
-      led.className = "led " + (active ? className : "led-blank");
-    }
-
-    function toggleAlarmIcon(id, active) {
-      const icon = document.getElementById(id);
-      icon.classList.toggle("hidden", !active);
-    }
-
-    function showAlarm(msg) {
-      alarmBox.style.display = "block";
-      alarmBox.textContent = msg;
-      systemStatus.className = "fas fa-exclamation-circle";
-      systemStatus.style.color = "red";
-    }
-
-    function clearAlarm() {
-      alarmBox.style.display = "none";
-      systemStatus.className = "fas fa-check-circle";
-      systemStatus.style.color = "var(--success)";
-    }
-
-    function acknowledgeAlarm() {
-      alert("Alarm acknowledged.");
-    }
-
-    function resetAlarm() {
-      clearAlarm();
-    }
-
-    function logout() {
-      localStorage.clear();
-      location.href = "index.html";
-    }
   </script>
 </body>
 </html>
