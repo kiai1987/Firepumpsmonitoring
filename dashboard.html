@@ -3,7 +3,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fire Pump Monitoring Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <script src="https://unpkg.com/nosleep.js@0.12.0/dist/NoSleep.min.js"></script>
   <style>
@@ -11,104 +12,89 @@
       font-family: 'Roboto', sans-serif;
       background: linear-gradient(to right, #005f46, #003f2e);
       color: #e0e0e0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       margin: 0;
-      padding: 20px;
-    }
-    .container {
-      background: #1e1e1e;
-      border-radius: 20px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-      padding: 25px;
-      max-width: 1200px;
-      width: 100%;
+      padding: 0;
+      height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow-y: auto;
+      justify-content: center;
     }
-    .dashboard-title {
-      font-size: 32px;
-      font-weight: bold;
-      color: #00bfff;
-      text-shadow: 0 0 8px #00bfff;
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .header, .footer {
+      text-align: center;
       margin-bottom: 20px;
     }
     .dashboard {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 20px;
-      width: 100%;
     }
     .card {
-      background: #292929;
-      border-radius: 15px;
+      background-color: #1e1e1e;
+      border-radius: 10px;
       padding: 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
       text-align: center;
     }
     .card-header {
       font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
       color: #00bfff;
     }
     .led {
-      width: 25px;
-      height: 25px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
       margin: 5px auto;
     }
     .led-run { background-color: #4caf50; }
     .led-off { background-color: #f44336; }
-    .led-trip { background-color: #ffff33; }
+    .led-trip { background-color: #ffeb3b; }
     .led-alarm { background-color: #f44336; }
     .led-normal { background-color: #4caf50; }
-    .led-blank { background-color: #333; }
     .value {
       font-size: 24px;
       margin: 10px 0;
-      font-weight: bold;
     }
     #alarm-box {
-      background-color: #ff5722;
-      color: white;
+      background: #ff5722;
       padding: 10px;
       border-radius: 8px;
       text-align: center;
-      margin: 15px 0;
       font-weight: bold;
+      margin-bottom: 20px;
     }
     .buttons {
       display: flex;
-      gap: 15px;
-      margin-bottom: 15px;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
     }
     .button {
       background-color: #007bff;
-      color: white;
-      padding: 10px 15px;
       border: none;
+      padding: 10px 20px;
       border-radius: 5px;
+      color: white;
+      font-size: 16px;
       cursor: pointer;
-      font-size: 14px;
     }
     .button:hover {
       background-color: #0056b3;
-    }
-    .footer {
-      margin-top: 20px;
-      font-size: 14px;
-      color: #ccc;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="dashboard-title">Fire Pump Monitoring Dashboard</div>
+    <div class="header">
+      <h1>Fire Pump Monitoring Dashboard</h1>
+    </div>
     <div id="alarm-box"></div>
     <div class="buttons">
       <button class="button" onclick="acknowledgeAlarm()">Acknowledge Alarm</button>
@@ -117,113 +103,113 @@
     <div class="dashboard">
       <div class="card">
         <div class="card-header">Jockey Pump</div>
-        <div class="led" id="jockey-pump-run"></div>
-        <div class="led" id="jockey-pump-off"></div>
-        <div class="led" id="jockey-pump-trip"></div>
+        <div class="led" id="jockey-run"></div>
+        <div class="led" id="jockey-off"></div>
+        <div class="led" id="jockey-trip"></div>
       </div>
       <div class="card">
         <div class="card-header">Main Pump</div>
-        <div class="led" id="main-pump-run"></div>
-        <div class="led" id="main-pump-off"></div>
-        <div class="led" id="main-pump-trip"></div>
+        <div class="led" id="main-run"></div>
+        <div class="led" id="main-off"></div>
+        <div class="led" id="main-trip"></div>
       </div>
       <div class="card">
         <div class="card-header">Diesel Pump</div>
-        <div class="led" id="diesel-pump-run"></div>
-        <div class="led" id="diesel-pump-off"></div>
-        <div class="led" id="diesel-pump-trip"></div>
+        <div class="led" id="diesel-run"></div>
+        <div class="led" id="diesel-off"></div>
+        <div class="led" id="diesel-trip"></div>
       </div>
       <div class="card">
-        <div class="card-header">Room Temp / Humidity</div>
-        <div class="value" id="room-temperature">-- °C</div>
-        <div class="value" id="room-humidity">-- %</div>
+        <div class="card-header">Temperature / Humidity</div>
+        <div class="value" id="temp">-- °C</div>
+        <div class="value" id="humidity">-- %</div>
       </div>
       <div class="card">
         <div class="card-header">Water Pressure</div>
-        <div class="value" id="water-pressure">-- Bar</div>
+        <div class="value" id="pressure">-- Bar</div>
       </div>
       <div class="card">
         <div class="card-header">Smoke Detector</div>
-        <div class="led" id="smoke-detector-alarm"></div>
-        <div class="led" id="smoke-detector-normal"></div>
+        <div class="led" id="smoke-alarm"></div>
+        <div class="led" id="smoke-normal"></div>
       </div>
       <div class="card">
         <div class="card-header">Flood Sensor</div>
-        <div class="led" id="flood-sensor-alarm"></div>
-        <div class="led" id="flood-sensor-normal"></div>
+        <div class="led" id="flood-alarm"></div>
+        <div class="led" id="flood-normal"></div>
       </div>
     </div>
-    <div class="footer">Created by Al Nakhla Engineering Dept. (Eng. Youssef)</div>
-  </div>
-  <script>
+    <div class="footer">
+      <p>Created by Al Nakhla Engineering Dept. (Eng. Youssef)</p>
+    </div>
+  </div>  <script>
+    const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
     const noSleep = new NoSleep();
-    document.addEventListener('click', function enableNoSleep() {
-      noSleep.enable();
-      document.removeEventListener('click', enableNoSleep);
-    });const mqttServer = 'wss://broker.hivemq.com:8884/mqtt';
-const client = mqtt.connect(mqttServer);
-let alarmSilenced = false;
+    let alarmSilenced = false;
 
-client.on('connect', () => {
-  console.log('Connected to MQTT');
-  client.subscribe('fire-pump/status');
-});
+    document.addEventListener('click', () => noSleep.enable(), { once: true });
 
-client.on('message', (topic, message) => {
-  const data = JSON.parse(message.toString());
+    function updateLed(id, active, type) {
+      const el = document.getElementById(id);
+      el.className = 'led';
+      if (active) {
+        el.classList.add(type);
+      } else {
+        el.classList.add('led-off');
+      }
+    }
 
-  updateLed('jockey-pump-run', data.JP);
-  updateLed('jockey-pump-off', !data.JP);
-  updateLed('jockey-pump-trip', data.JPT);
-  updateLed('main-pump-run', data.MP);
-  updateLed('main-pump-off', !data.MP);
-  updateLed('main-pump-trip', data.MPT);
-  updateLed('diesel-pump-run', data.DP);
-  updateLed('diesel-pump-off', !data.DP);
-  updateLed('diesel-pump-trip', data.DPT);
+    function playAlarm() {
+      if (!alarmSilenced) {
+        const audio = new Audio('https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav');
+        audio.play();
+      }
+    }
 
-  updateLed('smoke-detector-alarm', data.SS1);
-  updateLed('smoke-detector-normal', !data.SS1);
-  updateLed('flood-sensor-alarm', data.FS);
-  updateLed('flood-sensor-normal', !data.FS);
+    function acknowledgeAlarm() {
+      alarmSilenced = true;
+    }
 
-  document.getElementById('room-temperature').textContent = data.TH.split(',')[0] + ' °C';
-  document.getElementById('room-humidity').textContent = data.TH.split(',')[1] + ' %';
-  document.getElementById('water-pressure').textContent = data.WP + ' Bar';
+    function resetAlarm() {
+      alarmSilenced = false;
+    }
 
-  const alarmBox = document.getElementById('alarm-box');
-  alarmBox.textContent = '';
-  if (data.JPT || data.MPT || data.DPT || data.SS1 || data.FS) {
-    alarmBox.textContent = 'Alarm Active!';
-    if (!alarmSilenced) playAlarm();
-  }
-});
+    client.on('connect', () => {
+      client.subscribe('fire-pump/status');
+    });
 
-function updateLed(id, isActive) {
-  const el = document.getElementById(id);
-  el.className = 'led';
-  el.classList.add(isActive ? (id.includes('trip') || id.includes('alarm') ? 'led-alarm' : 'led-run') : 'led-off');
-}
+    client.on('message', (topic, message) => {
+      const data = JSON.parse(message.toString());
 
-function playAlarm() {
-  const audio = new Audio('https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav');
-  audio.play();
-}
+      updateLed('jockey-run', data.JP, 'led-run');
+      updateLed('jockey-off', !data.JP, 'led-off');
+      updateLed('jockey-trip', data.JPT, 'led-trip');
 
-function acknowledgeAlarm() {
-  alarmSilenced = true;
-}
+      updateLed('main-run', data.MP, 'led-run');
+      updateLed('main-off', !data.MP, 'led-off');
+      updateLed('main-trip', data.MPT, 'led-trip');
 
-function resetAlarm() {
-  alarmSilenced = false;
-}
+      updateLed('diesel-run', data.DP, 'led-run');
+      updateLed('diesel-off', !data.DP, 'led-off');
+      updateLed('diesel-trip', data.DPT, 'led-trip');
 
-document.addEventListener('visibilitychange', function () {
-  if (document.visibilityState === 'visible' && client.disconnected) {
-    client.reconnect();
-  }
-});
+      updateLed('smoke-alarm', data.SS1, 'led-alarm');
+      updateLed('smoke-normal', !data.SS1, 'led-normal');
 
-  </script>
-</body>
+      updateLed('flood-alarm', data.FS, 'led-alarm');
+      updateLed('flood-normal', !data.FS, 'led-normal');
+
+      document.getElementById('temp').textContent = data.TH.split(',')[0] + ' °C';
+      document.getElementById('humidity').textContent = data.TH.split(',')[1] + ' %';
+      document.getElementById('pressure').textContent = data.WP + ' Bar';
+
+      const alarmBox = document.getElementById('alarm-box');
+      if (data.JPT || data.MPT || data.DPT || data.SS1 || data.FS) {
+        alarmBox.textContent = 'ALARM ACTIVE!';
+        playAlarm();
+      } else {
+        alarmBox.textContent = '';
+      }
+    });
+  </script></body>
 </html>
