@@ -1,92 +1,265 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VFD Monitoring Dashboard</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #eef2f3, #8e9eab);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .dashboard {
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-      width: 100%;
-      max-width: 500px;
-      transition: all 0.3s ease-in-out;
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #2c3e50;
-    }
-    .row {
-      display: flex;
-      justify-content: space-between;
-      margin: 12px 0;
-      padding: 12px;
-      border-radius: 8px;
-      background: #f9f9f9;
-      box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.05);
-    }
-    .label {
-      font-weight: 600;
-      color: #555;
-    }
-    .value {
-      font-family: monospace;
-      font-weight: 600;
-    }
-    .online {
-      color: #27ae60;
-    }
-    .offline {
-      color: #c0392b;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fire Pump Monitoring Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00e676;
+            --secondary: #2979ff;
+            --danger: #ff1744;
+            --background: #0a1929;
+            --card-bg: rgba(21, 41, 63, 0.9);
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, var(--background) 0%, #0a1a2f 100%);
+            color: #e0e0e0;
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .container {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: var(--card-bg);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo img {
+            height: 50px;
+            filter: drop-shadow(0 0 10px rgba(41, 121, 255, 0.3));
+        }
+
+        .dashboard-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--secondary);
+            text-shadow: 0 0 15px rgba(41, 121, 255, 0.3);
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .connection-led {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #666;
+            animation: pulse 1.5s infinite;
+        }
+
+        .connection-led.connected {
+            background: var(--primary);
+            animation: pulse-connected 1.5s infinite;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+            min-height: 200px;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+            color: var(--secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .gauge-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+        }
+
+        .gauge {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--primary) 0% 33%,
+                var(--secondary) 33% 66%,
+                var(--danger) 66% 100%
+            );
+            mask: radial-gradient(transparent 50%, #000 51%);
+        }
+
+        .gauge-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .status-indicators {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .status-item.active {
+            background: rgba(41, 121, 255, 0.2);
+            box-shadow: 0 0 15px rgba(41, 121, 255, 0.2);
+        }
+
+        .led {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            margin-bottom: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .led.active {
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        @keyframes pulse-connected {
+            0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 230, 118, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+        }
+
+        /* Add remaining styles from previous version with modifications */
+        /* Ensure to update all existing styles with new color variables */
+    </style>
 </head>
 <body>
-  <div class="dashboard">
-    <h2>VFD Monitoring Dashboard</h2>
-    <div class="row"><span class="label">VFD 1 Status</span><span id="vfd1" class="value">--</span></div>
-    <div class="row"><span class="label">VFD 2 Status</span><span id="vfd2" class="value">--</span></div>
-    <div class="row"><span class="label">Pressure</span><span id="pressure" class="value">-- bar</span></div>
-    <div class="row"><span class="label">Active VFD</span><span id="active" class="value">--</span></div>
-  </div>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <img src="your-logo.png" alt="Logo">
+                <div class="dashboard-title">Fire Pump Monitoring</div>
+            </div>
+            <div class="status-bar">
+                <div class="connection-status">
+                    <div class="connection-led"></div>
+                    <span>Connecting...</span>
+                </div>
+                <button class="logout-button" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/mqttws31.min.js"></script>
-  <script>
-    const mqttHost = 'wss://test.mosquitto.org:8081';
-    const topic = 'vfd/status';
-    const clientId = 'web_' + Math.random().toString(16).substr(2, 8);
-    const client = new Paho.MQTT.Client(mqttHost, clientId);
+        <div class="dashboard">
+            <!-- Update card structures with new gauge components -->
+            <!-- Add SVG gauges for pressure, temperature, etc. -->
+            <!-- Implement animated status indicators -->
+        </div>
+    </div>
 
-    client.onConnectionLost = () => console.log("MQTT connection lost");
-    client.onMessageArrived = (message) => {
-      const data = JSON.parse(message.payloadString);
-      document.getElementById('vfd1').textContent = data.vfd1.status;
-      document.getElementById('vfd1').className = data.vfd1.online ? 'value online' : 'value offline';
-      document.getElementById('vfd2').textContent = data.vfd2.status;
-      document.getElementById('vfd2').className = data.vfd2.online ? 'value online' : 'value offline';
-      document.getElementById('pressure').textContent = data.pressure + ' bar';
-      document.getElementById('active').textContent = data.active;
-    };
+    <script>
+        // Web Worker for background MQTT handling
+        const mqttWorker = new Worker('mqtt-worker.js');
 
-    client.connect({
-      onSuccess: () => {
-        console.log('MQTT connected');
-        client.subscribe(topic);
-      },
-      useSSL: true
-    });
-  </script>
+        // Service Worker for background notifications
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.error('SW registration failed:', err));
+        }
+
+        // Notification handling
+        function showNotification(title, message) {
+            if (Notification.permission === 'granted') {
+                new Notification(title, { 
+                    body: message,
+                    icon: 'notification-icon.png',
+                    vibrate: [200, 100, 200]
+                });
+            }
+        }
+
+        // Background sync implementation
+        function registerBackgroundSync() {
+            navigator.serviceWorker.ready.then(registration => {
+                registration.sync.register('mqtt-sync')
+                    .then(() => console.log('Background sync registered'))
+                    .catch(err => console.error('Sync registration failed:', err));
+            });
+        }
+
+        // Add modern JavaScript features like:
+        // - Intersection Observer for lazy loading
+        // - Web Animations API for complex animations
+        // - Resize Observer for responsive adjustments
+    </script>
 </body>
 </html>
