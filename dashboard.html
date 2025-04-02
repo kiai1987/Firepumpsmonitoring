@@ -35,7 +35,6 @@
             gap: 20px;
         }
 
-        /* Header Styles */
         .header {
             display: flex;
             justify-content: space-between;
@@ -81,26 +80,11 @@
             position: relative;
         }
 
-        .connection-led::after {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            border-radius: inherit;
-            background: currentColor;
-            opacity: 0.2;
-            display: none;
-        }
-
         .connection-led.connected {
             background: var(--success);
             animation: pulse 1.5s infinite;
         }
 
-        .connection-led.connected::after {
-            display: block;
-        }
-
-        /* Dashboard Grid */
         .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -109,7 +93,6 @@
             overflow-y: auto;
         }
 
-        /* Card Styles */
         .card {
             background: var(--card-bg);
             border-radius: 20px;
@@ -117,12 +100,6 @@
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
         }
 
         .card-header {
@@ -135,7 +112,6 @@
             gap: 12px;
         }
 
-        /* Status Indicators */
         .status-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -150,12 +126,6 @@
             padding: 16px;
             border-radius: 12px;
             background: rgba(255, 255, 255, 0.03);
-            transition: all 0.3s ease;
-        }
-
-        .status-item.active {
-            background: rgba(124, 77, 255, 0.1);
-            box-shadow: 0 0 16px rgba(124, 77, 255, 0.1);
         }
 
         .led {
@@ -164,62 +134,17 @@
             border-radius: 50%;
             margin-bottom: 12px;
             background: var(--led-inactive);
-            position: relative;
             transition: background-color 0.3s ease;
-        }
-
-        .led::after {
-            content: '';
-            position: absolute;
-            inset: -4px;
-            border-radius: inherit;
-            background: currentColor;
-            opacity: 0.2;
-            display: none;
         }
 
         .led.active {
             box-shadow: 0 0 16px currentColor;
         }
 
-        .led.active::after {
-            display: block;
-        }
-
         .led-run { background-color: var(--success); }
         .led-off { background-color: var(--danger); }
         .led-trip { background-color: var(--warning); }
-        .led-alarm { background-color: var(--danger); }
-        .led-normal { background-color: var(--success); }
 
-        /* Sensor Values */
-        .sensor-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-
-        .sensor-card {
-            padding: 20px;
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        .sensor-value {
-            font-size: 2.2rem;
-            font-weight: 700;
-            text-align: center;
-            margin: 12px 0;
-            font-feature-settings: 'tnum';
-        }
-
-        .sensor-label {
-            text-align: center;
-            color: #94a3b8;
-            font-size: 0.9rem;
-        }
-
-        /* Controls */
         .control-group {
             display: grid;
             gap: 12px;
@@ -233,15 +158,8 @@
             padding: 12px;
             border-radius: 12px;
             text-align: center;
-            appearance: none;
-            transition: all 0.3s ease;
         }
 
-        .control-input:hover {
-            border-color: var(--secondary);
-        }
-
-        /* Safety Sensors */
         .safety-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -258,55 +176,11 @@
             background: rgba(255, 255, 255, 0.03);
         }
 
-        .safety-icon {
-            font-size: 1.8rem;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-        }
-
-        .safety-info {
-            flex: 1;
-        }
-
-        .safety-status {
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Animations */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes glow {
-            0% { opacity: 0.3; }
-            50% { opacity: 0.6; }
-            100% { opacity: 0.3; }
-        }
-
-        /* System Status */
         #system-status {
             font-size: 3.5rem;
             text-align: center;
             margin: 24px 0;
             color: var(--success);
-            transition: color 0.3s ease;
-        }
-
-        /* Buttons */
-        .buttons {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            margin-top: 24px;
         }
 
         .button {
@@ -316,16 +190,12 @@
             padding: 14px 28px;
             border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
-        .button:hover {
-            background: #6c3dff;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(124, 77, 255, 0.2);
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
@@ -347,22 +217,22 @@
         </header>
 
         <main class="dashboard">
-            <!-- Pump Cards -->
+            <!-- Jockey Pump -->
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-tachometer-alt"></i>
                     Jockey Pump
                 </div>
                 <div class="status-grid">
-                    <div class="status-item" data-status="run">
+                    <div class="status-item">
                         <div class="led led-run"></div>
                         <span>RUN</span>
                     </div>
-                    <div class="status-item" data-status="off">
+                    <div class="status-item">
                         <div class="led led-off"></div>
                         <span>OFF</span>
                     </div>
-                    <div class="status-item" data-status="trip">
+                    <div class="status-item">
                         <div class="led led-trip"></div>
                         <span>TRIP</span>
                     </div>
@@ -376,7 +246,63 @@
                 </div>
             </div>
 
-            <!-- Repeat similar cards for Main and Diesel Pumps -->
+            <!-- Main Pump -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Main Pump
+                </div>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="led led-run"></div>
+                        <span>RUN</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="led led-off"></div>
+                        <span>OFF</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="led led-trip"></div>
+                        <span>TRIP</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <select class="control-input" id="main-mode">
+                        <option value="0">Off</option>
+                        <option value="1">Manual</option>
+                        <option value="2">Auto</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Diesel Pump -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Diesel Pump
+                </div>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="led led-run"></div>
+                        <span>RUN</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="led led-off"></div>
+                        <span>OFF</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="led led-trip"></div>
+                        <span>TRIP</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <select class="control-input" id="diesel-mode">
+                        <option value="0">Off</option>
+                        <option value="1">Manual</option>
+                        <option value="2">Auto</option>
+                    </select>
+                </div>
+            </div>
 
             <!-- Environmental Sensors -->
             <div class="card">
@@ -385,18 +311,9 @@
                     Environment
                 </div>
                 <div class="sensor-grid">
-                    <div class="sensor-card">
-                        <div class="sensor-value" id="room-temperature">--°C</div>
-                        <div class="sensor-label">Temperature</div>
-                    </div>
-                    <div class="sensor-card">
-                        <div class="sensor-value" id="room-humidity">--%</div>
-                        <div class="sensor-label">Humidity</div>
-                    </div>
-                    <div class="sensor-card">
-                        <div class="sensor-value" id="water-pressure">0 Bar</div>
-                        <div class="sensor-label">Pressure</div>
-                    </div>
+                    <div class="sensor-value" id="room-temperature">--°C</div>
+                    <div class="sensor-value" id="room-humidity">--%</div>
+                    <div class="sensor-value" id="water-pressure">0 Bar</div>
                 </div>
             </div>
 
@@ -408,22 +325,12 @@
                 </div>
                 <div class="safety-grid">
                     <div class="safety-item">
-                        <div class="safety-icon" style="background: rgba(255, 61, 113, 0.1);">
-                            <i class="fas fa-fire" style="color: var(--danger);"></i>
-                        </div>
-                        <div class="safety-info">
-                            <div class="safety-status">Smoke Detection</div>
-                            <div class="led led-alarm" id="smoke-detector-led"></div>
-                        </div>
+                        <div class="led led-off" id="smoke-detector"></div>
+                        <span>Smoke Detection</span>
                     </div>
                     <div class="safety-item">
-                        <div class="safety-icon" style="background: rgba(0, 229, 255, 0.1);">
-                            <i class="fas fa-water" style="color: var(--primary);"></i>
-                        </div>
-                        <div class="safety-info">
-                            <div class="safety-status">Flood Detection</div>
-                            <div class="led led-alarm" id="flood-sensor-led"></div>
-                        </div>
+                        <div class="led led-off" id="flood-sensor"></div>
+                        <span>Flood Detection</span>
                     </div>
                 </div>
             </div>
@@ -447,38 +354,95 @@
     <script>
         // Initialize all LEDs as inactive
         document.querySelectorAll('.led').forEach(led => {
-            led.classList.remove('active');
+            led.style.backgroundColor = 'var(--led-inactive)';
         });
 
-        // Modified updatePump function
+        const MQTT_CONFIG = {
+            servers: [
+                "wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt",
+                "wss://backup-broker.example.com:8884/mqtt"
+            ],
+            options: {
+                username: 'firepump',
+                password: '044313187Ki@',
+                clientId: `web-${Math.random().toString(16).slice(3)}`
+            }
+        };
+
+        let mqttClient;
+        let lastMessageTime = Date.now();
+
+        function connectMqtt() {
+            mqttClient = mqtt.connect(
+                MQTT_CONFIG.servers[currentServerIndex],
+                MQTT_CONFIG.options
+            );
+
+            mqttClient.on('connect', () => {
+                updateConnectionStatus(true);
+                mqttClient.subscribe('fire-pump/status');
+            });
+
+            mqttClient.on('message', (topic, message) => {
+                lastMessageTime = Date.now();
+                const data = JSON.parse(message.toString());
+                updateUI(data);
+            });
+        }
+
+        function updateUI(data) {
+            // Update pumps
+            updatePump('jockey', data);
+            updatePump('main', data);
+            updatePump('diesel', data);
+
+            // Update sensors
+            document.getElementById('room-temperature').textContent = `${data.TH.split(',')[0]}°C`;
+            document.getElementById('room-humidity').textContent = `${data.TH.split(',')[1]}%`;
+            document.getElementById('water-pressure').textContent = `${data.WP} Bar`;
+
+            // Update safety sensors
+            updateSensor('smoke-detector', data.SS1);
+            updateSensor('flood-sensor', data.FS);
+        }
+
         function updatePump(type, data) {
             const status = {
-                run: data[type.toUpperCase()],
+                run: data[`${type.toUpperCase()}`],
+                off: !data[`${type.toUpperCase()}`],
                 trip: data[`${type.toUpperCase()}T`]
             };
 
-            const statusItems = document.querySelectorAll(`[data-status$="${type}"] .led`);
-            statusItems.forEach(item => item.classList.remove('active'));
+            const pumpElement = document.getElementById(`${type}-pump`);
+            const leds = pumpElement.querySelectorAll('.led');
+            
+            leds.forEach(led => {
+                led.style.backgroundColor = 'var(--led-inactive)';
+                led.classList.remove('active');
+            });
 
-            if (status.run) {
-                document.querySelector(`[data-status="run"] .led`).classList.add('active');
-            } else if (status.trip) {
-                document.querySelector(`[data-status="trip"] .led`).classList.add('active');
-            } else {
-                document.querySelector(`[data-status="off"] .led`).classList.add('active');
+            if(status.run) {
+                pumpElement.querySelector('.led-run').style.backgroundColor = 'var(--success)';
+                pumpElement.querySelector('.led-run').classList.add('active');
             }
-
-            document.getElementById(`${type}-mode`).value = data[`${type.toUpperCase()}M`];
+            else if(status.trip) {
+                pumpElement.querySelector('.led-trip').style.backgroundColor = 'var(--warning)';
+                pumpElement.querySelector('.led-trip').classList.add('active');
+            }
+            else {
+                pumpElement.querySelector('.led-off').style.backgroundColor = 'var(--danger)';
+                pumpElement.querySelector('.led-off').classList.add('active');
+            }
         }
 
-        // Modified updateSensor function
-        function updateSensor(type, value) {
-            const led = document.getElementById(`${type}-detector-led`);
-            led.classList.toggle('active', value);
-            led.style.backgroundColor = value ? 'var(--danger)' : 'var(--success)';
+        function updateSensor(sensorId, value) {
+            const sensor = document.getElementById(sensorId);
+            sensor.style.backgroundColor = value ? 'var(--danger)' : 'var(--success)';
+            sensor.classList.toggle('active', value);
         }
 
-        // Rest of the JavaScript remains similar with appropriate LED activation
+        // Initialize connection
+        connectMqtt();
     </script>
 </body>
 </html>
