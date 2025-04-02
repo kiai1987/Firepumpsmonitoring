@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -118,25 +117,25 @@
     <div class="dashboard">
       <div class="card">
         <div class="card-header">Jockey Pump</div>
-        <div class="led" id="jp-run"></div>
-        <div class="led" id="jp-off"></div>
-        <div class="led" id="jp-trip"></div>
+        <div class="led" id="jockey-pump-run"></div>
+        <div class="led" id="jockey-pump-off"></div>
+        <div class="led" id="jockey-pump-trip"></div>
       </div>
       <div class="card">
         <div class="card-header">Main Pump</div>
-        <div class="led" id="mp-run"></div>
-        <div class="led" id="mp-off"></div>
-        <div class="led" id="mp-trip"></div>
+        <div class="led" id="main-pump-run"></div>
+        <div class="led" id="main-pump-off"></div>
+        <div class="led" id="main-pump-trip"></div>
       </div>
       <div class="card">
         <div class="card-header">Diesel Pump</div>
-        <div class="led" id="dp-run"></div>
-        <div class="led" id="dp-off"></div>
-        <div class="led" id="dp-trip"></div>
+        <div class="led" id="diesel-pump-run"></div>
+        <div class="led" id="diesel-pump-off"></div>
+        <div class="led" id="diesel-pump-trip"></div>
       </div>
       <div class="card">
         <div class="card-header">Room Temp / Humidity</div>
-        <div class="value" id="room-temp">-- °C</div>
+        <div class="value" id="room-temperature">-- °C</div>
         <div class="value" id="room-humidity">-- %</div>
       </div>
       <div class="card">
@@ -145,87 +144,86 @@
       </div>
       <div class="card">
         <div class="card-header">Smoke Detector</div>
-        <div class="led" id="smoke-alarm"></div>
-        <div class="led" id="smoke-normal"></div>
+        <div class="led" id="smoke-detector-alarm"></div>
+        <div class="led" id="smoke-detector-normal"></div>
       </div>
       <div class="card">
         <div class="card-header">Flood Sensor</div>
-        <div class="led" id="flood-alarm"></div>
-        <div class="led" id="flood-normal"></div>
+        <div class="led" id="flood-sensor-alarm"></div>
+        <div class="led" id="flood-sensor-normal"></div>
       </div>
     </div>
     <div class="footer">Created by Al Nakhla Engineering Dept. (Eng. Youssef)</div>
   </div>
-
   <script>
     const noSleep = new NoSleep();
     document.addEventListener('click', function enableNoSleep() {
       noSleep.enable();
       document.removeEventListener('click', enableNoSleep);
-    });
+    });const mqttServer = 'wss://broker.hivemq.com:8884/mqtt';
+const client = mqtt.connect(mqttServer);
+let alarmSilenced = false;
 
-    const mqttServer = 'wss://broker.hivemq.com:8884/mqtt';
-    const client = mqtt.connect(mqttServer);
-    let alarmSilenced = false;
+client.on('connect', () => {
+  console.log('Connected to MQTT');
+  client.subscribe('fire-pump/status');
+});
 
-    client.on('connect', () => {
-      console.log('Connected to MQTT');
-      client.subscribe('fire-pump/status');
-    });
+client.on('message', (topic, message) => {
+  const data = JSON.parse(message.toString());
 
-    client.on('message', (topic, message) => {
-      const data = JSON.parse(message.toString());
+  updateLed('jockey-pump-run', data.JP);
+  updateLed('jockey-pump-off', !data.JP);
+  updateLed('jockey-pump-trip', data.JPT);
+  updateLed('main-pump-run', data.MP);
+  updateLed('main-pump-off', !data.MP);
+  updateLed('main-pump-trip', data.MPT);
+  updateLed('diesel-pump-run', data.DP);
+  updateLed('diesel-pump-off', !data.DP);
+  updateLed('diesel-pump-trip', data.DPT);
 
-      updateLed('jp-run', data.JP);
-      updateLed('jp-off', !data.JP);
-      updateLed('jp-trip', data.JPT);
-      updateLed('mp-run', data.MP);
-      updateLed('mp-off', !data.MP);
-      updateLed('mp-trip', data.MPT);
-      updateLed('dp-run', data.DP);
-      updateLed('dp-off', !data.DP);
-      updateLed('dp-trip', data.DPT);
-      updateLed('smoke-alarm', data.SS1);
-      updateLed('smoke-normal', !data.SS1);
-      updateLed('flood-alarm', data.FS);
-      updateLed('flood-normal', !data.FS);
+  updateLed('smoke-detector-alarm', data.SS1);
+  updateLed('smoke-detector-normal', !data.SS1);
+  updateLed('flood-sensor-alarm', data.FS);
+  updateLed('flood-sensor-normal', !data.FS);
 
-      document.getElementById('room-temp').textContent = data.TH.split(',')[0] + ' °C';
-      document.getElementById('room-humidity').textContent = data.TH.split(',')[1] + ' %';
-      document.getElementById('water-pressure').textContent = data.WP + ' Bar';
+  document.getElementById('room-temperature').textContent = data.TH.split(',')[0] + ' °C';
+  document.getElementById('room-humidity').textContent = data.TH.split(',')[1] + ' %';
+  document.getElementById('water-pressure').textContent = data.WP + ' Bar';
 
-      const alarmBox = document.getElementById('alarm-box');
-      alarmBox.textContent = '';
-      if (data.JPT || data.MPT || data.DPT || data.SS1 || data.FS) {
-        alarmBox.textContent = 'Alarm Active!';
-        if (!alarmSilenced) playAlarm();
-      }
-    });
+  const alarmBox = document.getElementById('alarm-box');
+  alarmBox.textContent = '';
+  if (data.JPT || data.MPT || data.DPT || data.SS1 || data.FS) {
+    alarmBox.textContent = 'Alarm Active!';
+    if (!alarmSilenced) playAlarm();
+  }
+});
 
-    function updateLed(id, isActive) {
-      const el = document.getElementById(id);
-      el.className = 'led';
-      el.classList.add(isActive ? (id.includes('trip') || id.includes('alarm') ? 'led-alarm' : 'led-run') : 'led-off');
-    }
+function updateLed(id, isActive) {
+  const el = document.getElementById(id);
+  el.className = 'led';
+  el.classList.add(isActive ? (id.includes('trip') || id.includes('alarm') ? 'led-alarm' : 'led-run') : 'led-off');
+}
 
-    function playAlarm() {
-      const audio = new Audio('https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav');
-      audio.play();
-    }
+function playAlarm() {
+  const audio = new Audio('https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav');
+  audio.play();
+}
 
-    function acknowledgeAlarm() {
-      alarmSilenced = true;
-    }
+function acknowledgeAlarm() {
+  alarmSilenced = true;
+}
 
-    function resetAlarm() {
-      alarmSilenced = false;
-    }
+function resetAlarm() {
+  alarmSilenced = false;
+}
 
-    document.addEventListener('visibilitychange', function () {
-      if (document.visibilityState === 'visible' && client.disconnected) {
-        client.reconnect();
-      }
-    });
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState === 'visible' && client.disconnected) {
+    client.reconnect();
+  }
+});
+
   </script>
 </body>
 </html>
