@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fire Pump Monitoring Dashboard</title>
+    <title>Advanced Fire Pump Monitoring</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -11,17 +11,23 @@
             --primary: #00e676;
             --secondary: #2979ff;
             --danger: #ff1744;
+            --warning: #ffc400;
             --background: #0a1929;
             --card-bg: rgba(21, 41, 63, 0.9);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: 'Roboto', sans-serif;
             background: linear-gradient(135deg, var(--background) 0%, #0a1a2f 100%);
             color: #e0e0e0;
-            margin: 0;
-            overflow: hidden;
             height: 100vh;
+            overflow: hidden;
         }
 
         .container {
@@ -29,9 +35,10 @@
             grid-template-rows: auto 1fr auto;
             height: 100vh;
             padding: 20px;
-            backdrop-filter: blur(5px);
+            gap: 15px;
         }
 
+        /* Header Styles */
         .header {
             display: flex;
             justify-content: space-between;
@@ -39,22 +46,22 @@
             padding: 15px 30px;
             background: var(--card-bg);
             border-radius: 15px;
-            margin-bottom: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
         }
 
-        .logo {
+        .logo-container {
             display: flex;
             align-items: center;
             gap: 15px;
         }
 
-        .logo img {
+        .logo {
             height: 50px;
             filter: drop-shadow(0 0 10px rgba(41, 121, 255, 0.3));
         }
 
-        .dashboard-title {
+        .title {
             font-size: 1.8rem;
             font-weight: 700;
             color: var(--secondary);
@@ -87,6 +94,7 @@
             animation: pulse-connected 1.5s infinite;
         }
 
+        /* Dashboard Grid */
         .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -95,6 +103,7 @@
             overflow-y: auto;
         }
 
+        /* Card Styles */
         .card {
             background: var(--card-bg);
             border-radius: 15px;
@@ -102,8 +111,8 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: transform 0.3s ease;
-            position: relative;
             min-height: 200px;
+            position: relative;
         }
 
         .card:hover {
@@ -120,6 +129,7 @@
             align-items: center;
         }
 
+        /* Gauge Styles */
         .gauge-container {
             position: relative;
             width: 120px;
@@ -149,7 +159,8 @@
             font-weight: 700;
         }
 
-        .status-indicators {
+        /* Status Indicators */
+        .status-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 15px;
@@ -171,7 +182,7 @@
             box-shadow: 0 0 15px rgba(41, 121, 255, 0.2);
         }
 
-        .led {
+        .status-led {
             width: 25px;
             height: 25px;
             border-radius: 50%;
@@ -180,10 +191,26 @@
             transition: all 0.3s ease;
         }
 
-        .led.active {
+        .status-led.active {
             box-shadow: 0 0 15px currentColor;
         }
 
+        /* Alarm Styles */
+        .alarm-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--danger);
+            padding: 15px 30px;
+            border-radius: 10px;
+            display: none;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 5px 15px rgba(255, 23, 68, 0.3);
+        }
+
+        /* Animations */
         @keyframes pulse {
             0% { opacity: 0.6; }
             50% { opacity: 1; }
@@ -196,70 +223,325 @@
             100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
         }
 
-        /* Add remaining styles from previous version with modifications */
-        /* Ensure to update all existing styles with new color variables */
+        @keyframes alarm-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Control Styles */
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .control-button {
+            background: rgba(41, 121, 255, 0.2);
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-button:hover {
+            background: var(--secondary);
+            color: white;
+            box-shadow: 0 0 15px rgba(41, 121, 255, 0.3);
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div class="logo">
-                <img src="your-logo.png" alt="Logo">
-                <div class="dashboard-title">Fire Pump Monitoring</div>
+        <header class="header">
+            <div class="logo-container">
+                <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" class="logo" alt="Logo">
+                <h1 class="title">Fire Pump Monitoring</h1>
             </div>
             <div class="status-bar">
                 <div class="connection-status">
                     <div class="connection-led"></div>
                     <span>Connecting...</span>
                 </div>
-                <button class="logout-button" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i>
+                <button class="control-button" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </div>
-        </div>
+        </header>
 
-        <div class="dashboard">
-            <!-- Update card structures with new gauge components -->
-            <!-- Add SVG gauges for pressure, temperature, etc. -->
-            <!-- Implement animated status indicators -->
+        <main class="dashboard">
+            <!-- Pump Cards -->
+            <div class="card">
+                <div class="card-header">
+                    <span>Jockey Pump</span>
+                    <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <div class="status-grid">
+                    <div class="status-item" data-status="run">
+                        <div class="status-led"></div>
+                        <span>RUN</span>
+                    </div>
+                    <div class="status-item" data-status="off">
+                        <div class="status-led"></div>
+                        <span>OFF</span>
+                    </div>
+                    <div class="status-item" data-status="trip">
+                        <div class="status-led"></div>
+                        <span>TRIP</span>
+                    </div>
+                </div>
+                <div class="control-panel">
+                    <select class="control-button" id="jockey-mode">
+                        <option value="0">Manual</option>
+                        <option value="1">Auto</option>
+                        <option value="2">Off</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Repeat similar card structure for Main Pump and Diesel Pump -->
+
+            <!-- Environmental Sensors Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span>Environment</span>
+                    <i class="fas fa-thermometer-half"></i>
+                </div>
+                <div class="gauge-container">
+                    <div class="gauge" id="temp-gauge"></div>
+                    <div class="gauge-value" id="temperature">--°C</div>
+                </div>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="status-led" id="humidity-led"></div>
+                        <span id="humidity-value">--%</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-led" id="pressure-led"></div>
+                        <span id="pressure-value">-- bar</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Status Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span>System Health</span>
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="gauge-container">
+                    <div class="gauge" id="system-gauge"></div>
+                    <div class="gauge-value" id="system-status">OK</div>
+                </div>
+                <div class="control-panel">
+                    <button class="control-button" id="silence-alarm">
+                        <i class="fas fa-volume-mute"></i> Silence
+                    </button>
+                    <button class="control-button" id="reset-system">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <div class="alarm-banner" id="alarm-banner">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="alarm-text">System Alarm Triggered!</span>
         </div>
     </div>
 
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
-        // Web Worker for background MQTT handling
-        const mqttWorker = new Worker('mqtt-worker.js');
+        // MQTT Configuration
+        const MQTT_CONFIG = {
+            servers: [
+                "wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt",
+                "wss://backup-broker.example.com:8884/mqtt"
+            ],
+            options: {
+                username: 'firepump',
+                password: '044313187Ki@',
+                clientId: `web-${Math.random().toString(16).slice(3)}`,
+                reconnectPeriod: 5000
+            }
+        };
 
-        // Service Worker for background notifications
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('Service Worker registered'))
-                .catch(err => console.error('SW registration failed:', err));
+        // System State
+        let systemState = {
+            connectionStatus: false,
+            alarms: [],
+            lastUpdate: null,
+            silentMode: false
+        };
+
+        // DOM Elements
+        const connectionLed = document.querySelector('.connection-led');
+        const alarmBanner = document.getElementById('alarm-banner');
+        const alarmText = document.getElementById('alarm-text');
+
+        // Initialize MQTT
+        let mqttClient = null;
+        let currentServerIndex = 0;
+
+        function connectToBroker() {
+            mqttClient = mqtt.connect(
+                MQTT_CONFIG.servers[currentServerIndex],
+                MQTT_CONFIG.options
+            );
+
+            mqttClient.on('connect', () => {
+                updateConnectionStatus(true);
+                mqttClient.subscribe('firepump/+/status', handleMessage);
+            });
+
+            mqttClient.on('error', (error) => {
+                console.error('MQTT Error:', error);
+                handleConnectionFailure();
+            });
+
+            mqttClient.on('offline', handleConnectionFailure);
+            mqttClient.on('reconnect', () => updateConnectionStatus(false));
         }
 
-        // Notification handling
-        function showNotification(title, message) {
-            if (Notification.permission === 'granted') {
-                new Notification(title, { 
-                    body: message,
-                    icon: 'notification-icon.png',
-                    vibrate: [200, 100, 200]
+        function handleConnectionFailure() {
+            updateConnectionStatus(false);
+            currentServerIndex = (currentServerIndex + 1) % MQTT_CONFIG.servers.length;
+            setTimeout(connectToBroker, 5000);
+        }
+
+        function updateConnectionStatus(connected) {
+            systemState.connectionStatus = connected;
+            connectionLed.classList.toggle('connected', connected);
+            connectionLed.nextElementSibling.textContent = connected ? 'Connected' : 'Reconnecting...';
+        }
+
+        function handleMessage(topic, message) {
+            try {
+                const data = JSON.parse(message.toString());
+                systemState.lastUpdate = Date.now();
+                
+                // Update UI components based on data
+                updatePumpStatus(data);
+                updateEnvironmentalSensors(data);
+                checkSystemHealth(data);
+                
+            } catch (error) {
+                console.error('Message parsing error:', error);
+            }
+        }
+
+        function updatePumpStatus(data) {
+            // Update pump status indicators
+            const pumps = ['jockey', 'main', 'diesel'];
+            pumps.forEach(pump => {
+                const statusElement = document.querySelector(`#${pump}-status`);
+                if (statusElement) {
+                    statusElement.textContent = data[`${pump}_status}`.toUpperCase();
+                    statusElement.className = `status-${data[`${pump}_status}`]}`;
+                }
+            });
+        }
+
+        function updateEnvironmentalSensors(data) {
+            // Update temperature gauge
+            const tempElement = document.getElementById('temperature');
+            tempElement.textContent = `${data.temperature}°C`;
+            updateGauge('temp-gauge', data.temperature, 0, 100);
+
+            // Update humidity
+            document.getElementById('humidity-value').textContent = `${data.humidity}%`;
+            document.getElementById('humidity-led').style.backgroundColor = 
+                data.humidity > 80 ? 'var(--danger)' : 'var(--primary)';
+
+            // Update pressure
+            document.getElementById('pressure-value').textContent = `${data.pressure} bar`;
+            document.getElementById('pressure-led').style.backgroundColor = 
+                data.pressure < 2.5 ? 'var(--danger)' : 'var(--primary)';
+        }
+
+        function checkSystemHealth(data) {
+            const alarms = [];
+            if (data.temperature > 45) alarms.push('High Temperature');
+            if (data.pressure < 2.5) alarms.push('Low Pressure');
+            if (data.humidity > 80) alarms.push('High Humidity');
+
+            systemState.alarms = alarms;
+            updateAlarmDisplay();
+        }
+
+        function updateAlarmDisplay() {
+            if (systemState.alarms.length > 0 && !systemState.silentMode) {
+                alarmText.textContent = `ALERT: ${systemState.alarms.join(', ')}`;
+                alarmBanner.style.display = 'flex';
+                alarmBanner.style.animation = 'alarm-pulse 1s infinite';
+                triggerBrowserNotification();
+            } else {
+                alarmBanner.style.display = 'none';
+            }
+        }
+
+        function triggerBrowserNotification() {
+            if (Notification.permission === 'granted' && document.hidden) {
+                new Notification('System Alert', {
+                    body: systemState.alarms.join('\n'),
+                    icon: 'notification-icon.png'
                 });
             }
         }
 
-        // Background sync implementation
-        function registerBackgroundSync() {
-            navigator.serviceWorker.ready.then(registration => {
-                registration.sync.register('mqtt-sync')
-                    .then(() => console.log('Background sync registered'))
-                    .catch(err => console.error('Sync registration failed:', err));
-            });
+        // Event Listeners
+        document.getElementById('silence-alarm').addEventListener('click', () => {
+            systemState.silentMode = true;
+            updateAlarmDisplay();
+        });
+
+        document.getElementById('reset-system').addEventListener('click', () => {
+            systemState.silentMode = false;
+            systemState.alarms = [];
+            updateAlarmDisplay();
+        });
+
+        // Initialize
+        Notification.requestPermission().then(permission => {
+            if (permission !== 'granted') {
+                console.log('Notification permission denied');
+            }
+        });
+
+        connectToBroker();
+
+        // Background Sync
+        setInterval(() => {
+            if (document.hidden) {
+                // Implement background sync logic
+            }
+        }, 30000);
+
+        // Watchdog Timer
+        setInterval(() => {
+            if (Date.now() - systemState.lastUpdate > 60000) {
+                updateConnectionStatus(false);
+                handleConnectionFailure();
+            }
+        }, 10000);
+
+        // Utility Functions
+        function updateGauge(elementId, value, min, max) {
+            const gauge = document.getElementById(elementId);
+            const percentage = ((value - min) / (max - min)) * 100;
+            gauge.style.background = `conic-gradient(
+                var(--primary) 0% ${percentage}%,
+                var(--secondary) ${percentage}% 100%
+            )`;
         }
 
-        // Add modern JavaScript features like:
-        // - Intersection Observer for lazy loading
-        // - Web Animations API for complex animations
-        // - Resize Observer for responsive adjustments
+        function logout() {
+            if (mqttClient) mqttClient.end();
+            window.location.href = 'logout.html';
+        }
     </script>
 </body>
 </html>
