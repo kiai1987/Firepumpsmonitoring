@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Fire Pump Monitoring</title>
+    <title>Fire Pump Monitoring System</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -33,7 +33,6 @@
             gap: 15px;
         }
 
-        /* Header Styles */
         .header {
             display: flex;
             justify-content: space-between;
@@ -41,7 +40,6 @@
             padding: 15px 30px;
             background: var(--card-bg);
             border-radius: 15px;
-            margin-bottom: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(5px);
         }
@@ -61,7 +59,7 @@
             font-size: 1.8rem;
             font-weight: 700;
             color: var(--secondary);
-            text-shadow: 0 0 15px rgba(41, 121, 255, 0.3);
+            text-shadow: 0 0 15px rgba(41, 121, 255, 0.3));
         }
 
         .connection-status {
@@ -84,7 +82,6 @@
             animation: pulse-connected 1.5s infinite;
         }
 
-        /* Dashboard Grid */
         .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -93,7 +90,6 @@
             overflow-y: auto;
         }
 
-        /* Card Styles */
         .card {
             background: var(--card-bg);
             border-radius: 15px;
@@ -112,7 +108,6 @@
             text-transform: uppercase;
         }
 
-        /* Status Indicators */
         .status-indicators {
             display: flex;
             justify-content: space-around;
@@ -144,7 +139,6 @@
         .led-alarm { background-color: var(--danger); }
         .led-normal { background-color: var(--primary); }
 
-        /* Sensor Values */
         .sensor-value {
             font-size: 2rem;
             font-weight: 700;
@@ -152,7 +146,6 @@
             margin: 15px 0;
         }
 
-        /* Controls */
         .control-group {
             display: flex;
             flex-direction: column;
@@ -177,26 +170,6 @@
             animation: alarm-pulse 1s infinite;
         }
 
-        /* Animations */
-        @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
-        }
-
-        @keyframes pulse-connected {
-            0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(0, 230, 118, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
-        }
-
-        @keyframes alarm-pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        /* Original Features Preservation */
         .buttons {
             display: flex;
             justify-content: center;
@@ -223,6 +196,24 @@
             font-size: 3rem;
             text-align: center;
             margin-top: 20px;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        @keyframes pulse-connected {
+            0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 230, 118, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+        }
+
+        @keyframes alarm-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
@@ -361,12 +352,12 @@
             <button class="button" id="reset-button">Reset System</button>
         </div>
         
-        <div id="system-status" class="fas fa-check-circle" style="color: var(--primary);"></div>
+        <div id="system-status" class="fas fa-check-circle"></div>
     </div>
 
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
-        // Original functionality with enhancements
+        // Configuration
         const MQTT_CONFIG = {
             servers: [
                 "wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt",
@@ -379,12 +370,26 @@
             }
         };
 
+        // System State
         let mqttClient;
         let lastMessageTime = Date.now();
         let alarmSilenced = false;
         let currentServerIndex = 0;
+        let audioContext;
+        let alarmBuffer;
 
-        // Enhanced connection management
+        // Initialize Audio
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            fetch('https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav')
+                .then(response => response.arrayBuffer())
+                .then(data => audioContext.decodeAudioData(data))
+                .then(buffer => alarmBuffer = buffer);
+        } catch (e) {
+            console.error('Web Audio API not supported');
+        }
+
+        // MQTT Handling
         function connectMqtt() {
             mqttClient = mqtt.connect(
                 MQTT_CONFIG.servers[currentServerIndex],
@@ -399,8 +404,8 @@
             mqttClient.on('message', (topic, message) => {
                 lastMessageTime = Date.now();
                 const data = JSON.parse(message.toString());
-                handleStatusUpdates(data);
-                handleBackgroundNotifications(data);
+                updateUI(data);
+                handleNotifications(data);
             });
 
             mqttClient.on('error', handleConnectionError);
@@ -419,27 +424,22 @@
             statusText.textContent = connected ? 'Connected' : 'Reconnecting...';
         }
 
-        // Original status handling with enhancements
-        function handleStatusUpdates(data) {
-            // Pump status updates
-            updatePumpStatus('jockey', data);
-            updatePumpStatus('main', data);
-            updatePumpStatus('diesel', data);
-
-            // Sensor updates
+        // UI Updates
+        function updateUI(data) {
+            updatePump('jockey', data);
+            updatePump('main', data);
+            updatePump('diesel', data);
+            
             document.getElementById('room-temperature').textContent = `${data.TH.split(',')[0]}°C`;
             document.getElementById('room-humidity').textContent = `${data.TH.split(',')[1]}%`;
             document.getElementById('water-pressure').textContent = `${data.WP} Bar`;
 
-            // Safety sensors
-            updateSafetySensor('smoke', data.SS1);
-            updateSafetySensor('flood', data.FS);
-
-            // System status
+            updateSensor('smoke', data.SS1);
+            updateSensor('flood', data.FS);
             updateSystemStatus(data);
         }
 
-        function updatePumpStatus(type, data) {
+        function updatePump(type, data) {
             const status = {
                 run: data[type.toUpperCase()],
                 off: !data[type.toUpperCase()],
@@ -455,7 +455,7 @@
             document.getElementById(`${type}-alarm`).classList.toggle('hidden', !status.trip);
         }
 
-        function updateSafetySensor(type, value) {
+        function updateSensor(type, value) {
             const alarmLed = document.getElementById(`${type}-sensor-alarm`);
             const normalLed = document.getElementById(`${type}-sensor-normal`);
             alarmLed.classList.toggle('active', value);
@@ -470,65 +470,7 @@
             systemIcon.style.color = isError ? 'var(--danger)' : 'var(--primary)';
         }
 
-        // Background notification handling
-        function handleBackgroundNotifications(data) {
-            if (document.hidden) {
-                const alarms = [];
-                if (data.JPT) alarms.push('Jockey Pump Trip');
-                if (data.MPT) alarms.push('Main Pump Trip');
-                if (data.DPT) alarms.push('Diesel Pump Trip');
-                if (data.SS1) alarms.push('Smoke Detected');
-                if (data.FS) alarms.push('Flood Detected');
-
-                if (alarms.length > 0 && Notification.permission === 'granted') {
-                    new Notification('System Alarms', {
-                        body: alarms.join('\n'),
-                        icon: 'warning.png'
-                    });
-                }
-            }
-        }
-
-        // Original controls with enhancements
-        document.querySelectorAll('.control-input').forEach(input => {
-            input.addEventListener('change', function() {
-                const pumpType = this.id.split('-')[0];
-                mqttClient.publish('fire-pump/mode', JSON.stringify({
-                    pump: pumpType,
-                    mode: this.value
-                }));
-            });
-        });
-
-        // Watchdog timer
-        setInterval(() => {
-            if (Date.now() - lastMessageTime > 60000) {
-                document.querySelectorAll('.led').forEach(led => led.classList.remove('active'));
-                document.getElementById('system-status
-        // Watchdog timer
-        setInterval(() => {
-            if (Date.now() - lastMessageTime > 60000) {
-                document.querySelectorAll('.led').forEach(led => led.classList.remove('active'));
-                document.getElementById('system-status').className = 'fas fa-exclamation-circle';
-                document.getElementById('system-status').style.color = 'var(--danger)';
-                handleConnectionError();
-            }
-        }, 10000);
-
-        // Audio Alarm Handling
-        let audioContext;
-        try {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        } catch (e) {
-            console.error('Web Audio API not supported');
-        }
-
-        let alarmBuffer;
-        fetch('https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav')
-            .then(response => response.arrayBuffer())
-            .then(data => audioContext.decodeAudioData(data))
-            .then(buffer => alarmBuffer = buffer);
-
+        // Alarm Handling
         function playAlarm() {
             if (!alarmSilenced && audioContext && alarmBuffer) {
                 const source = audioContext.createBufferSource();
@@ -538,7 +480,7 @@
             }
         }
 
-        // Control Handlers
+        // Event Listeners
         document.getElementById('acknowledge-button').addEventListener('click', () => {
             alarmSilenced = true;
             if (audioContext) audioContext.suspend();
@@ -550,33 +492,50 @@
             mqttClient.publish('fire-pump/reset', 'true');
         });
 
-        // Initialization
-        Notification.requestPermission();
-        connectMqtt();
-
-        // Page Visibility Handling
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && audioContext) {
-                audioContext.resume();
-            }
+        document.querySelectorAll('.control-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const pumpType = this.id.split('-')[0];
+                mqttClient.publish('fire-pump/mode', JSON.stringify({
+                    pump: pumpType,
+                    mode: this.value
+                }));
+            });
         });
 
-        // Service Worker Registration
+        // Watchdog Timer
+        setInterval(() => {
+            if (Date.now() - lastMessageTime > 60000) {
+                document.querySelectorAll('.led').forEach(led => led.classList.remove('active'));
+                document.getElementById('system-status').className = 'fas fa-exclamation-circle';
+                document.getElementById('system-status').style.color = 'var(--danger)';
+                handleConnectionError();
+            }
+        }, 10000);
+
+        // Background Features
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(registration => {
-                    console.log('ServiceWorker registered');
-                    registration.update();
+            const workerScript = `
+                self.addEventListener('install', (event) => {
+                    self.skipWaiting();
                 });
+                self.addEventListener('sync', (event) => {
+                    if (event.tag === 'mqtt-sync') {
+                        event.waitUntil(handleBackgroundSync());
+                    }
+                });
+                async function handleBackgroundSync() {
+                    const clients = await self.clients.matchAll({type: 'window'});
+                    clients.forEach(client => client.postMessage({type: 'SYNC_REQUEST'}));
+                }
+            `;
+
+            const blob = new Blob([workerScript], {type: 'application/javascript'});
+            navigator.serviceWorker.register(URL.createObjectURL(blob));
         }
 
-        // Web Worker for Background Sync
-        const backgroundWorker = new Worker('background-worker.js');
-        backgroundWorker.onmessage = (event) => {
-            if (event.data.type === 'UPDATE_REQUEST') {
-                mqttClient.publish('fire-pump/status-request', 'true');
-            }
-        };
+        // Initialize
+        Notification.requestPermission();
+        connectMqtt();
 
         function logout() {
             if (mqttClient) mqttClient.end();
