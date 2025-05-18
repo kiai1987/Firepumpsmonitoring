@@ -1,362 +1,280 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fire Pump Monitoring Dashboard</title>
-  <!-- Tailwind CSS (CDN) for modern utility-first styling -->
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <!-- Font Awesome (CDN) for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-dYf5B7o+0dM74X+4YJ8j5VW3e6b0vLVj1Bx8XbVHQVtKjW9D0P0z1OX5O0EZ4b2rXrLr3r5rX9D4IH4k9Jf0Hg==" crossorigin="anonymous" />
-  <!-- (If needed, custom Tailwind CSS could be added here using <style type="text/tailwindcss"> for custom themes or additional classes) -->
+    <meta charset="UTF-8">
+    <title>Fire Pump Monitoring Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Tailwind CSS for utility-first styling (dark theme) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Eclipse Paho MQTT JavaScript client (for real-time updates) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.min.js"></script>
 </head>
-<body class="bg-gray-100 text-gray-800"> <!-- light gray background for overall app -->
-  
-  <!-- Header / Navigation Bar -->
-  <header class="w-full bg-gray-800 text-white p-4 flex items-center justify-between">
-    <h1 class="text-xl font-semibold">🔥 Fire Pump Dashboard</h1>
-    <!-- User info and logout (shown when logged in) -->
-    <div id="userInfo" class="flex items-center space-x-4">
-      <span id="usernameDisplay" class="text-sm text-gray-200">Logged in as <strong>User</strong></span>
-      <button id="logoutBtn" onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 rounded">
-        <i class="fas fa-sign-out-alt mr-1"></i> Logout
-      </button>
+<body class="bg-gray-900 text-gray-100">
+    <div class="container mx-auto p-4 space-y-6">
+        <h1 class="text-2xl font-bold">Fire Pump Monitoring Dashboard</h1>
+
+        <!-- Pump Status Section -->
+        <div>
+            <h2 class="text-xl font-semibold mb-2">Pump Status</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <!-- Jockey Pump -->
+                <div class="p-4 bg-gray-800 rounded-lg shadow">
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium">Jockey Pump</span>
+                        <div class="flex items-center">
+                            <span id="jp_led" class="w-3 h-3 rounded-full bg-gray-600 mr-2"></span>
+                            <span id="jp_status">--</span>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        Mode:
+                        <select id="jp_mode" class="bg-gray-700 text-gray-100 rounded p-1" disabled>
+                            <option value="Off">Off</option>
+                            <option value="Manual">Manual</option>
+                            <option value="Auto">Auto</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Main Pump -->
+                <div class="p-4 bg-gray-800 rounded-lg shadow">
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium">Main Pump</span>
+                        <div class="flex items-center">
+                            <span id="mp_led" class="w-3 h-3 rounded-full bg-gray-600 mr-2"></span>
+                            <span id="mp_status">--</span>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        Mode:
+                        <select id="mp_mode" class="bg-gray-700 text-gray-100 rounded p-1" disabled>
+                            <option value="Off">Off</option>
+                            <option value="Manual">Manual</option>
+                            <option value="Auto">Auto</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Diesel Pump -->
+                <div class="p-4 bg-gray-800 rounded-lg shadow">
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium">Diesel Pump</span>
+                        <div class="flex items-center">
+                            <span id="dp_led" class="w-3 h-3 rounded-full bg-gray-600 mr-2"></span>
+                            <span id="dp_status">--</span>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        Mode:
+                        <select id="dp_mode" class="bg-gray-700 text-gray-100 rounded p-1" disabled>
+                            <option value="Off">Off</option>
+                            <option value="Manual">Manual</option>
+                            <option value="Auto">Auto</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Safety Sensors Section -->
+        <div>
+            <h2 class="text-xl font-semibold mb-2">Safety Sensors</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Smoke Sensor -->
+                <div class="p-4 bg-gray-800 rounded-lg shadow">
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium">Smoke Sensor</span>
+                        <div class="flex items-center">
+                            <span id="smoke_led" class="w-3 h-3 rounded-full bg-gray-600 mr-2"></span>
+                            <span id="smoke_status">--</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Flood Sensor -->
+                <div class="p-4 bg-gray-800 rounded-lg shadow">
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium">Flood Sensor</span>
+                        <div class="flex items-center">
+                            <span id="flood_led" class="w-3 h-3 rounded-full bg-gray-600 mr-2"></span>
+                            <span id="flood_status">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Environment Readings Section -->
+        <div>
+            <h2 class="text-xl font-semibold mb-2">Environment Readings</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="p-4 bg-gray-800 rounded-lg shadow">
+                    <span class="font-medium">Temperature</span>
+                    <div id="temp_value" class="mt-2 text-xl">-- °C</div>
+                </div>
+                <div class="p-4 bg-gray-800 rounded-lg shadow">
+                    <span class="font-medium">Humidity</span>
+                    <div id="hum_value" class="mt-2 text-xl">-- %</div>
+                </div>
+                <div class="p-4 bg-gray-800 rounded-lg shadow">
+                    <span class="font-medium">Water Pressure</span>
+                    <div id="pres_value" class="mt-2 text-xl">-- PSI</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alarm System Section -->
+        <div>
+            <h2 class="text-xl font-semibold mb-2">Alarm System</h2>
+            <div id="alarm_panel" class="p-4 bg-gray-800 rounded-lg shadow">
+                <div class="flex items-center justify-between">
+                    <span class="font-medium">System Alarm Status</span>
+                    <span id="alarm_status" class="text-green-400">No Active Alarm</span>
+                </div>
+                <div class="mt-4 flex space-x-4">
+                    <button id="ack_btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded" disabled>Acknowledge</button>
+                    <button id="reset_btn" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-1 px-3 rounded" disabled>Reset</button>
+                </div>
+            </div>
+        </div>
     </div>
-  </header>
-  
-  <!-- Main Content Container -->
-  <main id="dashboardContent" class="max-w-7xl mx-auto p-4">
-    <!-- Pump Status Section -->
-    <section class="mb-8">
-      <h2 class="text-lg font-bold mb-4">Pump Status</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        <!-- Jockey Pump Card -->
-        <div class="bg-white shadow rounded p-4 flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <!-- Icon for pump (using a generic pump icon or water icon) -->
-            <i class="fas fa-tint text-2xl text-blue-600"></i>
-            <div>
-              <h3 class="font-semibold">Jockey Pump</h3>
-              <p id="pumpJockeyStatus" class="text-sm">
-                <!-- Status text, e.g., 'Running' or 'Stopped', color-coded via CSS classes -->
-                <span class="status-text">Stopped</span>
-              </p>
-            </div>
-          </div>
-          <!-- Status indicator (colored dot or icon) -->
-          <div id="pumpJockeyIndicator" class="text-gray-400 text-xl">
-            <i class="fas fa-circle"></i> <!-- gray dot indicates off by default -->
-          </div>
-        </div>
-        <!-- Main Pump Card -->
-        <div class="bg-white shadow rounded p-4 flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <i class="fas fa-tint text-2xl text-blue-600"></i>
-            <div>
-              <h3 class="font-semibold">Main Pump</h3>
-              <p id="pumpMainStatus" class="text-sm">
-                <span class="status-text">Stopped</span>
-              </p>
-            </div>
-          </div>
-          <div id="pumpMainIndicator" class="text-gray-400 text-xl">
-            <i class="fas fa-circle"></i>
-          </div>
-        </div>
-        <!-- Diesel Pump Card -->
-        <div class="bg-white shadow rounded p-4 flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <i class="fas fa-tint text-2xl text-blue-600"></i> <!-- (could use a different icon to represent diesel pump) -->
-            <div>
-              <h3 class="font-semibold">Diesel Pump</h3>
-              <p id="pumpDieselStatus" class="text-sm">
-                <span class="status-text">Stopped</span>
-              </p>
-            </div>
-          </div>
-          <div id="pumpDieselIndicator" class="text-gray-400 text-xl">
-            <i class="fas fa-circle"></i>
-          </div>
-        </div>
-      </div>
-    </section>
-    
-    <!-- Sensor Status Section -->
-    <section class="mb-8">
-      <h2 class="text-lg font-bold mb-4">Safety Sensors</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- Smoke Sensor Card -->
-        <div class="bg-white shadow rounded p-4 flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <i class="fas fa-smog text-2xl text-gray-600"></i>
-            <div>
-              <h3 class="font-semibold">Smoke Sensor</h3>
-              <p id="smokeStatus" class="text-sm">
-                <span class="status-text">Normal</span>
-              </p>
-            </div>
-          </div>
-          <div id="smokeIndicator" class="text-green-500 text-xl">
-            <i class="fas fa-circle"></i> <!-- green dot for normal (no smoke) -->
-          </div>
-        </div>
-        <!-- Flood Sensor Card -->
-        <div class="bg-white shadow rounded p-4 flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <i class="fas fa-water text-2xl text-blue-600"></i>
-            <div>
-              <h3 class="font-semibold">Flood Sensor</h3>
-              <p id="floodStatus" class="text-sm">
-                <span class="status-text">Normal</span>
-              </p>
-            </div>
-          </div>
-          <div id="floodIndicator" class="text-green-500 text-xl">
-            <i class="fas fa-circle"></i> <!-- green dot for normal (no flood) -->
-          </div>
-        </div>
-      </div>
-    </section>
-    
-    <!-- Environmental Readings Section -->
-    <section class="mb-8">
-      <h2 class="text-lg font-bold mb-4">Environment Readings</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        <!-- Temperature Card -->
-        <div class="bg-white shadow rounded p-4 flex items-center">
-          <i class="fas fa-thermometer-half text-2xl text-red-500 mr-3"></i>
-          <div>
-            <h3 class="font-semibold">Temperature</h3>
-            <p id="tempValue" class="text-sm">-- °C</p>
-          </div>
-        </div>
-        <!-- Humidity Card -->
-        <div class="bg-white shadow rounded p-4 flex items-center">
-          <i class="fas fa-tint text-2xl text-blue-500 mr-3"></i>
-          <div>
-            <h3 class="font-semibold">Humidity</h3>
-            <p id="humidityValue" class="text-sm">-- %</p>
-          </div>
-        </div>
-        <!-- Water Pressure Card -->
-        <div class="bg-white shadow rounded p-4 flex items-center">
-          <i class="fas fa-tachometer-alt text-2xl text-yellow-500 mr-3"></i>
-          <div>
-            <h3 class="font-semibold">Water Pressure</h3>
-            <p id="pressureValue" class="text-sm">-- PSI</p>
-          </div>
-        </div>
-      </div>
-    </section>
-    
-    <!-- Alarm Status & Controls Section -->
-    <section class="mb-8">
-      <h2 class="text-lg font-bold mb-4">Alarm System</h2>
-      <div class="bg-white shadow rounded p-4 flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <!-- Alarm Indicator Icon (pulses when alarm active) -->
-          <div id="alarmIcon" class="text-red-600 text-2xl">
-            <i class="fas fa-bell"></i>
-          </div>
-          <div>
-            <h3 class="font-semibold">System Alarm Status</h3>
-            <p id="alarmStatus" class="text-sm"><span class="status-text">No Active Alarm</span></p>
-          </div>
-        </div>
-        <!-- Alarm Control Buttons -->
-        <div class="flex space-x-2">
-          <button id="ackBtn" onclick="acknowledgeAlarm()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            Acknowledge
-          </button>
-          <button id="resetBtn" onclick="resetAlarm()" class="bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            Reset
-          </button>
-        </div>
-      </div>
-    </section>
-  </main>
-  
-  <!-- Login Modal (shown when user is not authenticated) -->
-  <div id="loginModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-    <div class="bg-white rounded p-6 shadow max-w-xs w-full">
-      <h2 class="text-lg font-bold mb-4 text-center">Please Login</h2>
-      <div class="mb-4">
-        <label class="block text-sm font-semibold mb-1" for="usernameInput">Username</label>
-        <input id="usernameInput" type="text" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="Enter username" />
-      </div>
-      <div class="mb-6">
-        <label class="block text-sm font-semibold mb-1" for="passwordInput">Password</label>
-        <input id="passwordInput" type="password" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="Enter password" />
-      </div>
-      <button id="loginBtn" onclick="performLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded">
-        Login
-      </button>
-    </div>
-  </div>
-  
-  <!-- Include MQTT library if needed (e.g., Paho MQTT or other, from CDN) -->
-  <!-- <script src="path/to/mqtt-library.js"></script> -->
-  <script>
-    "use strict";
-    /* 
-      Existing MQTT connection and subscription code 
-      (preserved exactly from the original implementation) 
-    */
-    // Example (to be replaced with actual existing code):
-    // var client = new Paho.MQTT.Client("broker.example.com", 9001, "clientId");
-    // client.onMessageArrived = onMessage;
-    // client.connect({ onSuccess: onConnect });
-    // function onConnect() { client.subscribe("some/topic/#"); }
-    // ... etc.
-    
-    /* 
-      Event handler for incoming MQTT messages (preserve existing logic, just update new UI elements).
-      Assuming the existing code calls appropriate functions or directly updates elements by ID.
-    */
-    function onMessageArrived(message) {
-      // Parse the topic and payload, then update the corresponding UI element.
-      // The logic here will depend on how topics/payloads are defined in the existing system.
-      // For example:
-      let topic = message.destinationName;
-      let payload = message.payloadString;
-      // Update pump statuses (this is pseudo-code; actual conditions depend on topic names)
-      if (topic === "pumps/jockey/status") {
-        updatePumpStatus("Jockey", payload);
-      } else if (topic === "pumps/main/status") {
-        updatePumpStatus("Main", payload);
-      } else if (topic === "pumps/diesel/status") {
-        updatePumpStatus("Diesel", payload);
-      } else if (topic === "sensors/smoke") {
-        updateSensorStatus("smoke", payload);
-      } else if (topic === "sensors/flood") {
-        updateSensorStatus("flood", payload);
-      } else if (topic === "environment/temperature") {
-        document.getElementById("tempValue").innerText = payload + " °C";
-      } else if (topic === "environment/humidity") {
-        document.getElementById("humidityValue").innerText = payload + " %";
-      } else if (topic === "environment/pressure") {
-        document.getElementById("pressureValue").innerText = payload + " PSI";
-      } else if (topic === "alarm/status") {
-        updateAlarmStatus(payload);
-      }
-      // ... handle other topics as needed
+
+<script>
+// ===== MQTT Setup =====
+// Connect via Paho MQTT client (using WebSockets):contentReference[oaicite:5]{index=5}
+const client = new Paho.MQTT.Client("broker.hivemq.com", 8000, "webclient-" + Math.random().toString(16).substr(2));
+client.onConnectionLost = onConnectionLost;
+client.onMessageArrived = onMessageArrived;
+client.connect({ onSuccess: onConnect });
+
+// Communication failure timer
+let commTimer = null;
+
+function onConnect() {
+    console.log("Connected to MQTT broker");
+    // Subscribe to the combined status topic (JSON payload expected)
+    client.subscribe("firepump/status");
+}
+
+function onConnectionLost(responseObject) {
+    console.error("MQTT connection lost:", responseObject.errorMessage);
+    triggerAlarm("Communication Failure");
+}
+
+function onMessageArrived(message) {
+    // Reset communication timer
+    if (commTimer) clearTimeout(commTimer);
+    commTimer = setTimeout(() => {
+        // No message received recently
+        triggerAlarm("Communication Failure");
+    }, 30000);
+
+    // Parse JSON payload
+    let data;
+    try {
+        data = JSON.parse(message.payloadString);
+    } catch(e) {
+        console.error("Invalid JSON:", message.payloadString);
+        return;
     }
-    
-    // Helper functions to update UI elements (status indicators, etc.)
-    function updatePumpStatus(pumpName, statusValue) {
-      // Determine element IDs based on pumpName
-      let statusElem = document.getElementById(`pump${pumpName}Status`);
-      let indicatorElem = document.getElementById(`pump${pumpName}Indicator`);
-      if (!statusElem || !indicatorElem) return;
-      // Update text
-      statusElem.querySelector(".status-text").innerText = (statusValue === "ON" || statusValue === "Running") ? "Running" : "Stopped";
-      // Update indicator color (green for running, gray for stopped)
-      if (statusValue === "ON" || statusValue === "Running") {
-        indicatorElem.classList.remove("text-gray-400");
-        indicatorElem.classList.add("text-green-500");
-      } else {
-        indicatorElem.classList.remove("text-green-500");
-        indicatorElem.classList.add("text-gray-400");
-      }
+
+    // Update pump indicators
+    function updatePump(pumpId, runKey, tripKey, modeKey) {
+        const led = document.getElementById(pumpId + "_led");
+        const stat = document.getElementById(pumpId + "_status");
+        const modeSelect = document.getElementById(pumpId + "_mode");
+        let run = data[runKey], trip = data[tripKey];
+        let statusText = "OFF", colorClass = "bg-red-500";
+        if (trip === 1) {
+            statusText = "TRIP";
+            colorClass = "bg-yellow-400";
+        } else if (run === 1) {
+            statusText = "RUN";
+            colorClass = "bg-green-500";
+        }
+        stat.textContent = statusText;
+        led.className = "w-3 h-3 rounded-full " + colorClass + " mr-2";
+        // Update mode if present (0=Off, 1=Manual, 2=Auto)
+        let modeVal = data[modeKey];
+        if (modeVal !== undefined) {
+            if (modeVal === 0 || modeVal === "0") modeVal = "Off";
+            else if (modeVal === 1 || modeVal === "1") modeVal = "Manual";
+            else if (modeVal === 2 || modeVal === "2") modeVal = "Auto";
+            modeSelect.value = modeVal;
+        }
     }
-    
-    function updateSensorStatus(sensorType, statusValue) {
-      // sensorType is "smoke" or "flood" for our IDs
-      let statusElem = document.getElementById(sensorType + "Status");
-      let indicatorElem = document.getElementById(sensorType + "Indicator");
-      if (!statusElem || !indicatorElem) return;
-      // If sensor triggers alarm, statusValue might be e.g. "ALARM" or "TRIGGERED"
-      let normal = (statusValue === "NORMAL" || statusValue === "0" || statusValue === "False"); // adjust according to actual payload
-      statusElem.querySelector(".status-text").innerText = normal ? "Normal" : "ALARM!";
-      // Green for normal, red for alarm
-      if (normal) {
-        indicatorElem.classList.remove("text-red-600");
-        indicatorElem.classList.add("text-green-500");
-      } else {
-        indicatorElem.classList.remove("text-green-500");
-        indicatorElem.classList.add("text-red-600");
-      }
-      // If a sensor alarm triggers the system alarm, you might also call updateAlarmStatus here accordingly.
+    updatePump("jp", "JP", "JPT", "JPM");
+    updatePump("mp", "MP", "MPT", "MPM");
+    updatePump("dp", "DP", "DPT", "DPM");
+
+    // Update sensor indicators
+    function updateSensor(id, key) {
+        const led = document.getElementById(id + "_led");
+        const stat = document.getElementById(id + "_status");
+        if (data[key] === 1) {
+            stat.textContent = "Alarm";
+            led.className = "w-3 h-3 rounded-full bg-red-500 mr-2";
+        } else {
+            stat.textContent = "Normal";
+            led.className = "w-3 h-3 rounded-full bg-green-500 mr-2";
+        }
     }
-    
-    function updateAlarmStatus(statusValue) {
-      // statusValue could be a boolean or string indicating if an alarm is active
-      const alarmTextElem = document.getElementById("alarmStatus").querySelector(".status-text");
-      const alarmIconElem = document.getElementById("alarmIcon");
-      const ackButton = document.getElementById("ackBtn");
-      const resetButton = document.getElementById("resetBtn");
-      if (!alarmTextElem || !alarmIconElem) return;
-      let alarmActive = (statusValue === "ACTIVE" || statusValue === "1" || statusValue === "True");
-      alarmTextElem.innerText = alarmActive ? "ACTIVE - Attention Required" : "No Active Alarm";
-      if (alarmActive) {
-        // Make the alarm icon red and pulsating
-        alarmIconElem.classList.add("text-red-600", "animate-pulse");
-        // Enable alarm control buttons
-        ackButton.disabled = false;
-        resetButton.disabled = false;
-      } else {
-        // Remove pulse animation and color
-        alarmIconElem.classList.remove("animate-pulse");
-        // (We keep it red color for the icon itself, but it could be changed to gray if desired when no alarm)
-        alarmIconElem.classList.remove("text-red-600");
-        alarmIconElem.classList.add("text-gray-400");
-        // Disable alarm control buttons when no alarm
-        ackButton.disabled = true;
-        resetButton.disabled = true;
-      }
+    updateSensor("smoke", "SMK");
+    updateSensor("flood", "FLD");
+
+    // Update environment readings
+    if (data.Temperature !== undefined) {
+        document.getElementById("temp_value").textContent = data.Temperature.toFixed(1) + " °C";
     }
-    
-    // User authentication functions
-    function performLogin() {
-      // Placeholder for actual authentication logic.
-      // For example, validate credentials, then on success:
-      const usernameField = document.getElementById("usernameInput");
-      const passwordField = document.getElementById("passwordInput");
-      const userInfo = document.getElementById("userInfo");
-      const loginModal = document.getElementById("loginModal");
-      if (usernameField.value && passwordField.value) {
-        // In a real app, you'd verify credentials. Here we assume success if fields are non-empty.
-        document.getElementById("usernameDisplay").innerHTML = `Logged in as <strong>${usernameField.value}</strong>`;
-        loginModal.classList.add("hidden");       // hide login modal
-        userInfo.style.display = "flex";          // show user info in header
-        document.getElementById("dashboardContent").style.display = "block";  // show the main dashboard
-        // (If needed, also connect to MQTT here after login, if the connection is established upon authentication)
-      } else {
-        alert("Please enter username and password."); // basic feedback
-      }
+    if (data.Humidity !== undefined) {
+        document.getElementById("hum_value").textContent = data.Humidity.toFixed(1) + " %";
     }
-    
-    function logout() {
-      // Placeholder for actual logout logic.
-      // E.g., disconnect MQTT, clear session, show login modal again.
-      document.getElementById("dashboardContent").style.display = "none";
-      document.getElementById("userInfo").style.display = "none";
-      document.getElementById("loginModal").classList.remove("hidden");
-      // (Add any additional cleanup such as MQTT disconnection if needed)
+    if (data.Pressure !== undefined) {
+        document.getElementById("pres_value").textContent = data.Pressure.toFixed(1) + " PSI";
     }
-    
-    // On page load, determine whether to show login or dashboard content.
-    // Assuming some global flag or method exists to check auth status.
-    document.addEventListener("DOMContentLoaded", function() {
-      const isAuthenticated = false; // This should be replaced with real auth check
-      if (!isAuthenticated) {
-        // Not logged in: show login modal, hide dashboard
-        document.getElementById("dashboardContent").style.display = "none";
-        document.getElementById("userInfo").style.display = "none";
-        document.getElementById("loginModal").classList.remove("hidden");
-      } else {
-        // Logged in: ensure dashboard is visible
-        document.getElementById("dashboardContent").style.display = "block";
-        document.getElementById("userInfo").style.display = "flex";
-      }
-    });
-    
-    /* 
-      Note: The above script assumes the presence of the existing MQTT logic.
-      All IDs and classes used in this HTML match those referenced in the script to ensure continuity.
-      The styling (via Tailwind classes) does not interfere with the data logic.
-      Additional animations (like animate-pulse) are toggled via adding/removing Tailwind classes in the JS.
-    */
-  </script>
+
+    // Trigger alarm if any critical flag is set
+    if (data.SMK === 1 || data.FLD === 1 || data.JPT === 1 || data.MPT === 1 || data.DPT === 1) {
+        triggerAlarm("Active Alarm!");
+    } else {
+        clearAlarm();
+    }
+}
+
+// ===== Alarm Handling =====
+// Display alarm status and play beep sound using Web Audio API:contentReference[oaicite:6]{index=6}:contentReference[oaicite:7]{index=7}
+function triggerAlarm(msg) {
+    const alarmText = document.getElementById("alarm_status");
+    alarmText.textContent = msg;
+    alarmText.classList.remove("text-green-400");
+    alarmText.classList.add("text-red-500");
+    document.getElementById("alarm_panel").classList.add("border-red-500", "border-2");
+    document.getElementById("ack_btn").disabled = false;
+    // Beep
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+    osc.connect(audioCtx.destination);
+    osc.start();
+    setTimeout(() => osc.stop(), 200);
+}
+
+function clearAlarm() {
+    const alarmText = document.getElementById("alarm_status");
+    alarmText.textContent = "No Active Alarm";
+    alarmText.classList.remove("text-red-500");
+    alarmText.classList.add("text-green-400");
+    document.getElementById("alarm_panel").classList.remove("border-red-500", "border-2");
+    document.getElementById("ack_btn").disabled = true;
+    document.getElementById("reset_btn").disabled = true;
+}
+
+// Acknowledge and Reset buttons
+document.getElementById("ack_btn").onclick = () => {
+    document.getElementById("ack_btn").disabled = true;
+    document.getElementById("reset_btn").disabled = false;
+};
+document.getElementById("reset_btn").onclick = () => {
+    clearAlarm();
+};
+</script>
 </body>
 </html>
