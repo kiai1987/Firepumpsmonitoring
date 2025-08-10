@@ -22,7 +22,7 @@
     .container{ background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
       border:1px solid rgba(255,255,255,0.08); backdrop-filter:blur(8px);
       border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.35); padding:16px; width:100%; max-width:1200px;
-      display:flex; flex-direction:column; align-items:center; height:calc(100vh - 64px); overflow:auto}
+      display:flex; flex-direction:column; align-items:center; height:calc(100vh - 64px); overflow:auto; position:relative}
     .header{display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:12px; width:100%}
     .logo-side{width:140px; height:auto}
     .dashboard-title{font-size:28px; font-weight:700; color:var(--brand); text-shadow:0 0 6px rgba(20,184,166,.5); text-align:center}
@@ -223,15 +223,27 @@
     window.onload = checkAuthentication;
 
     // === Background support additions (PWA + Notifications + Wake Lock) ===
-    let deferredPrompt; const connNote = document.getElementById('conn-note');
-    window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); deferredPrompt = e; });
+    const connNote = document.getElementById('conn-note');
 
-    // Tiny inline Service Worker (single-file deploy)
-    const swCode = `self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>self.clients.claim());
-self.addEventListener('message',e=>{const d=e.data||{}; if(d.type==='notify'){ self.registration.showNotification(d.title||'Fire Pump Alarm',{ body:d.body||'', icon:d.icon||undefined, tag:'fire-pump', renotify:true, vibrate:[200,100,200] }); }});`;
-    (async()=>{ try{ const url = URL.createObjectURL(new Blob([swCode],{type:'text/javascript'})); await navigator.serviceWorker.register(url,{scope:'./'}); }catch(e){ console.warn('SW registration failed', e); }})();
+    // Tiny inline Service Worker (single-file deploy) with notification click focus
+    const swCode = `
+self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => self.clients.claim());
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+      if (clients.length) { clients[0].focus(); }
+      else { self.clients.openWindow('./'); }
+    })
+  );
+});
+`;
+    (async()=>{ try{ const url = URL.createObjectURL(new Blob([swCode],{type:'text/javascript'})); const reg = await navigator.serviceWorker.register(url,{scope:'./'}); await navigator.serviceWorker.ready; }catch(e){ console.warn('SW registration failed', e); }})();
 
     async function ensureBackground(){ try{ if('Notification' in window && Notification.permission==='default'){ await Notification.requestPermission(); } if('wakeLock' in navigator){ try{ await navigator.wakeLock.request('screen'); }catch(_){} } }catch(e){} }
+
+    async function notifyNative(text){ try{ if(!('Notification' in window)) return; if(Notification.permission==='default'){ await Notification.requestPermission(); } if(Notification.permission==='granted'){ const reg = await navigator.serviceWorker.getRegistration(); await reg?.showNotification('Fire Pump Alarm', { body: text, tag:'fire-pump', renotify:true, vibrate:[200,100,200] }); } }catch(e){ console.warn('notifyNative failed', e); } }
 
     // === Audio alarm (kept & enhanced) ===
     let audioContext; let alarmBuffer; let alarmSilenced=false; let alarmLatched=false; // latch for smoke/flood until Reset
@@ -250,39 +262,47 @@ self.addEventListener('message',e=>{const d=e.data||{}; if(d.type==='notify'){ s
       document.getElementById('water-pressure').textContent='0 Bar'; }
 
     // === Alarm banner (preserved ID #alarm-box) ===
-    function showAlarm(text){ const ab=document.getElementById('alarm-box'); ab.textContent=text; ab.style.display = text? 'block':'none'; document.title = text? '⚠️ Alarm — Fire Pump':'Fire Pump Monitoring Dashboard';
-      if(text){ playAlarmSound(); if(navigator.serviceWorker?.controller){ navigator.serviceWorker.controller.postMessage({type:'notify', title:'Fire Pump Alarm', body:text}); } } }
+    function showAlarm(text){ const ab=document.getElementById('alarm-box'); ab.textContent=text; ab.style.display = text? 'block':'none'; document.title = text? '⚠️ Alarm — Fire Pump':'Fire Pump Monitoring Dashboard'; if(text){ playAlarmSound(); notifyNative(text); } }
 
     function acknowledgeAlarm(){ alarmSilenced = true; audioContext?.suspend?.(); }
     function resetAlarm(){ alarmSilenced = false; alarmLatched = false; audioContext?.resume?.(); showAlarm(''); }
 
-    // === Connectivity & MQTT (kept, more robust) ===
-    let lastMessageTime = Date.now(); let isConnected=false; let backoff=1000; // 1s → 60s
-    const mqtt_server_primary = "wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt";
-    const mqtt_server_secondary = "wss://279f2d6397444dbcbeb4eaa4897960f7.s1.eu.hivemq.cloud:8884/mqtt";
-    const options = { username:'firepump', password:'044313187Ki@', clientId:`mqttjs_${Math.random().toString(16).substr(2,8)}` };
-    let mqttClient; let currentServer=mqtt_server_primary;
+    // === MQTT via Web Worker (keeps comms when tab is backgrounded better than main thread) ===
+    const PRIMARY = 'wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt';
+    const SECONDARY = 'wss://279f2d6397444dbcbeb4eaa4897960f7.s1.eu.hivemq.cloud:8884/mqtt';
+    const MQTT_OPTIONS = { username:'firepump', password:'044313187Ki@', clientId: 'mqttjs_'+Math.random().toString(16).slice(2) };
 
-    function connectMqtt(server){ try{
-      mqttClient = mqtt.connect(server, options);
-      connNote.textContent = 'Connecting…';
-      mqttClient.on('connect', function(){ isConnected=true; backoff=1000; connNote.textContent=`Connected (${server===mqtt_server_primary?'Primary':'Secondary'})`; mqttClient.subscribe('fire-pump/status'); });
-      mqttClient.on('message', function(topic, message){ if(topic==='fire-pump/status'){ const data=JSON.parse(message.toString()); handleStatusUpdates(data); } });
-      mqttClient.on('error', function(err){ isConnected=false; handleConnectionLoss(server, err?.message||'error'); });
-      mqttClient.on('close', function(){ isConnected=false; handleConnectionLoss(server, 'closed'); });
-      mqttClient.on('reconnect', function(){ connNote.textContent='Reconnecting…'; });
-    }catch(e){ handleConnectionLoss(server, e?.message||'exception'); }}
+    // Create the worker from a Blob so this stays single-file
+    const workerCode = `
+let PRIMARY, SECONDARY, OPTIONS; let current=0; let backoff=1000; let client; let mqttRef;
+self.onmessage = (e)=>{ const m=e.data||{}; if(m.type==='init'){ PRIMARY=m.PRIMARY; SECONDARY=m.SECONDARY; OPTIONS=m.OPTIONS; start(); } else if(m.type==='publish'){ try{ client?.publish(m.topic, m.payload); }catch(e){} } };
+function start(){ try{ importScripts('https://unpkg.com/mqtt/dist/mqtt.min.js'); mqttRef = self.mqtt; connect([PRIMARY,SECONDARY][current]); }catch(e){ postMessage({type:'conn', ok:false, err:'importScripts failed'}); }}
+function connect(url){ try{ client = mqttRef.connect(url, OPTIONS);
+  client.on('connect', ()=>{ backoff=1000; postMessage({type:'conn', ok:true, server:url}); client.subscribe('fire-pump/status'); });
+  client.on('message', (t,m)=>{ if(t==='fire-pump/status'){ postMessage({type:'payload', data:m.toString()}); } });
+  client.on('close', ()=>{ postMessage({type:'conn', ok:false, why:'close'}); scheduleReconnect(url); });
+  client.on('error', (e)=>{ postMessage({type:'conn', ok:false, why:'error', msg:String(e)}); scheduleReconnect(url); });
+}catch(e){ postMessage({type:'conn', ok:false, why:'exception'}); scheduleReconnect(url); }}
+function scheduleReconnect(from){ try{ client?.end(true);}catch{} current = from===PRIMARY?1:0; setTimeout(()=>connect([PRIMARY,SECONDARY][current]), backoff); backoff=Math.min(backoff*2,60000); }
+`;
+    const workerURL = URL.createObjectURL(new Blob([workerCode], { type:'text/javascript' }));
+    const mqWorker = new Worker(workerURL);
+    mqWorker.postMessage({type:'init', PRIMARY, SECONDARY, OPTIONS: MQTT_OPTIONS});
 
-    function handleConnectionLoss(server, why){ console.warn('MQTT lost', why); showAlarm('Receiver-MQTT Communication Failed'); setAllLedsBlank(); setSystemIcon(false);
-      try{ mqttClient?.end(true);}catch{}
-      const next = server===mqtt_server_primary ? mqtt_server_secondary : mqtt_server_primary;
-      setTimeout(()=>connectMqtt(next), backoff); backoff = Math.min(backoff*2, 60000);
-    }
+    // Relay UI → MQTT publish
+    function publish(topic, payload){ mqWorker.postMessage({type:'publish', topic, payload}); }
+
+    // Worker → UI messages
+    let lastMessageTime = Date.now(); let isConnected=false;
+    mqWorker.onmessage = (e)=>{
+      const msg = e.data || {}; if(msg.type==='conn'){ isConnected = !!msg.ok; connNote.textContent = msg.ok ? `Connected (${msg.server && msg.server.includes('f2ab') ? 'Primary' : 'Secondary'})` : 'Disconnected'; if(!msg.ok){ showAlarm('Receiver-MQTT Communication Failed'); setAllLedsBlank(); setSystemIcon(false); } }
+      else if(msg.type==='payload'){ lastMessageTime = Date.now(); try{ const data = JSON.parse(msg.data); handleStatusUpdates(data); }catch{} }
+    };
 
     function setSystemIcon(ok){ const icon=document.getElementById('system-status'); icon.classList.toggle('fa-check-circle', ok); icon.classList.toggle('fa-exclamation-circle', !ok); icon.style.color = ok? '#22c55e':'#ef4444'; }
 
     function handleStatusUpdates(data){
-      lastMessageTime = Date.now(); isConnected = true; setSystemIcon(true);
+      setSystemIcon(true);
       // Pumps
       updateLedStatus('jockey-pump-run', data.JP, 'led-run');
       updateLedStatus('jockey-pump-off', !data.JP, 'led-off');
@@ -294,7 +314,7 @@ self.addEventListener('message',e=>{const d=e.data||{}; if(d.type==='notify'){ s
       updateLedStatus('diesel-pump-off', !data.DP, 'led-off');
       updateLedStatus('diesel-pump-trip', data.DPT, 'led-trip');
 
-      // Sensors (latched for smoke/flood until Reset)
+      // Sensors (latched)
       if(data.SS1) alarmLatched = true; if(data.FS) alarmLatched = true;
       updateLedStatus('smoke-detector-alarm', (data.SS1||alarmLatched), 'led-alarm');
       updateLedStatus('smoke-detector-normal', !(data.SS1||alarmLatched), 'led-normal');
@@ -322,11 +342,9 @@ self.addEventListener('message',e=>{const d=e.data||{}; if(d.type==='notify'){ s
       if(alarmText){ showAlarm(alarmText.trim()); setSystemIcon(false); } else if(!alarmLatched){ showAlarm(''); setSystemIcon(true); }
     }
 
-    // Publish selector changes (kept)
+    // Publish selector changes (kept → through worker)
     document.querySelectorAll('.control-input').forEach(input=>{
-      input.addEventListener('change', function(){ const selectorGroup=this.id.split('-')[0]; const selectedMode=this.value; const payload=JSON.stringify({group:selectorGroup, mode:selectedMode});
-        try{ mqttClient?.publish('fire-pump/mode', payload);}catch(err){ console.error('Error publishing pump mode:', err); }
-      });
+      input.addEventListener('change', function(){ const selectorGroup=this.id.split('-')[0]; const selectedMode=this.value; const payload=JSON.stringify({group:selectorGroup, mode:selectedMode}); publish('fire-pump/mode', payload); });
     });
 
     // Stale telemetry watcher (kept)
@@ -339,7 +357,7 @@ self.addEventListener('message',e=>{const d=e.data||{}; if(d.type==='notify'){ s
     document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='visible'){ audioContext?.resume?.(); } });
 
     // Init
-    (async function init(){ await ensureBackground(); await loadAlarm(); connectMqtt(mqtt_server_primary); })();
+    (async function init(){ await ensureBackground(); await loadAlarm(); })();
   </script>
 </body>
 </html>
