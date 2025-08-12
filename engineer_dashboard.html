@@ -10,45 +10,70 @@
   <style>
     /* === Preserved IDs, upgraded styling (no framework) === */
     :root{
-      --bg:#0b0b0d; --surface:#141418; --card:#1b1b21; --muted:#a0a0ad; --brand:#14b8a6;
-      --ok:#22c55e; --off:#ef4444; --trip:#facc15; --alarm:#f97316;
+      --bg:#07070a; --surface:#101014; --card:#16161d; --muted:#a0a0ad; --brand:#2fe6c6;
+      --ok:#22c55e; --off:#ef4444; --trip:#facc15; --alarm:#ff6a3d;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{font-family:'Roboto',system-ui,Segoe UI,Arial,sans-serif; margin:0; background:
-      radial-gradient(1200px 800px at 20% -10%, #10b98122, transparent),
-      radial-gradient(1200px 800px at 120% 120%, #14b8a633, transparent), var(--bg);
-      color:#e5e7eb; display:flex; justify-content:center; align-items:center; padding:16px; overflow:hidden}
-    .container{ background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-      border:1px solid rgba(255,255,255,0.08); backdrop-filter:blur(10px);
-      border-radius:20px; box-shadow:0 12px 32px rgba(0,0,0,.4); padding:16px; width:100%; max-width:1250px;
-      display:flex; flex-direction:column; align-items:center; height:calc(100vh - 64px); overflow:auto; position:relative}
+    body{
+      font-family:'Roboto',system-ui,Segoe UI,Arial,sans-serif; margin:0;
+      background: var(--bg);
+      color:#e5e7eb; display:flex; justify-content:center; align-items:center; padding:16px; overflow:hidden;
+    }
+    /* Animated aurora background */
+    body::before, body::after{
+      content:""; position:fixed; inset:-20%; z-index:-2; filter: blur(60px); opacity:.55;
+      background: radial-gradient(35% 40% at 20% 15%, #00ffd054, transparent 60%),
+                  radial-gradient(30% 35% at 80% 10%, #5b9dff4f, transparent 60%),
+                  radial-gradient(30% 35% at 50% 90%, #ff6a3d4b, transparent 60%);
+      animation: drift 24s ease-in-out infinite alternate;
+    }
+    body::after{ opacity:.35; filter: blur(90px); animation-duration: 38s; animation-direction: alternate-reverse; }
+    @keyframes drift { 0%{ transform: translate3d(0,0,0) scale(1);} 100%{ transform: translate3d(-2%, -3%, 0) scale(1.05);} }
+
+    .container{
+      background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border:1px solid rgba(255,255,255,0.08); backdrop-filter:blur(12px);
+      border-radius:22px; box-shadow:0 18px 50px rgba(0,0,0,.5); padding:18px; width:100%; max-width:1280px;
+      display:flex; flex-direction:column; align-items:center; height:calc(100vh - 64px); overflow:auto; position:relative;
+      perspective: 1200px;
+    }
     .header{display:flex; flex-direction:column; align-items:center; gap:6px; margin-bottom:12px; width:100%}
     .logo-side{width:140px; height:auto; filter: drop-shadow(0 6px 12px rgba(0,0,0,.35));}
-    .dashboard-title{font-size:28px; font-weight:800; color:var(--brand); text-shadow:0 0 10px rgba(20,184,166,.45); text-align:center; letter-spacing:.02em}
-    #conn-note{ background:#121218; border:1px solid #2c2c35; padding:4px 10px; border-radius:999px; color:#c5c5d1 }
-    .logout-button{ position:absolute; top:16px; right:16px; background:linear-gradient(180deg,#19c3ae,#109e90); color:#fff; border:0; padding:10px 16px; border-radius:12px; cursor:pointer; box-shadow:0 6px 14px rgba(20,184,166,.25); transition:transform .08s ease}
+    .dashboard-title{font-size:30px; font-weight:900; color:var(--brand); text-shadow:0 0 16px rgba(47,230,198,.35); text-align:center; letter-spacing:.02em}
+    #conn-note{ background:#0e0e13; border:1px solid #272732; padding:4px 10px; border-radius:999px; color:#c5c5d1; position:relative }
+    #conn-note::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--ok); position:absolute; left:8px; top:50%; transform:translateY(-50%); box-shadow:0 0 10px var(--ok)}
+
+    .logout-button{ position:absolute; top:16px; right:16px; background:linear-gradient(180deg,#30f0d2,#16b6a1); color:#0b0b0d; border:0; padding:10px 16px; border-radius:12px; cursor:pointer; box-shadow:0 8px 18px rgba(47,230,198,.35); transition:transform .08s ease, filter .15s ease}
     .logout-button:hover{ filter:brightness(1.05)} .logout-button:active{ transform:translateY(1px)}
 
-    #alarm-box{ width:100%; background:linear-gradient(180deg,#f97316,#ef5c10); color:#fff; padding:12px; border-radius:12px; text-align:center; margin:6px 0 10px; font-weight:800; display:none; box-shadow:0 10px 24px rgba(249,115,22,.25)}
+    #alarm-box{ width:100%; background:linear-gradient(180deg,var(--alarm),#ff4d1d); color:#fff; padding:12px; border-radius:14px; text-align:center; margin:6px 0 10px; font-weight:900; display:none; box-shadow:0 16px 30px rgba(255,106,61,.3); position:relative; overflow:hidden }
+    #alarm-box::after{ content:""; position:absolute; inset:0; background:linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent); transform:translateX(-100%); animation: sweep 2.3s linear infinite }
+    @keyframes sweep { to { transform: translateX(100%);} }
 
     .buttons{ display:flex; gap:12px; margin:10px 0 }
-    .button{ background:linear-gradient(180deg,#2b2b33,#24242a); color:#fff; border:1px solid #3a3a43; padding:10px 16px; border-radius:12px; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.3); transition:transform .08s ease, filter .15s ease}
-    .button:hover{ filter:brightness(1.05)} .button:active{ transform:translateY(1px)}
+    .button{ position:relative; background:linear-gradient(180deg,#2b2b33,#202028); color:#fff; border:1px solid #3a3a43; padding:10px 16px; border-radius:12px; cursor:pointer; box-shadow:0 8px 22px rgba(0,0,0,.35); transition:transform .08s ease, filter .15s ease }
+    .button:hover{ filter:brightness(1.06)} .button:active{ transform:translateY(1px)}
+    .button::after{ content:""; position:absolute; inset:0; border-radius:12px; padding:1px; background:linear-gradient(135deg, rgba(47,230,198,.6), rgba(59,130,246,.25), rgba(250,204,21,.35)); -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; opacity:.5 }
 
-    .dashboard{ display:grid; grid-template-columns:repeat(1,minmax(260px,1fr)); gap:16px; width:100%}
+    .dashboard{ display:grid; grid-template-columns:repeat(1,minmax(260px,1fr)); gap:18px; width:100%}
     @media(min-width:720px){ .dashboard{ grid-template-columns:repeat(2,minmax(280px,1fr)); } }
     @media(min-width:1120px){ .dashboard{ grid-template-columns:repeat(3,minmax(300px,1fr)); } }
 
-    .card{ background:var(--card); border:1px solid #2c2c35; border-radius:16px; padding:16px; position:relative; box-shadow:0 8px 20px rgba(0,0,0,.32)}
-    .card::before{ content:""; position:absolute; inset:-1px; border-radius:18px; padding:1px; background:linear-gradient(135deg, rgba(20,184,166,.45), rgba(59,130,246,.15), rgba(250,204,21,.25)); -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none }
-    .card-header{ font-size:16px; font-weight:800; color:var(--brand); letter-spacing:.08em; margin-bottom:12px; text-transform:uppercase }
+    .card{ background:var(--card); border:1px solid #262632; border-radius:18px; padding:16px; position:relative; box-shadow:0 10px 28px rgba(0,0,0,.4); transform-style: preserve-3d; transition: transform .25s ease, box-shadow .25s ease }
+    .card:hover{ transform: translateY(-4px) rotateX(2deg) rotateY(-2deg); box-shadow:0 16px 38px rgba(0,0,0,.55) }
+    .card::before{ content:""; position:absolute; inset:-1px; border-radius:20px; padding:1px; background:linear-gradient(135deg, rgba(47,230,198,.5), rgba(59,130,246,.25), rgba(250,204,21,.35)); -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; filter:saturate(1.2); animation: borderGlow 8s linear infinite }
+    .card::after{ content:""; position:absolute; inset:0; border-radius:18px; background:linear-gradient(120deg, transparent, rgba(255,255,255,.04), transparent); transform: translateX(-100%); animation: sheen 5.5s ease-in-out infinite; pointer-events:none }
+    @keyframes sheen{ 50%{ transform: translateX(0);} 100%{ transform: translateX(100%);} }
+    @keyframes borderGlow{ 0%{ filter:hue-rotate(0deg)} 100%{ filter:hue-rotate(360deg)} }
+
+    .card-header{ font-size:15px; font-weight:900; color:var(--brand); letter-spacing:.14em; margin-bottom:12px; text-transform:uppercase }
 
     .status-indicators{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px }
     .status{ display:flex; flex-direction:column; align-items:center; gap:8px }
 
     .led{ width:22px; height:22px; border-radius:9999px; border:2px solid #0f0f14; background:#333; box-shadow:inset 0 0 8px rgba(0,0,0,.6) }
-    @keyframes pulseGlow{ 0%{ box-shadow:0 0 6px currentColor, 0 0 14px transparent } 50%{ box-shadow:0 0 14px currentColor, 0 0 30px currentColor } 100%{ box-shadow:0 0 6px currentColor, 0 0 14px transparent } }
+    @keyframes pulseGlow{ 0%{ box-shadow:0 0 6px currentColor, 0 0 14px transparent } 50%{ box-shadow:0 0 16px currentColor, 0 0 40px currentColor } 100%{ box-shadow:0 0 6px currentColor, 0 0 14px transparent } }
     .led-run{ background:var(--ok); color:var(--ok); animation:pulseGlow 1.6s ease-in-out infinite }
     .led-off{ background:var(--off); color:var(--off); opacity:.9 }
     .led-trip{ background:var(--trip); color:var(--trip); animation:pulseGlow 1.1s ease-in-out infinite }
@@ -58,8 +83,346 @@
 
     .control-group{ display:flex; flex-direction:column; align-items:center; gap:6px }
     .control-label{ font-size:12px; color:var(--muted) }
-    .control-input{ width:120px; padding:10px; border:1px solid #454552; border-radius:10px; background:#202028; color:#fff; text-align:center }
+    .control-input{ width:124px; padding:10px; border:1px solid #3a3a45; border-radius:12px; background:#121218; color:#e7e7f0; text-align:center; box-shadow: inset 0 2px 6px rgba(0,0,0,.35)}
 
+    .value{ font-size:36px; font-weight:900; text-align:center; text-shadow:0 2px 8px rgba(0,0,0,.35) }
+    .temperature-humidity{ display:flex; flex-direction:column; align-items:center; gap:6px }
+
+    /* Gauge for pressure with needle */
+    .gauge-wrap{ display:grid; place-items:center }
+    .gauge{ --p:0%; --gcolor: var(--ok); --angle: -120deg; width:180px; height:180px; border-radius:50%; position:relative; display:grid; place-items:center; background:conic-gradient(var(--gcolor) var(--p), #242430 0); box-shadow:inset 0 8px 22px rgba(0,0,0,.6), 0 10px 28px rgba(0,0,0,.42); transition: background .4s ease }
+    .gauge::before{ content:""; position:absolute; inset:14px; border-radius:50%; background:#0f0f14; box-shadow:inset 0 0 18px rgba(0,0,0,.65) }
+    .gauge::after{ content:""; position:absolute; width:4px; height:40%; top:10%; left:50%; transform-origin:50% 85%; background:linear-gradient(#fff,#cbd5e1); border-radius:4px; transform: rotate(var(--angle)); filter: drop-shadow(0 0 6px var(--gcolor)); }
+    .gauge-label{ position:relative; font-weight:900; font-size:28px; text-shadow:0 2px 10px rgba(0,0,0,.35) }
+    .gauge-sub{ position:relative; font-size:12px; color:#c5c5d1; margin-top:4px }
+
+    .alarm-icon{ position:absolute; top:10px; right:10px; color:var(--alarm); font-size:22px }
+    .alarm-icon.hidden{ display:none }
+    .footer{ text-align:center; margin-top:10px; font-size:12px; color:#a8a8b4 }
+    #system-status{ font-size:80px; color:#22c55e; margin-top:6px; filter: drop-shadow(0 0 10px #22c55e) }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button class="logout-button" onclick="logout()">Logout</button>
+    <div class="header">
+      <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo" class="logo-side" />
+      <div class="dashboard-title">Fire Pump Monitoring System</div>
+      <small id="conn-note" style="color:#a0a0ad">Connecting…</small>
+    </div>
+
+    <div id="alarm-box"></div>
+    <div class="buttons">
+      <button class="button" id="acknowledge-button" onclick="acknowledgeAlarm()">Acknowledge Alarm</button>
+      <button class="button" id="reset-button" onclick="resetAlarm()">Reset</button>
+    </div>
+
+    <div class="dashboard">
+      <!-- Jockey Pump -->
+      <div class="card">
+        <div class="card-header">Jockey Pump</div>
+        <div class="status-indicators">
+          <div class="status">
+            <div class="led" id="jockey-pump-run"></div>
+            <div>RUN</div>
+          </div>
+          <div class="status">
+            <div class="led" id="jockey-pump-off"></div>
+            <div>OFF</div>
+          </div>
+          <div class="status">
+            <div class="led" id="jockey-pump-trip"></div>
+            <div>TRIP</div>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="control-group">
+            <div class="control-label">Mode</div>
+            <select class="control-input" id="jockey-mode">
+              <option value="0">Off</option>
+              <option value="1">Manual</option>
+              <option value="2">Auto</option>
+            </select>
+          </div>
+        </div>
+        <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm"></i>
+      </div>
+
+      <!-- Main Pump -->
+      <div class="card">
+        <div class="card-header">Main Pump</div>
+        <div class="status-indicators">
+          <div class="status">
+            <div class="led" id="main-pump-run"></div>
+            <div>RUN</div>
+          </div>
+          <div class="status">
+            <div class="led" id="main-pump-off"></div>
+            <div>OFF</div>
+          </div>
+          <div class="status">
+            <div class="led" id="main-pump-trip"></div>
+            <div>TRIP</div>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="control-group">
+            <div class="control-label">Mode</div>
+            <select class="control-input" id="main-mode">
+              <option value="0">Off</option>
+              <option value="1">Manual</option>
+              <option value="2">Auto</option>
+            </select>
+          </div>
+        </div>
+        <i class="fas fa-exclamation-triangle alarm-icon hidden" id="main-alarm"></i>
+      </div>
+
+      <!-- Diesel Pump -->
+      <div class="card">
+        <div class="card-header">Diesel Pump</div>
+        <div class="status-indicators">
+          <div class="status">
+            <div class="led" id="diesel-pump-run"></div>
+            <div>RUN</div>
+          </div>
+          <div class="status">
+            <div class="led" id="diesel-pump-off"></div>
+            <div>OFF</div>
+          </div>
+          <div class="status">
+            <div class="led" id="diesel-pump-trip"></div>
+            <div>TRIP</div>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="control-group">
+            <div class="control-label">Mode</div>
+            <select class="control-input" id="diesel-mode">
+              <option value="0">Off</option>
+              <option value="1">Manual</option>
+              <option value="2">Auto</option>
+            </select>
+          </div>
+        </div>
+        <i class="fas fa-exclamation-triangle alarm-icon hidden" id="diesel-alarm"></i>
+      </div>
+
+      <!-- TH -->
+      <div class="card">
+        <div class="card-header">Room Temperature & Humidity</div>
+        <div class="temperature-humidity">
+          <div class="value temperature" id="room-temperature">--°C</div>
+          <div class="value humidity" id="room-humidity">--%</div>
+        </div>
+      </div>
+
+      <!-- Pressure -->
+      <div class="card">
+        <div class="card-header">Water Pressure</div>
+        <div class="gauge-wrap">
+          <div class="gauge" id="wp-gauge">
+            <div class="gauge-label"><span id="water-pressure">0 Bar</span></div>
+            <div class="gauge-sub">Live</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Smoke -->
+      <div class="card">
+        <div class="card-header">Smoke Detector</div>
+        <div class="status-indicators">
+          <div class="status">
+            <div class="led" id="smoke-detector-alarm"></div>
+            <div>ALARM</div>
+          </div>
+          <div class="status">
+            <div class="led" id="smoke-detector-normal"></div>
+            <div>NORMAL</div>
+          </div>
+        </div>
+        <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-alarm-icon"></i>
+      </div>
+
+      <!-- Flood -->
+      <div class="card">
+        <div class="card-header">Water Flood Sensor</div>
+        <div class="status-indicators">
+          <div class="status">
+            <div class="led" id="flood-sensor-alarm"></div>
+            <div>ALARM</div>
+          </div>
+          <div class="status">
+            <div class="led" id="flood-sensor-normal"></div>
+            <div>NORMAL</div>
+          </div>
+        </div>
+        <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm-icon"></i>
+      </div>
+    </div>
+
+    <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
+    <i id="system-status" class="fas fa-check-circle"></i>
+  </div>
+
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script>
+    // === Authentication (kept) ===
+    function checkAuthentication(){ if(localStorage.getItem('authenticated')!=='true'){ location.href='index.html'; } }
+    function logout(){ localStorage.removeItem('authenticated'); localStorage.removeItem('userType'); location.href='index.html'; }
+    window.onload = checkAuthentication;
+
+    // === Background support additions (PWA + Notifications + Wake Lock) ===
+    const connNote = document.getElementById('conn-note');
+
+    // Tiny inline Service Worker (single-file deploy) with notification click focus
+    const swCode = `
+self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => self.clients.claim());
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+      if (clients.length) { clients[0].focus(); }
+      else { self.clients.openWindow('./'); }
+    })
+  );
+});
+`;
+    (async()=>{ try{ const url = URL.createObjectURL(new Blob([swCode],{type:'text/javascript'})); const reg = await navigator.serviceWorker.register(url,{scope:'./'}); await navigator.serviceWorker.ready; }catch(e){ console.warn('SW registration failed', e); }})();
+
+    async function ensureBackground(){ try{ if('Notification' in window && Notification.permission==='default'){ await Notification.requestPermission(); } if('wakeLock' in navigator){ try{ await navigator.wakeLock.request('screen'); }catch(_){} } }catch(e){} }
+
+    async function notifyNative(text){ try{ if(!('Notification' in window)) return; if(Notification.permission==='default'){ await Notification.requestPermission(); } if(Notification.permission==='granted'){ const reg = await navigator.serviceWorker.getRegistration(); await reg?.showNotification('Fire Pump Alarm', { body: text, tag:'fire-pump', renotify:true, vibrate:[200,100,200] }); } }catch(e){ console.warn('notifyNative failed', e); } }
+
+    // === Audio alarm (kept & enhanced) ===
+    let audioContext; let alarmBuffer; let alarmSilenced=false; let alarmLatched=false; // latch for smoke/flood until Reset
+    try{ audioContext = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ console.warn('No AudioContext', e); }
+    const alarmSoundUrl='https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav';
+    async function loadAlarm(){ try{ const r=await fetch(alarmSoundUrl); const b=await r.arrayBuffer(); alarmBuffer=await audioContext.decodeAudioData(b);}catch(e){ console.warn('Alarm load failed',e); } }
+    function playAlarmSound(){ if(!alarmBuffer||alarmSilenced) return; audioContext?.resume?.().then(()=>{ const s=audioContext.createBufferSource(); s.buffer=alarmBuffer; s.connect(audioContext.destination); s.start(0); }); }
+
+    // === UI helpers (preserve original functions/IDs) ===
+    function updateLedStatus(ledId, isActive, className){ const el=document.getElementById(ledId); el.className='led'; if(isActive){ el.classList.add(className);} else { el.classList.add('led-blank'); } }
+    function updateSelector(selectorGroup, mode){ const sel=document.getElementById(`${selectorGroup}-mode`); sel.value = mode; }
+
+    function setAllLedsBlank(){ document.querySelectorAll('.led').forEach(led=>{ led.className='led led-blank'; });
+      document.getElementById('room-temperature').textContent='--°C';
+      document.getElementById('room-humidity').textContent='--%';
+      document.getElementById('water-pressure').textContent='0 Bar'; }
+
+    // === Alarm banner (preserved ID #alarm-box) ===
+    function showAlarm(text){ const ab=document.getElementById('alarm-box'); ab.textContent=text; ab.style.display = text? 'block':'none'; document.title = text? '⚠️ Alarm — Fire Pump':'Fire Pump Monitoring Dashboard'; if(text){ playAlarmSound(); notifyNative(text); } }
+
+    function acknowledgeAlarm(){ alarmSilenced = true; audioContext?.suspend?.(); }
+    function resetAlarm(){ alarmSilenced = false; alarmLatched = false; audioContext?.resume?.(); showAlarm(''); }
+
+    // === MQTT via Web Worker (keeps comms when tab is backgrounded better than main thread) ===
+    const PRIMARY = 'wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt';
+    const SECONDARY = 'wss://279f2d6397444dbcbeb4eaa4897960f7.s1.eu.hivemq.cloud:8884/mqtt';
+    const MQTT_OPTIONS = { username:'firepump', password:'044313187Ki@', clientId: 'mqttjs_'+Math.random().toString(16).slice(2) };
+
+    // Create the worker from a Blob so this stays single-file
+    const workerCode = `
+let PRIMARY, SECONDARY, OPTIONS; let current=0; let backoff=1000; let client; let mqttRef;
+self.onmessage = (e)=>{ const m=e.data||{}; if(m.type==='init'){ PRIMARY=m.PRIMARY; SECONDARY=m.SECONDARY; OPTIONS=m.OPTIONS; start(); } else if(m.type==='publish'){ try{ client?.publish(m.topic, m.payload); }catch(e){} } };
+function start(){ try{ importScripts('https://unpkg.com/mqtt/dist/mqtt.min.js'); mqttRef = self.mqtt; connect([PRIMARY,SECONDARY][current]); }catch(e){ postMessage({type:'conn', ok:false, err:'importScripts failed'}); }}
+function connect(url){ try{ client = mqttRef.connect(url, OPTIONS);
+  client.on('connect', ()=>{ backoff=1000; postMessage({type:'conn', ok:true, server:url}); client.subscribe('fire-pump/status'); });
+  client.on('message', (t,m)=>{ if(t==='fire-pump/status'){ postMessage({type:'payload', data:m.toString()}); } });
+  client.on('close', ()=>{ postMessage({type:'conn', ok:false, why:'close'}); scheduleReconnect(url); });
+  client.on('error', (e)=>{ postMessage({type:'conn', ok:false, why:'error', msg:String(e)}); scheduleReconnect(url); });
+}catch(e){ postMessage({type:'conn', ok:false, why:'exception'}); scheduleReconnect(url); }}
+function scheduleReconnect(from){ try{ client?.end(true);}catch{} current = from===PRIMARY?1:0; setTimeout(()=>connect([PRIMARY,SECONDARY][current]), backoff); backoff=Math.min(backoff*2,60000); }
+`;
+    const workerURL = URL.createObjectURL(new Blob([workerCode], { type:'text/javascript' }));
+    const mqWorker = new Worker(workerURL);
+    mqWorker.postMessage({type:'init', PRIMARY, SECONDARY, OPTIONS: MQTT_OPTIONS});
+
+    // Relay UI → MQTT publish
+    function publish(topic, payload){ mqWorker.postMessage({type:'publish', topic, payload}); }
+
+    // Worker → UI messages
+    let lastMessageTime = Date.now(); let isConnected=false;
+    mqWorker.onmessage = (e)=>{
+      const msg = e.data || {}; if(msg.type==='conn'){ isConnected = !!msg.ok; connNote.textContent = msg.ok ? `Connected (${msg.server && msg.server.includes('f2ab') ? 'Primary' : 'Secondary'})` : 'Disconnected'; if(!msg.ok){ showAlarm('Receiver-MQTT Communication Failed'); setAllLedsBlank(); setSystemIcon(false); } }
+      else if(msg.type==='payload'){ lastMessageTime = Date.now(); try{ const data = JSON.parse(msg.data); handleStatusUpdates(data); }catch{} }
+    };
+
+    function setSystemIcon(ok){ const icon=document.getElementById('system-status'); icon.classList.toggle('fa-check-circle', ok); icon.classList.toggle('fa-exclamation-circle', !ok); icon.style.color = ok? '#22c55e':'#ef4444'; }
+
+    function handleStatusUpdates(data){
+      setSystemIcon(true);
+      // Pumps
+      updateLedStatus('jockey-pump-run', data.JP, 'led-run');
+      updateLedStatus('jockey-pump-off', !data.JP, 'led-off');
+      updateLedStatus('jockey-pump-trip', data.JPT, 'led-trip');
+      updateLedStatus('main-pump-run', data.MP, 'led-run');
+      updateLedStatus('main-pump-off', !data.MP, 'led-off');
+      updateLedStatus('main-pump-trip', data.MPT, 'led-trip');
+      updateLedStatus('diesel-pump-run', data.DP, 'led-run');
+      updateLedStatus('diesel-pump-off', !data.DP, 'led-off');
+      updateLedStatus('diesel-pump-trip', data.DPT, 'led-trip');
+
+      // Sensors (latched)
+      if(data.SS1) alarmLatched = true; if(data.FS) alarmLatched = true;
+      updateLedStatus('smoke-detector-alarm', (data.SS1||alarmLatched), 'led-alarm');
+      updateLedStatus('smoke-detector-normal', !(data.SS1||alarmLatched), 'led-normal');
+      updateLedStatus('flood-sensor-alarm', (data.FS||alarmLatched), 'led-alarm');
+      updateLedStatus('flood-sensor-normal', !(data.FS||alarmLatched), 'led-normal');
+
+      // Readouts
+      try{ const th = (data.TH||'--,--').toString().split(','); document.getElementById('room-temperature').textContent = (th[0]||'--') + '°C'; document.getElementById('room-humidity').textContent = (th[1]||'--') + '%'; }catch{}
+      document.getElementById('water-pressure').textContent = (data.WP ?? '0') + ' Bar';
+      // Update gauge ring + needle
+      try {
+        const gauge = document.getElementById('wp-gauge');
+        const maxBar = 16; // design scale
+        const v = Math.max(0, parseFloat(data.WP || '0'));
+        const pct = Math.max(0, Math.min(1, v / maxBar));
+        const col = v < 3 ? '#ef4444' : (v < 6 ? '#f59e0b' : '#22c55e');
+        const angle = -120 + (pct * 240); // -120deg..+120deg sweep
+        gauge?.style.setProperty('--p', (pct*100).toFixed(1) + '%');
+        gauge?.style.setProperty('--gcolor', col);
+        gauge?.style.setProperty('--angle', angle + 'deg');
+      } catch(e) { /* noop */ }
+
+      // Selectors
+      updateSelector('jockey', data.JPM);
+      updateSelector('main', data.MPM);
+      updateSelector('diesel', data.DPM);
+
+      // Alarm text
+      let alarmText='';
+      if(data.JPT) { alarmText += 'Jockey Pump Trip; '; }
+      if(data.MPT) { alarmText += 'Main Pump Trip; '; }
+      if(data.DPT) { alarmText += 'Diesel Pump Trip; '; }
+      if(data.SS1) { alarmText += 'Smoke Detector Alarm; '; }
+      if(data.FS) { alarmText += 'Water Flood Sensor Alarm; '; }
+      if(!data.RXTX || !data.RXMQTT){ alarmText += 'Communication Failed; '; setAllLedsBlank(); }
+
+      if(alarmText){ showAlarm(alarmText.trim()); setSystemIcon(false); } else if(!alarmLatched){ showAlarm(''); setSystemIcon(true); }
+    }
+
+    // Publish selector changes (kept → through worker)
+    document.querySelectorAll('.control-input').forEach(input=>{
+      input.addEventListener('change', function(){ const selectorGroup=this.id.split('-')[0]; const selectedMode=this.value; const payload=JSON.stringify({group:selectorGroup, mode:selectedMode}); publish('fire-pump/mode', payload); });
+    });
+
+    // Stale telemetry watcher (kept)
+    setInterval(function(){ const elapsed=Date.now()-lastMessageTime; if(elapsed>60000){ setAllLedsBlank(); const txt = isConnected ? 'Receiver-Transmitter Communication Failed; ' : 'Receiver-MQTT Communication Failed; '; showAlarm(txt); setSystemIcon(false);} }, 1500);
+
+    // Auto-refresh (kept)
+    setInterval(function(){ location.reload(); }, 600000);
+
+    // Page visibility (resume audio)
+    document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='visible'){ audioContext?.resume?.(); } });
+
+    // Init
+    (async function init(){ await ensureBackground(); await loadAlarm(); })();
+  </script>
+</body>
+</html>
     .value{ font-size:34px; font-weight:800; text-align:center }
     .temperature-humidity{ display:flex; flex-direction:column; align-items:center; gap:6px }
 
