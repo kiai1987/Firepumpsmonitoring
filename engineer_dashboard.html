@@ -70,6 +70,12 @@
   .value{ font-size:34px; font-weight:800; text-align:center }
   .temperature-humidity{ display:flex; flex-direction:column; align-items:center; gap:6px }
 
+  /* Safety Sensors combined card */
+  .sensor-grid{ display:grid; grid-template-columns:1fr; gap:12px }
+  @media(min-width:640px){ .sensor-grid{ grid-template-columns:repeat(2,1fr); } }
+  .sensor-tile{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; border:1px solid var(--border); border-radius:10px; background:#14181e }
+  .sensor-tile .label{ font-size:13px; font-weight:800; letter-spacing:.08em; color:#d1d7df; text-transform:uppercase; margin-bottom:6px }
+
   /* Gauge */
   .gauge-wrap{ display:grid; place-items:center }
   .gauge{ --p:0%; --gcolor: var(--ok); --angle: -120deg; width:168px; height:168px; border-radius:50%; position:relative; display:grid; place-items:center; background:conic-gradient(var(--gcolor) var(--p), #232934 0); box-shadow:inset 0 6px 18px rgba(0,0,0,.55), 0 8px 22px rgba(0,0,0,.35) }
@@ -225,30 +231,48 @@
         </div>
       </div>
 
-      <!-- Smoke -->
+      <!-- Safety Sensors (Smoke + Flood) -->
       <div class="card">
-        <div class="card-header">Smoke Detector</div>
-        <div class="status-indicators">
-          <div class="status">
-            <div class="led" id="smoke-detector-alarm"></div>
-            <div>ALARM</div>
+        <div class="card-header">Safety Sensors</div>
+        <div class="sensor-grid">
+          <div class="sensor-tile">
+            <div style="flex:1">
+              <div class="label">Smoke Detector</div>
+              <div class="status-indicators">
+                <div class="status">
+                  <div class="led" id="smoke-detector-alarm"></div>
+                  <div>ALARM</div>
+                </div>
+                <div class="status">
+                  <div class="led" id="smoke-detector-normal"></div>
+                  <div>NORMAL</div>
+                </div>
+              </div>
+            </div>
+            <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-alarm-icon"></i>
           </div>
-          <div class="status">
-            <div class="led" id="smoke-detector-normal"></div>
-            <div>NORMAL</div>
+
+          <div class="sensor-tile">
+            <div style="flex:1">
+              <div class="label">Water Flood Sensor</div>
+              <div class="status-indicators">
+                <div class="status">
+                  <div class="led" id="flood-sensor-alarm"></div>
+                  <div>ALARM</div>
+                </div>
+                <div class="status">
+                  <div class="led" id="flood-sensor-normal"></div>
+                  <div>NORMAL</div>
+                </div>
+              </div>
+            </div>
+            <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm-icon"></i>
           </div>
         </div>
-        <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-alarm-icon"></i>
       </div>
 
-      <!-- Flood -->
-      <div class="card">
-        <div class="card-header">Water Flood Sensor</div>
-        <div class="status-indicators">
-          <div class="status">
-            <div class="led" id="flood-sensor-alarm"></div>
-            <div>ALARM</div>
-          </div>
+      
+      
           <div class="status">
             <div class="led" id="flood-sensor-normal"></div>
             <div>NORMAL</div>
