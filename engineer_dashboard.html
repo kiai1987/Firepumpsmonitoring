@@ -86,8 +86,8 @@
 
   .alarm-icon{ position:absolute; top:10px; right:10px; color:var(--alarm); font-size:20px }
   .alarm-icon.hidden{ display:none }
-  .footer{ text-align:center; margin-top:10px; font-size:12px; color:#96a1ad }
-  #system-status{ font-size:64px; color:#22c55e; margin-top:6px }
+  .footer{ position:sticky; bottom:0; background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.35)); backdrop-filter:blur(6px); width:100%; text-align:center; padding:10px 8px; margin-top:auto; font-size:12px; color:#96a1ad; border-top:1px solid var(--border); z-index:2 }
+  #system-status{ position:fixed; bottom:20px; right:20px; font-size:56px; color:#22c55e; z-index:3 }
 
   /* === WALLBOARD MODE (toggle on body) === */
   .wallboard .dashboard{ grid-template-columns:repeat(2, minmax(320px, 1fr)); gap:22px }
