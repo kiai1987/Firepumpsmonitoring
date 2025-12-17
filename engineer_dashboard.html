@@ -2,459 +2,776 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Fire Pump Monitoring Dashboard</title>
-  <!-- Fonts & Icons (kept) -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
   <style>
-  /* === Classic Pro Wallboard — clean, legible, operations-friendly === */
-  :root{
-    --bg:#0b0d10; --surface:#111418; --card:#171b20; --muted:#9aa3ae; --brand:#15b9a4;
-    --ok:#22c55e; --off:#ef4444; --trip:#facc15; --alarm:#ff6a3d;
-    --border:#222832; --shadow:0 8px 20px rgba(0,0,0,.35);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    font-family:'Roboto',system-ui,Segoe UI,Arial,sans-serif; margin:0;
-    background: radial-gradient(1200px 800px at 20% -10%, rgba(22,179,161,.12), transparent), var(--bg);
-    color:#e6edf3; display:flex; justify-content:center; align-items:center; padding:16px; overflow:hidden;
-  }
-  .container{
-    background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
-    border:1px solid var(--border); backdrop-filter:blur(8px);
-    border-radius:16px; box-shadow:var(--shadow); padding:16px; width:100%; max-width:1180px;
-    display:flex; flex-direction:column; align-items:center; height:calc(100vh - 64px); overflow:auto; position:relative;
-  }
-  .header{display:flex; flex-direction:column; align-items:center; gap:6px; margin-bottom:6px; width:100%}
-  .logo-side{width:132px; height:auto}
-  .dashboard-title{font-size:26px; font-weight:800; color:var(--brand); text-align:center; letter-spacing:.02em}
-  #conn-note{ background:#0f1217; border:1px solid var(--border); padding:4px 10px; border-radius:999px; color:#c5cbd3 }
+    :root{
+      --bg: #005f46;
+      --panel: #282828;
+      --card: #3b3b3b;
+      --text: #e0e0e0;
+      --muted: #bdbdbd;
+      --brand: #007bff;
+      --danger: #ff3b30;
+      --warn: #ffcc00;
+      --ok: #34c759;
 
-  .logout-button{ position:absolute; top:16px; right:16px; background:var(--brand); color:#051316; border:0; padding:10px 16px; border-radius:10px; cursor:pointer; box-shadow:0 6px 14px rgba(22,179,161,.28)}
-  .logout-button:hover{ filter:brightness(1.05)}
+      --radius: 16px;
+      --shadow: 0 10px 20px rgba(0,0,0,.25);
 
-  #alarm-box{ width:100%; background:var(--alarm); color:#fff; padding:12px; border-radius:12px; text-align:center; margin:6px 0 10px; font-weight:800; display:none; box-shadow:0 10px 22px rgba(255,106,61,.25) }
+      --gap: 14px;
+      --pad: 16px;
 
-  .buttons{ display:flex; gap:10px; margin:10px 0 }
-  .button{ background:#1b2128; color:#e6edf3; border:1px solid var(--border); padding:10px 16px; border-radius:10px; cursor:pointer; box-shadow:var(--shadow)}
-  .button:hover{ background:#1f262e }
+      --topbar-h: 76px;
+    }
 
-  /* Toolbar */
-  .toolbar{ display:flex; gap:10px; margin:4px 0 12px; }
-  .toolbar .button{ background:#0f1318; }
+    *{ box-sizing: border-box; }
+    html, body{ height: 100%; }
 
-  .dashboard{ display:grid; grid-template-columns:repeat(1,minmax(260px,1fr)); gap:16px; width:100%}
-  @media(min-width:720px){ .dashboard{ grid-template-columns:repeat(2,minmax(280px,1fr)); } }
-  @media(min-width:1100px){ .dashboard{ grid-template-columns:repeat(3,minmax(300px,1fr)); } }
+    body{
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: none;               /* shown after auth */
+      min-height: 100dvh;          /* fixes phone 100vh bugs */
+      padding: env(safe-area-inset-top) env(safe-area-inset-right)
+               env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
 
-  .card{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; position:relative; box-shadow:var(--shadow) }
-  .card-header{ font-size:14px; font-weight:800; color:var(--brand); letter-spacing:.12em; margin-bottom:10px; text-transform:uppercase }
+    .page{
+      width: min(1200px, 100%);
+      margin: 0 auto;
+      padding: 14px;
+    }
 
-  .status-indicators{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px }
-  .status{ display:flex; flex-direction:column; align-items:center; gap:6px; font-size:12px; color:#c7d0da }
+    .topbar{
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(40,40,40,.92);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.06);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 10px;
+      min-height: var(--topbar-h);
+    }
 
-  .led{ width:18px; height:18px; border-radius:50%; border:2px solid #0c0f13; background:#333; box-shadow:inset 0 0 8px rgba(0,0,0,.55) }
-  .led-run{ background:var(--ok) }
-  .led-off{ background:var(--off) }
-  .led-trip{ background:var(--trip) }
-  .led-alarm{ background:var(--off) }
-  .led-normal{ background:var(--ok) }
-  .led-blank{ background:#2b3138 }
+    .brand{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
 
-  .control-group{ display:flex; flex-direction:column; align-items:center; gap:6px }
-  .control-label{ font-size:12px; color:var(--muted) }
-  .control-input{ width:122px; padding:8px; border:1px solid var(--border); border-radius:10px; background:#0f1318; color:#e7eef6; text-align:center }
+    .logo-side{
+      width: 54px;
+      height: auto;
+      flex: 0 0 auto;
+    }
 
-  .value{ font-size:34px; font-weight:800; text-align:center }
-  .temperature-humidity{ display:flex; flex-direction:column; align-items:center; gap:6px }
+    .titles{
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
 
-  /* Safety Sensors combined card */
-  .sensor-grid{ display:grid; grid-template-columns:1fr; gap:12px }
-  @media(min-width:640px){ .sensor-grid{ grid-template-columns:repeat(2,1fr); } }
-  .sensor-tile{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; border:1px solid var(--border); border-radius:10px; background:#14181e }
-  .sensor-tile .label{ font-size:13px; font-weight:800; letter-spacing:.08em; color:#d1d7df; text-transform:uppercase; margin-bottom:6px }
+    .dashboard-title{
+      font-size: clamp(16px, 2.6vw, 22px);
+      font-weight: 700;
+      color: var(--brand);
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 0 5px rgba(0,123,255,.35);
+    }
 
-  /* Gauge */
-  .gauge-wrap{ display:grid; place-items:center }
-  .gauge{ --p:0%; --gcolor: var(--ok); --angle: -120deg; width:168px; height:168px; border-radius:50%; position:relative; display:grid; place-items:center; background:conic-gradient(var(--gcolor) var(--p), #232934 0); box-shadow:inset 0 6px 18px rgba(0,0,0,.55), 0 8px 22px rgba(0,0,0,.35) }
-  .gauge::before{ content:""; position:absolute; inset:12px; border-radius:50%; background:#0c0f13; box-shadow:inset 0 0 14px rgba(0,0,0,.55) }
-  .gauge::after{ content:""; position:absolute; width:3px; height:38%; top:12%; left:50%; transform-origin:50% 85%; background:#cfd8e3; border-radius:3px; transform: rotate(var(--angle)); }
-  .gauge-label{ position:relative; font-weight:800; font-size:26px }
-  .gauge-sub{ position:relative; font-size:12px; color:#c5cbd3; margin-top:4px }
+    .subtitle{
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-  .alarm-icon{ position:absolute; top:10px; right:10px; color:var(--alarm); font-size:20px }
-  .alarm-icon.hidden{ display:none }
-  .footer{ position:sticky; bottom:0; background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.35)); backdrop-filter:blur(6px); width:100%; text-align:center; padding:10px 8px; margin-top:auto; font-size:12px; color:#96a1ad; border-top:1px solid var(--border); z-index:2 }
-  #system-status{ position:fixed; bottom:20px; right:20px; font-size:56px; color:#22c55e; z-index:3 }
+    .top-actions{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-self: end;
+      flex-wrap: wrap;
+    }
 
-  /* === WALLBOARD MODE (toggle on body) === */
-  .wallboard .dashboard{ grid-template-columns:repeat(2, minmax(320px, 1fr)); gap:22px }
-  .wallboard .card-header{ font-size:16px; letter-spacing:.16em }
-  .wallboard .value{ font-size:64px }
-  .wallboard .led{ width:24px; height:24px }
-  .wallboard #wp-gauge{ width:220px; height:220px }
-  .wallboard .control-group{ display:none }
-  .wallboard .dashboard-title{ font-size:28px }
-</style>
+    .btn{
+      appearance: none;
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--brand);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:hover{ filter: brightness(.95); }
+    .btn.secondary{
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+    .btn.danger{
+      background: rgba(255,59,48,.92);
+    }
+
+    .content{
+      margin-top: 12px;
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,.06);
+      padding: var(--pad);
+    }
+
+    #alarm-box{
+      background: rgba(255,87,34,.95);
+      color: #fff;
+      padding: 12px 12px;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 900;
+      text-shadow: 0 0 5px rgba(255,87,34,.55);
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+    #alarm-box:empty{
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-weight: 700;
+      text-shadow: none;
+    }
+    #alarm-box:empty::before{
+      content: "No active alarms (tap once to enable sound)";
+    }
+
+    .dashboard{
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: var(--gap);
+      align-items: stretch;
+    }
+
+    .card{
+      grid-column: span 4;
+      background: var(--card);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 6px 12px rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.06);
+      position: relative;
+      min-width: 0;
+    }
+
+    @media (max-width: 1024px){
+      .card{ grid-column: span 6; }
+    }
+    @media (max-width: 680px){
+      .page{ padding: 10px; }
+      .content{ padding: 12px; }
+      .card{ grid-column: span 12; }
+      .topbar{
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+      }
+      .top-actions{
+        grid-column: 1 / -1;
+        justify-self: stretch;
+        justify-content: space-between;
+      }
+      .btn{ flex: 1; justify-content: center; }
+    }
+
+    .card-header{
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--brand);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+    }
+
+    .status-indicators{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .status{
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+      flex: 1 1 80px;
+      min-width: 80px;
+    }
+
+    .led{
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 2px solid rgba(0,0,0,.35);
+      background: #2f2f2f;
+      box-shadow: inset 0 0 10px rgba(0,0,0,.25);
+    }
+    .led-run{ background: var(--ok); }
+    .led-off{ background: var(--danger); }
+    .led-trip{ background: var(--warn); }
+    .led-alarm{ background: var(--danger); }
+    .led-normal{ background: var(--ok); }
+    .led-blank{ background: #333; }
+
+    .controls{
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .control-group{
+      width: min(220px, 100%);
+      display: grid;
+      gap: 6px;
+    }
+
+    .control-label{
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 800;
+      text-align: left;
+    }
+
+    .control-input{
+      width: 100%;
+      padding: 12px 12px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 10px;
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      font-size: 16px; /* prevents iOS zoom */
+      text-align: left;
+      outline: none;
+    }
+
+    .value{
+      font-size: 34px;
+      font-weight: 950;
+      text-align: center;
+      letter-spacing: .5px;
+      padding: 10px 0 2px;
+    }
+
+    .temperature-humidity{
+      display: grid;
+      gap: 10px;
+      padding-top: 6px;
+    }
+    .temperature-humidity .value{
+      font-size: 30px;
+      padding: 0;
+    }
+
+    .alarm-icon{
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      color: rgba(255,87,34,.95);
+      font-size: 22px;
+    }
+    .hidden{ display: none !important; }
+
+    .footer{
+      text-align: center;
+      margin-top: 14px;
+      font-size: 13px;
+      color: rgba(255,255,255,.75);
+    }
+
+    .system-status{
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+      font-size: 64px;
+    }
+  </style>
 </head>
+
 <body>
-  <div class="container">
-    <button class="logout-button" onclick="logout()">Logout</button>
-    <div class="header">
-      <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo" class="logo-side" />
-      <div class="dashboard-title">Fire Pump Monitoring System</div>
-      <small id="conn-note" style="color:#a0a0ad">Connecting…</small>
+  <div class="page">
+    <div class="topbar">
+      <div class="brand">
+        <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png"
+             alt="Al Nakhla Logo" class="logo-side">
+        <div class="titles">
+          <div class="dashboard-title">Fire Pump Monitoring System</div>
+          <div class="subtitle">Real-time MQTT status • Al Nakhla Engineering</div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="btn secondary" id="acknowledge-button" type="button" onclick="acknowledgeAlarm()">
+          <i class="fa-solid fa-bell-slash"></i> Acknowledge
+        </button>
+        <button class="btn secondary" id="reset-button" type="button" onclick="resetAlarm()">
+          <i class="fa-solid fa-rotate-right"></i> Reset
+        </button>
+        <button class="btn danger" type="button" onclick="logout()">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+      </div>
     </div>
 
-    <div id="alarm-box"></div>
-    <div class="buttons">
-      <button class="button" id="acknowledge-button" onclick="acknowledgeAlarm()">Acknowledge Alarm</button>
-      <button class="button" id="reset-button" onclick="resetAlarm()">Reset</button>
-    </div>
+    <div class="content">
+      <div id="alarm-box"></div>
 
-    <!-- Toolbar: fullscreen + wallboard mode -->
-    <div class="toolbar">
-      <button class="button" id="fsBtn">Fullscreen</button>
-      <button class="button" id="wbBtn">Wallboard Mode</button>
-    </div>
-
-    <div class="dashboard">
-      <!-- Jockey Pump -->
-      <div class="card">
-        <div class="card-header">Jockey Pump</div>
-        <div class="status-indicators">
-          <div class="status">
-            <div class="led" id="jockey-pump-run"></div>
-            <div>RUN</div>
-          </div>
-          <div class="status">
-            <div class="led" id="jockey-pump-off"></div>
-            <div>OFF</div>
-          </div>
-          <div class="status">
-            <div class="led" id="jockey-pump-trip"></div>
-            <div>TRIP</div>
-          </div>
-        </div>
-        <div class="controls">
-          <div class="control-group">
-            <div class="control-label">Mode</div>
-            <select class="control-input" id="jockey-mode">
-              <option value="0">Off</option>
-              <option value="1">Manual</option>
-              <option value="2">Auto</option>
-            </select>
-          </div>
-        </div>
-        <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm"></i>
-      </div>
-
-      <!-- Main Pump -->
-      <div class="card">
-        <div class="card-header">Main Pump</div>
-        <div class="status-indicators">
-          <div class="status">
-            <div class="led" id="main-pump-run"></div>
-            <div>RUN</div>
-          </div>
-          <div class="status">
-            <div class="led" id="main-pump-off"></div>
-            <div>OFF</div>
-          </div>
-          <div class="status">
-            <div class="led" id="main-pump-trip"></div>
-            <div>TRIP</div>
-          </div>
-        </div>
-        <div class="controls">
-          <div class="control-group">
-            <div class="control-label">Mode</div>
-            <select class="control-input" id="main-mode">
-              <option value="0">Off</option>
-              <option value="1">Manual</option>
-              <option value="2">Auto</option>
-            </select>
-          </div>
-        </div>
-        <i class="fas fa-exclamation-triangle alarm-icon hidden" id="main-alarm"></i>
-      </div>
-
-      <!-- Diesel Pump -->
-      <div class="card">
-        <div class="card-header">Diesel Pump</div>
-        <div class="status-indicators">
-          <div class="status">
-            <div class="led" id="diesel-pump-run"></div>
-            <div>RUN</div>
-          </div>
-          <div class="status">
-            <div class="led" id="diesel-pump-off"></div>
-            <div>OFF</div>
-          </div>
-          <div class="status">
-            <div class="led" id="diesel-pump-trip"></div>
-            <div>TRIP</div>
-          </div>
-        </div>
-        <div class="controls">
-          <div class="control-group">
-            <div class="control-label">Mode</div>
-            <select class="control-input" id="diesel-mode">
-              <option value="0">Off</option>
-              <option value="1">Manual</option>
-              <option value="2">Auto</option>
-            </select>
-          </div>
-        </div>
-        <i class="fas fa-exclamation-triangle alarm-icon hidden" id="diesel-alarm"></i>
-      </div>
-
-      <!-- TH -->
-      <div class="card">
-        <div class="card-header">Room Temperature & Humidity</div>
-        <div class="temperature-humidity">
-          <div class="value temperature" id="room-temperature">--°C</div>
-          <div class="value humidity" id="room-humidity">--%</div>
-        </div>
-      </div>
-
-      <!-- Pressure -->
-      <div class="card">
-        <div class="card-header">Water Pressure</div>
-        <div class="gauge-wrap">
-          <div class="gauge" id="wp-gauge">
-            <div class="gauge-label"><span id="water-pressure">0 Bar</span></div>
-            <div class="gauge-sub">Live</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Safety Sensors (Smoke + Flood) -->
-      <div class="card">
-        <div class="card-header">Safety Sensors</div>
-        <div class="sensor-grid">
-          <div class="sensor-tile">
-            <div style="flex:1">
-              <div class="label">Smoke Detector</div>
-              <div class="status-indicators">
-                <div class="status">
-                  <div class="led" id="smoke-detector-alarm"></div>
-                  <div>ALARM</div>
-                </div>
-                <div class="status">
-                  <div class="led" id="smoke-detector-normal"></div>
-                  <div>NORMAL</div>
-                </div>
-              </div>
+      <div class="dashboard">
+        <div class="card">
+          <div class="card-header">Jockey Pump</div>
+          <div class="status-indicators">
+            <div class="status">
+              <div class="led" id="jockey-pump-run"></div>
+              <div>RUN</div>
             </div>
-            <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-alarm-icon"></i>
-          </div>
-
-          <div class="sensor-tile">
-            <div style="flex:1">
-              <div class="label">Water Flood Sensor</div>
-              <div class="status-indicators">
-                <div class="status">
-                  <div class="led" id="flood-sensor-alarm"></div>
-                  <div>ALARM</div>
-                </div>
-                <div class="status">
-                  <div class="led" id="flood-sensor-normal"></div>
-                  <div>NORMAL</div>
-                </div>
-              </div>
+            <div class="status">
+              <div class="led" id="jockey-pump-off"></div>
+              <div>OFF</div>
             </div>
-            <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm-icon"></i>
+            <div class="status">
+              <div class="led" id="jockey-pump-trip"></div>
+              <div>TRIP</div>
+            </div>
           </div>
+          <div class="controls">
+            <div class="control-group">
+              <div class="control-label">Mode</div>
+              <select class="control-input" id="jockey-mode">
+                <option value="0">Off</option>
+                <option value="1">Manual</option>
+                <option value="2">Auto</option>
+              </select>
+            </div>
+          </div>
+          <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm"></i>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Main Pump</div>
+          <div class="status-indicators">
+            <div class="status">
+              <div class="led" id="main-pump-run"></div>
+              <div>RUN</div>
+            </div>
+            <div class="status">
+              <div class="led" id="main-pump-off"></div>
+              <div>OFF</div>
+            </div>
+            <div class="status">
+              <div class="led" id="main-pump-trip"></div>
+              <div>TRIP</div>
+            </div>
+          </div>
+          <div class="controls">
+            <div class="control-group">
+              <div class="control-label">Mode</div>
+              <select class="control-input" id="main-mode">
+                <option value="0">Off</option>
+                <option value="1">Manual</option>
+                <option value="2">Auto</option>
+              </select>
+            </div>
+          </div>
+          <i class="fas fa-exclamation-triangle alarm-icon hidden" id="main-alarm"></i>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Diesel Pump</div>
+          <div class="status-indicators">
+            <div class="status">
+              <div class="led" id="diesel-pump-run"></div>
+              <div>RUN</div>
+            </div>
+            <div class="status">
+              <div class="led" id="diesel-pump-off"></div>
+              <div>OFF</div>
+            </div>
+            <div class="status">
+              <div class="led" id="diesel-pump-trip"></div>
+              <div>TRIP</div>
+            </div>
+          </div>
+          <div class="controls">
+            <div class="control-group">
+              <div class="control-label">Mode</div>
+              <select class="control-input" id="diesel-mode">
+                <option value="0">Off</option>
+                <option value="1">Manual</option>
+                <option value="2">Auto</option>
+              </select>
+            </div>
+          </div>
+          <i class="fas fa-exclamation-triangle alarm-icon hidden" id="diesel-alarm"></i>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Room Temperature & Humidity</div>
+          <div class="temperature-humidity">
+            <div class="value" id="room-temperature">--°C</div>
+            <div class="value" id="room-humidity">--%</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Water Pressure</div>
+          <div class="value" id="water-pressure">0 Bar</div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Smoke Detector</div>
+          <div class="status-indicators">
+            <div class="status">
+              <div class="led" id="smoke-detector-alarm"></div>
+              <div>ALARM</div>
+            </div>
+            <div class="status">
+              <div class="led" id="smoke-detector-normal"></div>
+              <div>NORMAL</div>
+            </div>
+          </div>
+          <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-alarm-icon"></i>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Water Flood Sensor</div>
+          <div class="status-indicators">
+            <div class="status">
+              <div class="led" id="flood-sensor-alarm"></div>
+              <div>ALARM</div>
+            </div>
+            <div class="status">
+              <div class="led" id="flood-sensor-normal"></div>
+              <div>NORMAL</div>
+            </div>
+          </div>
+          <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm-icon"></i>
         </div>
       </div>
 
-      
-      
-          <div class="status">
-            <div class="led" id="flood-sensor-normal"></div>
-            <div>NORMAL</div>
-          </div>
-        </div>
-        <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm-icon"></i>
+      <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
+      <div class="system-status">
+        <i id="system-status" class="fas fa-check-circle" style="color: var(--ok);"></i>
       </div>
     </div>
-
-    <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
-    <i id="system-status" class="fas fa-check-circle"></i>
   </div>
 
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <script>
-    // === Authentication (kept) ===
-    function checkAuthentication(){ if(localStorage.getItem('authenticated')!=='true'){ location.href='index.html'; } }
-    function logout(){ localStorage.removeItem('authenticated'); localStorage.removeItem('userType'); location.href='index.html'; }
-    window.onload = checkAuthentication;
+    /************ GitHub Pages base ************/
+    const BASE_URL = "https://kiai1987.github.io/Firepumpsmonitoring/";
+    function goTo(page){ window.location.href = BASE_URL + page; }
 
-    // === Background support additions (PWA + Notifications + Wake Lock) ===
-    const connNote = document.getElementById('conn-note');
+    /************ Auth ************/
+    function checkAuthentication() {
+      if (localStorage.getItem("authenticated") !== "true") {
+        // If your login page is NOT index.html, change this filename
+        goTo("index.html");
+      } else {
+        document.body.style.display = "block";
+      }
+    }
+    function logout() {
+      localStorage.removeItem("authenticated");
+      localStorage.removeItem("userType");
+      goTo("index.html");
+    }
+    window.addEventListener("load", checkAuthentication);
 
-    // Tiny inline Service Worker (single-file deploy) with notification click focus
-    const swCode = `
-self.addEventListener('install', e => self.skipWaiting());
-self.addEventListener('activate', e => self.clients.claim());
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-      if (clients.length) { clients[0].focus(); }
-      else { self.clients.openWindow('./'); }
-    })
-  );
-});
-`;
-    (async()=>{ try{ const url = URL.createObjectURL(new Blob([swCode],{type:'text/javascript'})); const reg = await navigator.serviceWorker.register(url,{scope:'./'}); await navigator.serviceWorker.ready; }catch(e){ console.warn('SW registration failed', e); }})();
+    /************ Alarm audio (mobile safe) ************/
+    let audioContext = null;
+    let alarmBuffer = null;
+    let alarmSilenced = false;
+    let audioUnlocked = false;
 
-    async function ensureBackground(){ try{ if('Notification' in window && Notification.permission==='default'){ await Notification.requestPermission(); } if('wakeLock' in navigator){ try{ await navigator.wakeLock.request('screen'); }catch(_){} } }catch(e){} }
+    // Recommended: host the wav in your repo as /assets/alarm.wav
+    // Put it here: Firepumpsmonitoring/assets/alarm.wav
+    const alarmSoundUrl = BASE_URL + "assets/alarm.wav"; // fallback if file exists
+    // If you don't have the file, use your old link:
+    // const alarmSoundUrl = "https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav";
 
-    async function notifyNative(text){ try{ if(!('Notification' in window)) return; if(Notification.permission==='default'){ await Notification.requestPermission(); } if(Notification.permission==='granted'){ const reg = await navigator.serviceWorker.getRegistration(); await reg?.showNotification('Fire Pump Alarm', { body: text, tag:'fire-pump', renotify:true, vibrate:[200,100,200] }); } }catch(e){ console.warn('notifyNative failed', e); } }
-
-    // === Audio alarm (kept & enhanced) ===
-    let audioContext; let alarmBuffer; let alarmSilenced=false; let alarmLatched=false; // latch for smoke/flood until Reset
-    try{ audioContext = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ console.warn('No AudioContext', e); }
-    const alarmSoundUrl='https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav';
-    async function loadAlarm(){ try{ const r=await fetch(alarmSoundUrl); const b=await r.arrayBuffer(); alarmBuffer=await audioContext.decodeAudioData(b);}catch(e){ console.warn('Alarm load failed',e); } }
-    function playAlarmSound(){ if(!alarmBuffer||alarmSilenced) return; audioContext?.resume?.().then(()=>{ const s=audioContext.createBufferSource(); s.buffer=alarmBuffer; s.connect(audioContext.destination); s.start(0); }); }
-
-    // === UI helpers (preserve original functions/IDs) ===
-    function updateLedStatus(ledId, isActive, className){ const el=document.getElementById(ledId); el.className='led'; if(isActive){ el.classList.add(className);} else { el.classList.add('led-blank'); } }
-    function updateSelector(selectorGroup, mode){ const sel=document.getElementById(`${selectorGroup}-mode`); sel.value = mode; }
-
-    function setAllLedsBlank(){ document.querySelectorAll('.led').forEach(led=>{ led.className='led led-blank'; });
-      document.getElementById('room-temperature').textContent='--°C';
-      document.getElementById('room-humidity').textContent='--%';
-      document.getElementById('water-pressure').textContent='0 Bar'; }
-
-    // === Alarm banner (preserved ID #alarm-box) ===
-    function showAlarm(text){ const ab=document.getElementById('alarm-box'); ab.textContent=text; ab.style.display = text? 'block':'none'; document.title = text? '⚠️ Alarm — Fire Pump':'Fire Pump Monitoring Dashboard'; if(text){ playAlarmSound(); notifyNative(text); } }
-
-    function acknowledgeAlarm(){ alarmSilenced = true; audioContext?.suspend?.(); }
-    function resetAlarm(){ alarmSilenced = false; alarmLatched = false; audioContext?.resume?.(); showAlarm(''); }
-
-    // === Toolbar logic ===
-    (function toolbar(){
-      const fsBtn = document.getElementById('fsBtn');
-      const wbBtn = document.getElementById('wbBtn');
-      fsBtn?.addEventListener('click', ()=>{
-        if(!document.fullscreenElement){ document.documentElement.requestFullscreen?.().catch(()=>{}); }
-        else { document.exitFullscreen?.().catch(()=>{}); }
-      });
-      wbBtn?.addEventListener('click', ()=>{
-        document.body.classList.toggle('wallboard');
-        wbBtn.textContent = document.body.classList.contains('wallboard') ? 'Normal Mode' : 'Wallboard Mode';
-      });
-    })();
-
-    // === MQTT via Web Worker (keeps comms when tab is backgrounded better than main thread) ===
-    const PRIMARY = 'wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt';
-    const SECONDARY = 'wss://279f2d6397444dbcbeb4eaa4897960f7.s1.eu.hivemq.cloud:8884/mqtt';
-    const MQTT_OPTIONS = { username:'firepump', password:'044313187Ki@', clientId: 'mqttjs_'+Math.random().toString(16).slice(2) };
-
-    // Create the worker from a Blob so this stays single-file
-    const workerCode = `
-let PRIMARY, SECONDARY, OPTIONS; let current=0; let backoff=1000; let client; let mqttRef;
-self.onmessage = (e)=>{ const m=e.data||{}; if(m.type==='init'){ PRIMARY=m.PRIMARY; SECONDARY=m.SECONDARY; OPTIONS=m.OPTIONS; start(); } else if(m.type==='publish'){ try{ client?.publish(m.topic, m.payload); }catch(e){} } };
-function start(){ try{ importScripts('https://unpkg.com/mqtt/dist/mqtt.min.js'); mqttRef = self.mqtt; connect([PRIMARY,SECONDARY][current]); }catch(e){ postMessage({type:'conn', ok:false, err:'importScripts failed'}); }}
-function connect(url){ try{ client = mqttRef.connect(url, OPTIONS);
-  client.on('connect', ()=>{ backoff=1000; postMessage({type:'conn', ok:true, server:url}); client.subscribe('fire-pump/status'); });
-  client.on('message', (t,m)=>{ if(t==='fire-pump/status'){ postMessage({type:'payload', data:m.toString()}); } });
-  client.on('close', ()=>{ postMessage({type:'conn', ok:false, why:'close'}); scheduleReconnect(url); });
-  client.on('error', (e)=>{ postMessage({type:'conn', ok:false, why:'error', msg:String(e)}); scheduleReconnect(url); });
-}catch(e){ postMessage({type:'conn', ok:false, why:'exception'}); scheduleReconnect(url); }}
-function scheduleReconnect(from){ try{ client?.end(true);}catch{} current = from===PRIMARY?1:0; setTimeout(()=>connect([PRIMARY,SECONDARY][current]), backoff); backoff=Math.min(backoff*2,60000); }
-`;
-    const workerURL = URL.createObjectURL(new Blob([workerCode], { type:'text/javascript' }));
-    const mqWorker = new Worker(workerURL);
-    mqWorker.postMessage({type:'init', PRIMARY, SECONDARY, OPTIONS: MQTT_OPTIONS});
-
-    // Relay UI → MQTT publish
-    function publish(topic, payload){ mqWorker.postMessage({type:'publish', topic, payload}); }
-
-    // Worker → UI messages
-    let lastMessageTime = Date.now(); let isConnected=false;
-    mqWorker.onmessage = (e)=>{
-      const msg = e.data || {}; if(msg.type==='conn'){ isConnected = !!msg.ok; connNote.textContent = msg.ok ? `Connected (${msg.server && msg.server.includes('f2ab') ? 'Primary' : 'Secondary'})` : 'Disconnected'; if(!msg.ok){ showAlarm('Receiver-MQTT Communication Failed'); setAllLedsBlank(); setSystemIcon(false); } }
-      else if(msg.type==='payload'){ lastMessageTime = Date.now(); try{ const data = JSON.parse(msg.data); handleStatusUpdates(data); }catch{} }
-    };
-
-    function setSystemIcon(ok){ const icon=document.getElementById('system-status'); icon.classList.toggle('fa-check-circle', ok); icon.classList.toggle('fa-exclamation-circle', !ok); icon.style.color = ok? '#22c55e':'#ef4444'; }
-
-    function handleStatusUpdates(data){
-      setSystemIcon(true);
-      // Pumps
-      updateLedStatus('jockey-pump-run', data.JP, 'led-run');
-      updateLedStatus('jockey-pump-off', !data.JP, 'led-off');
-      updateLedStatus('jockey-pump-trip', data.JPT, 'led-trip');
-      updateLedStatus('main-pump-run', data.MP, 'led-run');
-      updateLedStatus('main-pump-off', !data.MP, 'led-off');
-      updateLedStatus('main-pump-trip', data.MPT, 'led-trip');
-      updateLedStatus('diesel-pump-run', data.DP, 'led-run');
-      updateLedStatus('diesel-pump-off', !data.DP, 'led-off');
-      updateLedStatus('diesel-pump-trip', data.DPT, 'led-trip');
-
-      // Sensors (latched)
-      if(data.SS1) alarmLatched = true; if(data.FS) alarmLatched = true;
-      updateLedStatus('smoke-detector-alarm', (data.SS1||alarmLatched), 'led-alarm');
-      updateLedStatus('smoke-detector-normal', !(data.SS1||alarmLatched), 'led-normal');
-      updateLedStatus('flood-sensor-alarm', (data.FS||alarmLatched), 'led-alarm');
-      updateLedStatus('flood-sensor-normal', !(data.FS||alarmLatched), 'led-normal');
-
-      // Readouts
-      try{ const th = (data.TH||'--,--').toString().split(','); document.getElementById('room-temperature').textContent = (th[0]||'--') + '°C'; document.getElementById('room-humidity').textContent = (th[1]||'--') + '%'; }catch{}
-      document.getElementById('water-pressure').textContent = (data.WP ?? '0') + ' Bar';
-      // Update gauge ring + needle
+    function initAudioOnce() {
+      if (audioUnlocked) return;
       try {
-        const gauge = document.getElementById('wp-gauge');
-        const maxBar = 16; // design scale
-        const v = Math.max(0, parseFloat(data.WP || '0'));
-        const pct = Math.max(0, Math.min(1, v / maxBar));
-        const col = v < 3 ? '#ef4444' : (v < 6 ? '#f59e0b' : '#22c55e');
-        const angle = -120 + (pct * 240); // -120deg..+120deg sweep
-        gauge?.style.setProperty('--p', (pct*100).toFixed(1) + '%');
-        gauge?.style.setProperty('--gcolor', col);
-        gauge?.style.setProperty('--angle', angle + 'deg');
-      } catch(e) { /* noop */ }
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        audioUnlocked = true;
 
-      // Selectors
-      updateSelector('jockey', data.JPM);
-      updateSelector('main', data.MPM);
-      updateSelector('diesel', data.DPM);
-
-      // Alarm text
-      let alarmText='';
-      if(data.JPT) { alarmText += 'Jockey Pump Trip; '; }
-      if(data.MPT) { alarmText += 'Main Pump Trip; '; }
-      if(data.DPT) { alarmText += 'Diesel Pump Trip; '; }
-      if(data.SS1) { alarmText += 'Smoke Detector Alarm; '; }
-      if(data.FS) { alarmText += 'Water Flood Sensor Alarm; '; }
-      if(!data.RXTX || !data.RXMQTT){ alarmText += 'Communication Failed; '; setAllLedsBlank(); }
-
-      if(alarmText){ showAlarm(alarmText.trim()); setSystemIcon(false); } else if(!alarmLatched){ showAlarm(''); setSystemIcon(true); }
+        fetch(alarmSoundUrl)
+          .then(r => r.arrayBuffer())
+          .then(b => audioContext.decodeAudioData(b))
+          .then(buf => { alarmBuffer = buf; })
+          .catch(err => console.error("Alarm sound load error:", err));
+      } catch (e) {
+        console.error("Audio init failed:", e);
+      }
     }
 
-    // Publish selector changes (kept → through worker)
-    document.querySelectorAll('.control-input').forEach(input=>{
-      input.addEventListener('change', function(){ const selectorGroup=this.id.split('-')[0]; const selectedMode=this.value; const payload=JSON.stringify({group:selectorGroup, mode:selectedMode}); publish('fire-pump/mode', payload); });
+    ["pointerdown", "touchstart", "mousedown", "keydown"].forEach(evt => {
+      window.addEventListener(evt, initAudioOnce, { once: true, passive: true });
     });
 
-    // Stale telemetry watcher (kept)
-    setInterval(function(){ const elapsed=Date.now()-lastMessageTime; if(elapsed>60000){ setAllLedsBlank(); const txt = isConnected ? 'Receiver-Transmitter Communication Failed; ' : 'Receiver-MQTT Communication Failed; '; showAlarm(txt); setSystemIcon(false);} }, 1500);
+    function playAlarmSound() {
+      if (!audioUnlocked || !audioContext || !alarmBuffer || alarmSilenced) return;
+      if (audioContext.state === "suspended") audioContext.resume().catch(()=>{});
+      const src = audioContext.createBufferSource();
+      src.buffer = alarmBuffer;
+      src.connect(audioContext.destination);
+      src.start(0);
+    }
 
-    // Auto-refresh (kept)
-    setInterval(function(){ location.reload(); }, 600000);
+    function acknowledgeAlarm() {
+      alarmSilenced = true;
+      if (audioContext && audioContext.state === "running") audioContext.suspend().catch(()=>{});
+    }
 
-    // Page visibility (resume audio)
-    document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='visible'){ audioContext?.resume?.(); } });
+    function resetAlarm() {
+      alarmSilenced = false;
+      if (audioContext && audioContext.state === "suspended") audioContext.resume().catch(()=>{});
+    }
 
-    // Init
-    (async function init(){ await ensureBackground(); await loadAlarm(); })();
+    /************ UI helpers ************/
+    function updateLedStatus(ledId, isActive, className) {
+      const el = document.getElementById(ledId);
+      if (!el) return;
+      el.className = "led";
+      el.classList.add(isActive ? className : "led-blank");
+    }
+
+    function updateSelector(selectorGroup, mode) {
+      const selector = document.getElementById(`${selectorGroup}-mode`);
+      if (!selector) return;
+      selector.value = String(mode);
+    }
+
+    function setSystemStatus(alarmActive) {
+      const icon = document.getElementById("system-status");
+      if (!icon) return;
+      if (alarmActive) {
+        icon.classList.remove("fa-check-circle");
+        icon.classList.add("fa-exclamation-circle");
+        icon.style.color = "var(--danger)";
+      } else {
+        icon.classList.remove("fa-exclamation-circle");
+        icon.classList.add("fa-check-circle");
+        icon.style.color = "var(--ok)";
+      }
+    }
+
+    function setAllLedsBlank() {
+      document.querySelectorAll(".led").forEach(led => led.className = "led led-blank");
+      document.getElementById("room-temperature").textContent = "--°C";
+      document.getElementById("room-humidity").textContent = "--%";
+      document.getElementById("water-pressure").textContent = "0 Bar";
+    }
+
+    /************ MQTT ************/
+    const mqtt_server_primary   = "wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt";
+    const mqtt_server_secondary = "wss://279f2d6397444dbcbeb4eaa4897960f7.s1.eu.hivemq.cloud:8884/mqtt";
+
+    // WARNING: Credentials in frontend are visible to public
+    const options = {
+      username: "firepump",
+      password: "044313187Ki@",
+      clientId: `mqttjs_${Math.random().toString(16).slice(2, 10)}`,
+      keepalive: 30,
+      reconnectPeriod: 2000,
+      connectTimeout: 10000,
+      clean: true
+    };
+
+    let mqttClient = null;
+    let lastMessageTime = Date.now();
+    let isConnected = false;
+    let activeServer = mqtt_server_primary;
+
+    function handleStatusUpdates(data) {
+      lastMessageTime = Date.now();
+      isConnected = true;
+
+      updateLedStatus("jockey-pump-run",  !!data.JP,  "led-run");
+      updateLedStatus("jockey-pump-off",  !data.JP,   "led-off");
+      updateLedStatus("jockey-pump-trip", !!data.JPT, "led-trip");
+
+      updateLedStatus("main-pump-run",  !!data.MP,  "led-run");
+      updateLedStatus("main-pump-off",  !data.MP,   "led-off");
+      updateLedStatus("main-pump-trip", !!data.MPT, "led-trip");
+
+      updateLedStatus("diesel-pump-run",  !!data.DP,  "led-run");
+      updateLedStatus("diesel-pump-off",  !data.DP,   "led-off");
+      updateLedStatus("diesel-pump-trip", !!data.DPT, "led-trip");
+
+      updateLedStatus("smoke-detector-alarm",  !!data.SS1, "led-alarm");
+      updateLedStatus("smoke-detector-normal", !data.SS1,  "led-normal");
+
+      updateLedStatus("flood-sensor-alarm",  !!data.FS, "led-alarm");
+      updateLedStatus("flood-sensor-normal", !data.FS,  "led-normal");
+
+      // TH expected "temp,hum"
+      if (typeof data.TH === "string" && data.TH.includes(",")) {
+        const [t, h] = data.TH.split(",");
+        document.getElementById("room-temperature").textContent = `${t}°C`;
+        document.getElementById("room-humidity").textContent = `${h}%`;
+      } else {
+        document.getElementById("room-temperature").textContent = "--°C";
+        document.getElementById("room-humidity").textContent = "--%";
+      }
+
+      document.getElementById("water-pressure").textContent =
+        (data.WP !== undefined && data.WP !== null) ? `${data.WP} Bar` : "0 Bar";
+
+      updateSelector("jockey", data.JPM);
+      updateSelector("main", data.MPM);
+      updateSelector("diesel", data.DPM);
+
+      const alarmBox = document.getElementById("alarm-box");
+      let alarmMsgs = [];
+      let alarmActive = false;
+
+      if (data.JPT) { alarmMsgs.push("Jockey Pump Trip"); alarmActive = true; }
+      if (data.MPT) { alarmMsgs.push("Main Pump Trip"); alarmActive = true; }
+      if (data.DPT) { alarmMsgs.push("Diesel Pump Trip"); alarmActive = true; }
+      if (data.SS1) { alarmMsgs.push("Smoke Detector Alarm"); alarmActive = true; }
+      if (data.FS)  { alarmMsgs.push("Water Flood Sensor Alarm"); alarmActive = true; }
+
+      // Communication flags
+      if (data.RXTX === false || data.RXMQTT === false) {
+        alarmMsgs.push("Communication Failed");
+        alarmActive = true;
+        setAllLedsBlank();
+      }
+
+      alarmBox.textContent = alarmMsgs.join(" • ");
+      if (alarmActive) playAlarmSound();
+      setSystemStatus(alarmActive);
+    }
+
+    function connectMqtt(server) {
+      activeServer = server;
+
+      if (mqttClient) {
+        try { mqttClient.end(true); } catch(e){}
+        mqttClient = null;
+      }
+
+      mqttClient = mqtt.connect(server, options);
+
+      mqttClient.on("connect", () => {
+        isConnected = true;
+        mqttClient.subscribe("fire-pump/status", (err) => {
+          if (err) console.error("Subscribe error:", err);
+        });
+      });
+
+      mqttClient.on("message", (topic, message) => {
+        if (topic !== "fire-pump/status") return;
+        try {
+          const data = JSON.parse(message.toString());
+          handleStatusUpdates(data);
+        } catch (e) {
+          console.error("Bad JSON:", e);
+        }
+      });
+
+      mqttClient.on("error", (err) => {
+        console.error("MQTT error:", err);
+        isConnected = false;
+      });
+
+      mqttClient.on("close", () => {
+        isConnected = false;
+      });
+    }
+
+    function showCommFailure(msg) {
+      const alarmBox = document.getElementById("alarm-box");
+      alarmBox.textContent = msg;
+      setAllLedsBlank();
+      playAlarmSound();
+      setSystemStatus(true);
+    }
+
+    // Failover if no data for 60s
+    setInterval(() => {
+      const elapsed = Date.now() - lastMessageTime;
+      if (elapsed <= 60000) return;
+
+      if (isConnected) {
+        showCommFailure("Receiver-Transmitter Communication Failed");
+      } else {
+        showCommFailure("Receiver-MQTT Communication Failed");
+      }
+
+      if (activeServer === mqtt_server_primary) {
+        connectMqtt(mqtt_server_secondary);
+      } else {
+        connectMqtt(mqtt_server_primary);
+      }
+
+      lastMessageTime = Date.now();
+    }, 1000);
+
+    // Publish mode changes
+    document.addEventListener("change", (e) => {
+      const target = e.target;
+      if (!target.classList || !target.classList.contains("control-input")) return;
+      if (!mqttClient || !mqttClient.connected) return;
+
+      const selectorGroup = target.id.split("-")[0];
+      const selectedMode = target.value;
+      const payload = JSON.stringify({ group: selectorGroup, mode: selectedMode });
+
+      mqttClient.publish("fire-pump/mode", payload, (err) => {
+        if (err) console.error("Publish error:", err);
+      });
+    });
+
+    // Optional: refresh every 30 minutes (lighter than 10 minutes for phones)
+    setInterval(() => location.reload(), 30 * 60 * 1000);
+
+    // Start
+    connectMqtt(mqtt_server_primary);
   </script>
 </body>
 </html>
