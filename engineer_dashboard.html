@@ -5,47 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Fire Pump Monitoring Dashboard</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
   <style>
     :root{
-      --bg: #005f46;
-      --panel: #282828;
-      --card: #3b3b3b;
-      --text: #e0e0e0;
-      --muted: #bdbdbd;
-      --brand: #007bff;
-      --danger: #ff3b30;
-      --warn: #ffcc00;
-      --ok: #34c759;
+      --bg1:#053c31;
+      --bg2:#0a6b54;
 
-      --radius: 16px;
-      --shadow: 0 10px 20px rgba(0,0,0,.25);
+      --panel: rgba(16,18,24,.72);
+      --card: rgba(255,255,255,.06);
+      --stroke: rgba(255,255,255,.10);
 
-      --gap: 14px;
-      --pad: 16px;
+      --text:#eef2ff;
+      --muted: rgba(238,242,255,.70);
 
-      --topbar-h: 76px;
+      --brand:#4aa3ff;
+      --ok:#34c759;
+      --danger:#ff3b30;
+      --warn:#ffcc00;
+
+      --radius:18px;
+      --shadow: 0 18px 40px rgba(0,0,0,.35);
+
+      --gap:14px;
+      --pad:16px;
+
+      --glow: 0 0 18px rgba(74,163,255,.22);
     }
 
     *{ box-sizing: border-box; }
     html, body{ height: 100%; }
 
     body{
-      margin: 0;
-      font-family: 'Roboto', sans-serif;
-      background: var(--bg);
+      margin:0;
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--text);
-      display: none;               /* shown after auth */
-      min-height: 100dvh;          /* fixes phone 100vh bugs */
+      display:none; /* shown after auth */
+      min-height: 100dvh;
       padding: env(safe-area-inset-top) env(safe-area-inset-right)
                env(safe-area-inset-bottom) env(safe-area-inset-left);
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(74,163,255,.18), transparent 55%),
+        radial-gradient(900px 500px at 85% 25%, rgba(52,199,89,.14), transparent 55%),
+        linear-gradient(160deg, var(--bg1), var(--bg2));
     }
 
     .page{
-      width: min(1200px, 100%);
+      width: min(1180px, 100%);
       margin: 0 auto;
       padding: 14px;
     }
@@ -54,51 +62,48 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background: rgba(40,40,40,.92);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,.06);
+      background: var(--panel);
+      border: 1px solid var(--stroke);
       box-shadow: var(--shadow);
       border-radius: var(--radius);
-      padding: 10px 12px;
+      padding: 12px 14px;
       display: grid;
       grid-template-columns: auto 1fr auto;
       align-items: center;
-      gap: 10px;
-      min-height: var(--topbar-h);
+      gap: 12px;
+      backdrop-filter: blur(14px);
     }
 
     .brand{
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      display:flex;
+      align-items:center;
+      gap: 12px;
       min-width: 0;
     }
 
     .logo-side{
-      width: 54px;
-      height: auto;
-      flex: 0 0 auto;
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      padding: 6px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 10px 22px rgba(0,0,0,.22);
+      object-fit: contain;
     }
 
-    .titles{
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
+    .titles{ min-width:0; }
     .dashboard-title{
-      font-size: clamp(16px, 2.6vw, 22px);
-      font-weight: 700;
-      color: var(--brand);
-      line-height: 1.1;
+      font-size: clamp(16px, 2.4vw, 22px);
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: .2px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      text-shadow: 0 0 5px rgba(0,123,255,.35);
     }
-
     .subtitle{
+      margin-top: 2px;
       font-size: 12px;
       color: var(--muted);
       white-space: nowrap;
@@ -106,79 +111,115 @@
       text-overflow: ellipsis;
     }
 
+    .status-pill{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      justify-content: center;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .dot{
+      width:10px;
+      height:10px;
+      border-radius: 50%;
+      background: var(--warn);
+      box-shadow: 0 0 14px rgba(255,204,0,.35);
+    }
+    .dot.ok{
+      background: var(--ok);
+      box-shadow: 0 0 14px rgba(52,199,89,.35);
+    }
+    .dot.bad{
+      background: var(--danger);
+      box-shadow: 0 0 14px rgba(255,59,48,.35);
+    }
+
     .top-actions{
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      justify-self: end;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      justify-self:end;
       flex-wrap: wrap;
     }
 
     .btn{
-      appearance: none;
-      border: 0;
-      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border-radius: 12px;
       padding: 10px 12px;
-      font-size: 14px;
-      font-weight: 700;
+      font-size: 13px;
+      font-weight: 800;
       cursor: pointer;
-      background: var(--brand);
-      color: #fff;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
       min-height: 42px;
-      user-select: none;
+      transition: transform .06s ease, background .2s ease, border-color .2s ease;
+      user-select:none;
       -webkit-tap-highlight-color: transparent;
     }
-    .btn:hover{ filter: brightness(.95); }
-    .btn.secondary{
+    .btn:hover{
       background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.14);
+      border-color: rgba(255,255,255,.18);
+    }
+    .btn:active{ transform: scale(.98); }
+    .btn.primary{
+      background: rgba(74,163,255,.16);
+      border-color: rgba(74,163,255,.35);
+      box-shadow: var(--glow);
     }
     .btn.danger{
-      background: rgba(255,59,48,.92);
+      background: rgba(255,59,48,.20);
+      border-color: rgba(255,59,48,.35);
     }
 
     .content{
       margin-top: 12px;
       background: var(--panel);
-      border-radius: var(--radius);
+      border: 1px solid var(--stroke);
       box-shadow: var(--shadow);
-      border: 1px solid rgba(255,255,255,.06);
+      border-radius: var(--radius);
       padding: var(--pad);
+      backdrop-filter: blur(14px);
     }
 
     #alarm-box{
-      background: rgba(255,87,34,.95);
-      color: #fff;
-      padding: 12px 12px;
-      border-radius: 12px;
-      text-align: center;
-      font-size: 16px;
-      font-weight: 900;
-      text-shadow: 0 0 5px rgba(255,87,34,.55);
-      min-height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
+      min-height: 46px;
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
       line-height: 1.25;
       word-break: break-word;
     }
-    #alarm-box:empty{
-      background: rgba(255,255,255,.06);
-      color: var(--muted);
-      font-weight: 700;
-      text-shadow: none;
+    #alarm-box.alarm{
+      background: rgba(255,59,48,.16);
+      border-color: rgba(255,59,48,.35);
+      color: #fff;
+      box-shadow: 0 0 0 2px rgba(255,59,48,.10) inset;
     }
     #alarm-box:empty::before{
-      content: "No active alarms (tap once to enable sound)";
+      content:"No active alarms (tap once to enable sound)";
     }
 
     .dashboard{
       margin-top: 14px;
-      display: grid;
+      display:grid;
       grid-template-columns: repeat(12, 1fr);
       gap: var(--gap);
       align-items: stretch;
@@ -186,18 +227,25 @@
 
     .card{
       grid-column: span 4;
-      background: var(--card);
-      border-radius: 14px;
+      border-radius: 18px;
       padding: 14px;
-      box-shadow: 0 6px 12px rgba(0,0,0,.22);
-      border: 1px solid rgba(255,255,255,.06);
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 10px 22px rgba(0,0,0,.25);
       position: relative;
-      min-width: 0;
+      overflow: hidden;
     }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: radial-gradient(500px 200px at 0% 0%, rgba(74,163,255,.16), transparent 55%);
+      pointer-events:none;
+      opacity: .85;
+    }
+    .card > *{ position: relative; }
 
-    @media (max-width: 1024px){
-      .card{ grid-column: span 6; }
-    }
+    @media (max-width: 1024px){ .card{ grid-column: span 6; } }
     @media (max-width: 680px){
       .page{ padding: 10px; }
       .content{ padding: 12px; }
@@ -215,118 +263,149 @@
     }
 
     .card-header{
-      font-size: 14px;
-      font-weight: 900;
-      color: var(--brand);
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
       margin-bottom: 10px;
+      color: rgba(238,242,255,.90);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: .8px;
       text-transform: uppercase;
-      letter-spacing: .6px;
+    }
+    .badge{
+      font-size: 11px;
+      font-weight: 900;
+      color: rgba(238,242,255,.85);
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      border-radius: 999px;
+      padding: 6px 10px;
     }
 
     .status-indicators{
-      display: flex;
+      display:flex;
+      align-items:center;
       justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 12px;
       flex-wrap: wrap;
+      margin-bottom: 12px;
     }
-
     .status{
-      display: grid;
-      justify-items: center;
-      gap: 6px;
-      flex: 1 1 80px;
-      min-width: 80px;
+      flex: 1 1 90px;
+      min-width: 90px;
+      display:grid;
+      justify-items:center;
+      gap: 7px;
+    }
+    .status label{
+      font-size: 12px;
+      font-weight: 800;
+      color: rgba(238,242,255,.78);
+      letter-spacing: .2px;
     }
 
     .led{
-      width: 38px;
-      height: 38px;
+      width: 42px;
+      height: 42px;
       border-radius: 999px;
-      border: 2px solid rgba(0,0,0,.35);
-      background: #2f2f2f;
-      box-shadow: inset 0 0 10px rgba(0,0,0,.25);
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: inset 0 0 16px rgba(0,0,0,.35);
+      transition: filter .2s ease, transform .2s ease;
     }
-    .led-run{ background: var(--ok); }
-    .led-off{ background: var(--danger); }
-    .led-trip{ background: var(--warn); }
-    .led-alarm{ background: var(--danger); }
-    .led-normal{ background: var(--ok); }
-    .led-blank{ background: #333; }
+    .led.led-run{ background: var(--ok); box-shadow: 0 0 20px rgba(52,199,89,.35); }
+    .led.led-off{ background: var(--danger); box-shadow: 0 0 20px rgba(255,59,48,.35); }
+    .led.led-trip{ background: var(--warn); box-shadow: 0 0 20px rgba(255,204,0,.35); }
+    .led.led-alarm{ background: var(--danger); box-shadow: 0 0 20px rgba(255,59,48,.35); }
+    .led.led-normal{ background: var(--ok); box-shadow: 0 0 20px rgba(52,199,89,.35); }
+    .led.led-blank{ background: rgba(255,255,255,.08); box-shadow: inset 0 0 16px rgba(0,0,0,.35); }
 
     .controls{
-      display: flex;
-      justify-content: center;
-      width: 100%;
-      margin-top: 8px;
+      margin-top: 10px;
+      display:flex;
+      justify-content:center;
     }
-
     .control-group{
-      width: min(220px, 100%);
-      display: grid;
+      width: min(260px, 100%);
+      display:grid;
       gap: 6px;
     }
-
     .control-label{
-      font-size: 13px;
+      font-size: 12px;
       color: var(--muted);
-      font-weight: 800;
-      text-align: left;
+      font-weight: 900;
+      letter-spacing: .2px;
     }
-
     .control-input{
       width: 100%;
       padding: 12px 12px;
-      border: 1px solid rgba(255,255,255,.14);
-      border-radius: 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
       background: rgba(0,0,0,.18);
       color: var(--text);
       font-size: 16px; /* prevents iOS zoom */
-      text-align: left;
       outline: none;
     }
 
     .value{
       font-size: 34px;
-      font-weight: 950;
-      text-align: center;
-      letter-spacing: .5px;
-      padding: 10px 0 2px;
+      font-weight: 900;
+      text-align:center;
+      letter-spacing: .2px;
+      margin: 10px 0 0;
+    }
+    .muted{
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 12px;
+      text-align:center;
+      margin-top: 6px;
     }
 
-    .temperature-humidity{
-      display: grid;
+    /* Pressure gauge */
+    .gauge{
+      margin-top: 10px;
+      display:grid;
       gap: 10px;
-      padding-top: 6px;
     }
-    .temperature-humidity .value{
-      font-size: 30px;
-      padding: 0;
+    .gauge-bar{
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.10);
+      overflow: hidden;
+      box-shadow: inset 0 0 14px rgba(0,0,0,.35);
     }
-
-    .alarm-icon{
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      color: rgba(255,87,34,.95);
-      font-size: 22px;
+    .gauge-fill{
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(74,163,255,.95), rgba(52,199,89,.95));
+      box-shadow: 0 0 18px rgba(74,163,255,.30);
+      transition: width .25s ease;
     }
-    .hidden{ display: none !important; }
+    .gauge-scale{
+      display:flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+    }
 
     .footer{
-      text-align: center;
+      text-align:center;
       margin-top: 14px;
-      font-size: 13px;
-      color: rgba(255,255,255,.75);
+      font-size: 12px;
+      color: rgba(238,242,255,.70);
+      font-weight: 700;
     }
-
     .system-status{
-      display: flex;
-      justify-content: center;
-      margin-top: 8px;
-      font-size: 64px;
+      display:flex;
+      justify-content:center;
+      margin-top: 10px;
+      font-size: 62px;
     }
   </style>
 </head>
@@ -343,11 +422,16 @@
         </div>
       </div>
 
+      <div class="status-pill" title="Connection state">
+        <span class="dot" id="conn-dot"></span>
+        <span id="conn-text">Connecting…</span>
+      </div>
+
       <div class="top-actions">
-        <button class="btn secondary" id="acknowledge-button" type="button" onclick="acknowledgeAlarm()">
+        <button class="btn primary" type="button" onclick="acknowledgeAlarm()">
           <i class="fa-solid fa-bell-slash"></i> Acknowledge
         </button>
-        <button class="btn secondary" id="reset-button" type="button" onclick="resetAlarm()">
+        <button class="btn" type="button" onclick="resetAlarm()">
           <i class="fa-solid fa-rotate-right"></i> Reset
         </button>
         <button class="btn danger" type="button" onclick="logout()">
@@ -361,20 +445,14 @@
 
       <div class="dashboard">
         <div class="card">
-          <div class="card-header">Jockey Pump</div>
+          <div class="card-header">
+            <span>Jockey Pump</span>
+            <span class="badge">JP</span>
+          </div>
           <div class="status-indicators">
-            <div class="status">
-              <div class="led" id="jockey-pump-run"></div>
-              <div>RUN</div>
-            </div>
-            <div class="status">
-              <div class="led" id="jockey-pump-off"></div>
-              <div>OFF</div>
-            </div>
-            <div class="status">
-              <div class="led" id="jockey-pump-trip"></div>
-              <div>TRIP</div>
-            </div>
+            <div class="status"><div class="led" id="jockey-pump-run"></div><label>RUN</label></div>
+            <div class="status"><div class="led" id="jockey-pump-off"></div><label>OFF</label></div>
+            <div class="status"><div class="led" id="jockey-pump-trip"></div><label>TRIP</label></div>
           </div>
           <div class="controls">
             <div class="control-group">
@@ -386,24 +464,17 @@
               </select>
             </div>
           </div>
-          <i class="fas fa-exclamation-triangle alarm-icon hidden" id="jockey-alarm"></i>
         </div>
 
         <div class="card">
-          <div class="card-header">Main Pump</div>
+          <div class="card-header">
+            <span>Main Pump</span>
+            <span class="badge">MP</span>
+          </div>
           <div class="status-indicators">
-            <div class="status">
-              <div class="led" id="main-pump-run"></div>
-              <div>RUN</div>
-            </div>
-            <div class="status">
-              <div class="led" id="main-pump-off"></div>
-              <div>OFF</div>
-            </div>
-            <div class="status">
-              <div class="led" id="main-pump-trip"></div>
-              <div>TRIP</div>
-            </div>
+            <div class="status"><div class="led" id="main-pump-run"></div><label>RUN</label></div>
+            <div class="status"><div class="led" id="main-pump-off"></div><label>OFF</label></div>
+            <div class="status"><div class="led" id="main-pump-trip"></div><label>TRIP</label></div>
           </div>
           <div class="controls">
             <div class="control-group">
@@ -415,24 +486,17 @@
               </select>
             </div>
           </div>
-          <i class="fas fa-exclamation-triangle alarm-icon hidden" id="main-alarm"></i>
         </div>
 
         <div class="card">
-          <div class="card-header">Diesel Pump</div>
+          <div class="card-header">
+            <span>Diesel Pump</span>
+            <span class="badge">DP</span>
+          </div>
           <div class="status-indicators">
-            <div class="status">
-              <div class="led" id="diesel-pump-run"></div>
-              <div>RUN</div>
-            </div>
-            <div class="status">
-              <div class="led" id="diesel-pump-off"></div>
-              <div>OFF</div>
-            </div>
-            <div class="status">
-              <div class="led" id="diesel-pump-trip"></div>
-              <div>TRIP</div>
-            </div>
+            <div class="status"><div class="led" id="diesel-pump-run"></div><label>RUN</label></div>
+            <div class="status"><div class="led" id="diesel-pump-off"></div><label>OFF</label></div>
+            <div class="status"><div class="led" id="diesel-pump-trip"></div><label>TRIP</label></div>
           </div>
           <div class="controls">
             <div class="control-group">
@@ -444,50 +508,55 @@
               </select>
             </div>
           </div>
-          <i class="fas fa-exclamation-triangle alarm-icon hidden" id="diesel-alarm"></i>
         </div>
 
         <div class="card">
-          <div class="card-header">Room Temperature & Humidity</div>
-          <div class="temperature-humidity">
-            <div class="value" id="room-temperature">--°C</div>
-            <div class="value" id="room-humidity">--%</div>
+          <div class="card-header">
+            <span>Room Temp & Humidity</span>
+            <span class="badge">TH</span>
           </div>
+          <div class="value" id="room-temperature">--°C</div>
+          <div class="value" id="room-humidity" style="font-size:28px; margin-top:8px;">--%</div>
+          <div class="muted">Auto-sanitized (valid ranges)</div>
         </div>
 
         <div class="card">
-          <div class="card-header">Water Pressure</div>
-          <div class="value" id="water-pressure">0 Bar</div>
+          <div class="card-header">
+            <span>Water Pressure</span>
+            <span class="badge">0–16 Bar</span>
+          </div>
+          <div class="value" id="water-pressure">-- Bar</div>
+          <div class="gauge">
+            <div class="gauge-bar">
+              <div class="gauge-fill" id="pressure-fill"></div>
+            </div>
+            <div class="gauge-scale">
+              <span>0</span><span>8</span><span>16</span>
+            </div>
+          </div>
+          <div class="muted" id="pressure-note">Clamped to sensor range</div>
         </div>
 
         <div class="card">
-          <div class="card-header">Smoke Detector</div>
+          <div class="card-header">
+            <span>Smoke Detector</span>
+            <span class="badge">SS1</span>
+          </div>
           <div class="status-indicators">
-            <div class="status">
-              <div class="led" id="smoke-detector-alarm"></div>
-              <div>ALARM</div>
-            </div>
-            <div class="status">
-              <div class="led" id="smoke-detector-normal"></div>
-              <div>NORMAL</div>
-            </div>
+            <div class="status"><div class="led" id="smoke-detector-alarm"></div><label>ALARM</label></div>
+            <div class="status"><div class="led" id="smoke-detector-normal"></div><label>NORMAL</label></div>
           </div>
-          <i class="fas fa-exclamation-triangle alarm-icon hidden" id="smoke-detector-alarm-icon"></i>
         </div>
 
         <div class="card">
-          <div class="card-header">Water Flood Sensor</div>
-          <div class="status-indicators">
-            <div class="status">
-              <div class="led" id="flood-sensor-alarm"></div>
-              <div>ALARM</div>
-            </div>
-            <div class="status">
-              <div class="led" id="flood-sensor-normal"></div>
-              <div>NORMAL</div>
-            </div>
+          <div class="card-header">
+            <span>Water Flood Sensor</span>
+            <span class="badge">FS</span>
           </div>
-          <i class="fas fa-exclamation-triangle alarm-icon hidden" id="flood-sensor-alarm-icon"></i>
+          <div class="status-indicators">
+            <div class="status"><div class="led" id="flood-sensor-alarm"></div><label>ALARM</label></div>
+            <div class="status"><div class="led" id="flood-sensor-normal"></div><label>NORMAL</label></div>
+          </div>
         </div>
       </div>
 
@@ -507,7 +576,6 @@
     /************ Auth ************/
     function checkAuthentication() {
       if (localStorage.getItem("authenticated") !== "true") {
-        // If your login page is NOT index.html, change this filename
         goTo("index.html");
       } else {
         document.body.style.display = "block";
@@ -520,17 +588,23 @@
     }
     window.addEventListener("load", checkAuthentication);
 
+    /************ Connection badge ************/
+    function setConn(stateText, stateClass){
+      const dot = document.getElementById("conn-dot");
+      const txt = document.getElementById("conn-text");
+      txt.textContent = stateText;
+      dot.classList.remove("ok","bad");
+      if(stateClass) dot.classList.add(stateClass);
+    }
+    setConn("Connecting…", "");
+
     /************ Alarm audio (mobile safe) ************/
     let audioContext = null;
     let alarmBuffer = null;
     let alarmSilenced = false;
     let audioUnlocked = false;
 
-    // Recommended: host the wav in your repo as /assets/alarm.wav
-    // Put it here: Firepumpsmonitoring/assets/alarm.wav
-    const alarmSoundUrl = BASE_URL + "assets/alarm.wav"; // fallback if file exists
-    // If you don't have the file, use your old link:
-    // const alarmSoundUrl = "https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav";
+    const alarmSoundUrl = BASE_URL + "assets/alarm.wav"; // recommended local file
 
     function initAudioOnce() {
       if (audioUnlocked) return;
@@ -547,9 +621,8 @@
         console.error("Audio init failed:", e);
       }
     }
-
-    ["pointerdown", "touchstart", "mousedown", "keydown"].forEach(evt => {
-      window.addEventListener(evt, initAudioOnce, { once: true, passive: true });
+    ["pointerdown","touchstart","mousedown","keydown"].forEach(evt=>{
+      window.addEventListener(evt, initAudioOnce, {once:true, passive:true});
     });
 
     function playAlarmSound() {
@@ -560,12 +633,10 @@
       src.connect(audioContext.destination);
       src.start(0);
     }
-
     function acknowledgeAlarm() {
       alarmSilenced = true;
       if (audioContext && audioContext.state === "running") audioContext.suspend().catch(()=>{});
     }
-
     function resetAlarm() {
       alarmSilenced = false;
       if (audioContext && audioContext.state === "suspended") audioContext.resume().catch(()=>{});
@@ -603,18 +674,69 @@
       document.querySelectorAll(".led").forEach(led => led.className = "led led-blank");
       document.getElementById("room-temperature").textContent = "--°C";
       document.getElementById("room-humidity").textContent = "--%";
-      document.getElementById("water-pressure").textContent = "0 Bar";
+      document.getElementById("water-pressure").textContent = "-- Bar";
+      setPressureFill(null);
+    }
+
+    /************ Sanitizers (prevents crazy values) ************/
+    const PRESSURE_MIN = 0;
+    const PRESSURE_MAX = 16;
+
+    function parseNumberAny(v){
+      if (v === null || v === undefined) return null;
+      if (typeof v === "number") return Number.isFinite(v) ? v : null;
+      // allow strings like "3.25" or "3,25"
+      const s = String(v).trim().replace(",", ".");
+      const n = Number(s);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function sanitizePressure(raw){
+      const p = parseNumberAny(raw);
+      if (p === null) return {value:null, note:"Invalid"};
+
+      // If value is totally unrealistic, mark invalid (prevents 10922691 Bar showing)
+      if (p < -1 || p > 1000) return {value:null, note:"Invalid / out of range"};
+
+      // Clamp to 0–16 bar
+      const clamped = Math.min(PRESSURE_MAX, Math.max(PRESSURE_MIN, p));
+      const note = (clamped !== p) ? `Clamped (${p.toFixed(2)} → ${clamped.toFixed(2)})` : "OK";
+      return {value:clamped, note};
+    }
+
+    function sanitizeTempHum(thString){
+      if (typeof thString !== "string" || !thString.includes(",")) return {t:null, h:null};
+      const parts = thString.split(",");
+      const t = parseNumberAny(parts[0]);
+      const h = parseNumberAny(parts[1]);
+
+      // Typical valid ranges (adjust if you want)
+      const tOk = (t !== null && t >= -30 && t <= 80) ? t : null;
+      const hOk = (h !== null && h >= 0 && h <= 100) ? h : null;
+
+      return {t:tOk, h:hOk};
+    }
+
+    function setPressureFill(p){
+      const fill = document.getElementById("pressure-fill");
+      if (!fill) return;
+
+      if (p === null){
+        fill.style.width = "0%";
+        return;
+      }
+      const percent = (p / PRESSURE_MAX) * 100;
+      fill.style.width = `${Math.max(0, Math.min(100, percent))}%`;
     }
 
     /************ MQTT ************/
     const mqtt_server_primary   = "wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt";
     const mqtt_server_secondary = "wss://279f2d6397444dbcbeb4eaa4897960f7.s1.eu.hivemq.cloud:8884/mqtt";
 
-    // WARNING: Credentials in frontend are visible to public
     const options = {
       username: "firepump",
       password: "044313187Ki@",
-      clientId: `mqttjs_${Math.random().toString(16).slice(2, 10)}`,
+      clientId: `mqttjs_${Math.random().toString(16).slice(2,10)}`,
       keepalive: 30,
       reconnectPeriod: 2000,
       connectTimeout: 10000,
@@ -626,9 +748,16 @@
     let isConnected = false;
     let activeServer = mqtt_server_primary;
 
+    function setAlarmBox(text, isAlarm){
+      const box = document.getElementById("alarm-box");
+      box.textContent = text || "";
+      box.classList.toggle("alarm", !!isAlarm);
+    }
+
     function handleStatusUpdates(data) {
       lastMessageTime = Date.now();
       isConnected = true;
+      setConn("Online", "ok");
 
       updateLedStatus("jockey-pump-run",  !!data.JP,  "led-run");
       updateLedStatus("jockey-pump-off",  !data.JP,   "led-off");
@@ -648,24 +777,30 @@
       updateLedStatus("flood-sensor-alarm",  !!data.FS, "led-alarm");
       updateLedStatus("flood-sensor-normal", !data.FS,  "led-normal");
 
-      // TH expected "temp,hum"
-      if (typeof data.TH === "string" && data.TH.includes(",")) {
-        const [t, h] = data.TH.split(",");
-        document.getElementById("room-temperature").textContent = `${t}°C`;
-        document.getElementById("room-humidity").textContent = `${h}%`;
-      } else {
-        document.getElementById("room-temperature").textContent = "--°C";
-        document.getElementById("room-humidity").textContent = "--%";
-      }
+      // Temp/Humidity sanitize
+      const th = sanitizeTempHum(data.TH);
+      document.getElementById("room-temperature").textContent = (th.t === null) ? "--°C" : `${th.t.toFixed(1)}°C`;
+      document.getElementById("room-humidity").textContent    = (th.h === null) ? "--%"  : `${th.h.toFixed(0)}%`;
 
-      document.getElementById("water-pressure").textContent =
-        (data.WP !== undefined && data.WP !== null) ? `${data.WP} Bar` : "0 Bar";
+      // Pressure sanitize + gauge
+      const pr = sanitizePressure(data.WP);
+      const pressureNote = document.getElementById("pressure-note");
+
+      if (pr.value === null){
+        document.getElementById("water-pressure").textContent = "-- Bar";
+        pressureNote.textContent = pr.note;
+        setPressureFill(null);
+      } else {
+        document.getElementById("water-pressure").textContent = `${pr.value.toFixed(2)} Bar`;
+        pressureNote.textContent = pr.note;
+        setPressureFill(pr.value);
+      }
 
       updateSelector("jockey", data.JPM);
       updateSelector("main", data.MPM);
       updateSelector("diesel", data.DPM);
 
-      const alarmBox = document.getElementById("alarm-box");
+      // Alarm logic
       let alarmMsgs = [];
       let alarmActive = false;
 
@@ -675,14 +810,22 @@
       if (data.SS1) { alarmMsgs.push("Smoke Detector Alarm"); alarmActive = true; }
       if (data.FS)  { alarmMsgs.push("Water Flood Sensor Alarm"); alarmActive = true; }
 
-      // Communication flags
+      // Comms flags
       if (data.RXTX === false || data.RXMQTT === false) {
         alarmMsgs.push("Communication Failed");
         alarmActive = true;
         setAllLedsBlank();
       }
 
-      alarmBox.textContent = alarmMsgs.join(" • ");
+      // Pressure invalid -> show warning (optional)
+      if (pr.value === null && data.WP !== undefined) {
+        alarmMsgs.push("Pressure reading invalid");
+        alarmActive = true;
+      }
+
+      if (alarmMsgs.length) setAlarmBox(alarmMsgs.join(" • "), alarmActive);
+      else setAlarmBox("", false);
+
       if (alarmActive) playAlarmSound();
       setSystemStatus(alarmActive);
     }
@@ -695,10 +838,12 @@
         mqttClient = null;
       }
 
+      setConn("Connecting…", "");
       mqttClient = mqtt.connect(server, options);
 
       mqttClient.on("connect", () => {
         isConnected = true;
+        setConn("Connected", "ok");
         mqttClient.subscribe("fire-pump/status", (err) => {
           if (err) console.error("Subscribe error:", err);
         });
@@ -717,19 +862,21 @@
       mqttClient.on("error", (err) => {
         console.error("MQTT error:", err);
         isConnected = false;
+        setConn("MQTT Error", "bad");
       });
 
       mqttClient.on("close", () => {
         isConnected = false;
+        setConn("Offline", "bad");
       });
     }
 
     function showCommFailure(msg) {
-      const alarmBox = document.getElementById("alarm-box");
-      alarmBox.textContent = msg;
+      setAlarmBox(msg, true);
       setAllLedsBlank();
       playAlarmSound();
       setSystemStatus(true);
+      setConn("Offline", "bad");
     }
 
     // Failover if no data for 60s
@@ -737,17 +884,11 @@
       const elapsed = Date.now() - lastMessageTime;
       if (elapsed <= 60000) return;
 
-      if (isConnected) {
-        showCommFailure("Receiver-Transmitter Communication Failed");
-      } else {
-        showCommFailure("Receiver-MQTT Communication Failed");
-      }
+      if (isConnected) showCommFailure("Receiver-Transmitter Communication Failed");
+      else showCommFailure("Receiver-MQTT Communication Failed");
 
-      if (activeServer === mqtt_server_primary) {
-        connectMqtt(mqtt_server_secondary);
-      } else {
-        connectMqtt(mqtt_server_primary);
-      }
+      if (activeServer === mqtt_server_primary) connectMqtt(mqtt_server_secondary);
+      else connectMqtt(mqtt_server_primary);
 
       lastMessageTime = Date.now();
     }, 1000);
@@ -767,7 +908,7 @@
       });
     });
 
-    // Optional: refresh every 30 minutes (lighter than 10 minutes for phones)
+    // Optional: refresh every 30 minutes
     setInterval(() => location.reload(), 30 * 60 * 1000);
 
     // Start
