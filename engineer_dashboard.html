@@ -1,9 +1,30 @@
+<!-- ✅ READY-TO-PASTE UPGRADED DASHBOARD (NO EXTRA HARDWARE)
+     What’s improved vs your version:
+     1) NO forced page reload (removed).
+     2) Robust MQTT reconnect with exponential backoff + jitter.
+     3) Clear separation: mqttConnected vs dataFresh (stale banner).
+     4) Fast recovery on return from minimize/lock (visibilitychange + focus).
+     5) Failover primary/secondary without thrashing.
+     6) Optional “sticky alarms” latch (keeps alarms until Reset).
+     7) PWA support hooks (manifest + service worker registration) — add files below.
+     
+     ⚠️ Important truth:
+     Browser can still be suspended in background/lock. This code recovers instantly when resumed.
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Fire Pump Monitoring Dashboard</title>
+
+  <!-- PWA: add these two files in your repo root (same folder as dashboard.html):
+       1) manifest.json
+       2) sw.js
+       (Templates provided after this HTML)
+  -->
+  <link rel="manifest" href="manifest.json">
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -190,6 +211,26 @@
       padding: var(--pad);
       backdrop-filter: blur(14px);
     }
+
+    /* NEW: stale banner */
+    .stale-banner{
+      margin-bottom: 10px;
+      border-radius: 14px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,204,0,.12);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 900;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      gap: 8px;
+      text-align:center;
+      line-height: 1.25;
+    }
+    .stale-banner.show{ display:flex; }
+    .stale-banner i{ opacity:.9; }
 
     #alarm-box{
       min-height: 46px;
@@ -424,7 +465,7 @@
 
       <div class="status-pill" title="Connection state">
         <span class="dot" id="conn-dot"></span>
-        <span id="conn-text">Connecting…</span>
+        <span id="conn-text">Starting…</span>
       </div>
 
       <div class="top-actions">
@@ -441,6 +482,12 @@
     </div>
 
     <div class="content">
+      <!-- NEW: stale-data banner -->
+      <div id="stale-banner" class="stale-banner">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span id="stale-text">Data stale</span>
+      </div>
+
       <div id="alarm-box"></div>
 
       <div class="dashboard">
@@ -573,6 +620,12 @@
     const BASE_URL = "https://kiai1987.github.io/Firepumpsmonitoring/";
     function goTo(page){ window.location.href = BASE_URL + page; }
 
+    /************ PWA install support ************/
+    (function registerSW(){
+      if (!("serviceWorker" in navigator)) return;
+      navigator.serviceWorker.register("sw.js").catch(console.error);
+    })();
+
     /************ Auth ************/
     function checkAuthentication() {
       if (localStorage.getItem("authenticated") !== "true") {
@@ -596,7 +649,15 @@
       dot.classList.remove("ok","bad");
       if(stateClass) dot.classList.add(stateClass);
     }
-    setConn("Connecting…", "");
+
+    /************ Stale banner ************/
+    function setStale(show, text){
+      const banner = document.getElementById("stale-banner");
+      const label = document.getElementById("stale-text");
+      if (!banner || !label) return;
+      label.textContent = text || "Data stale";
+      banner.classList.toggle("show", !!show);
+    }
 
     /************ Alarm audio (mobile safe) ************/
     let audioContext = null;
@@ -604,7 +665,7 @@
     let alarmSilenced = false;
     let audioUnlocked = false;
 
-    const alarmSoundUrl = BASE_URL + "assets/alarm.wav"; // recommended local file
+    const alarmSoundUrl = BASE_URL + "assets/alarm.wav"; // keep local file
 
     function initAudioOnce() {
       if (audioUnlocked) return;
@@ -640,6 +701,12 @@
     function resetAlarm() {
       alarmSilenced = false;
       if (audioContext && audioContext.state === "suspended") audioContext.resume().catch(()=>{});
+
+      // ALSO reset sticky alarm latch
+      stickyAlarmLatch = false;
+      stickyAlarmMessages = [];
+      setAlarmBox("", false);
+      setSystemStatus(false);
     }
 
     /************ UI helpers ************/
@@ -678,14 +745,13 @@
       setPressureFill(null);
     }
 
-    /************ Sanitizers (prevents crazy values) ************/
+    /************ Sanitizers ************/
     const PRESSURE_MIN = 0;
     const PRESSURE_MAX = 16;
 
     function parseNumberAny(v){
       if (v === null || v === undefined) return null;
       if (typeof v === "number") return Number.isFinite(v) ? v : null;
-      // allow strings like "3.25" or "3,25"
       const s = String(v).trim().replace(",", ".");
       const n = Number(s);
       return Number.isFinite(n) ? n : null;
@@ -695,10 +761,8 @@
       const p = parseNumberAny(raw);
       if (p === null) return {value:null, note:"Invalid"};
 
-      // If value is totally unrealistic, mark invalid (prevents 10922691 Bar showing)
       if (p < -1 || p > 1000) return {value:null, note:"Invalid / out of range"};
 
-      // Clamp to 0–16 bar
       const clamped = Math.min(PRESSURE_MAX, Math.max(PRESSURE_MIN, p));
       const note = (clamped !== p) ? `Clamped (${p.toFixed(2)} → ${clamped.toFixed(2)})` : "OK";
       return {value:clamped, note};
@@ -709,24 +773,27 @@
       const parts = thString.split(",");
       const t = parseNumberAny(parts[0]);
       const h = parseNumberAny(parts[1]);
-
-      // Typical valid ranges (adjust if you want)
       const tOk = (t !== null && t >= -30 && t <= 80) ? t : null;
       const hOk = (h !== null && h >= 0 && h <= 100) ? h : null;
-
       return {t:tOk, h:hOk};
     }
 
     function setPressureFill(p){
       const fill = document.getElementById("pressure-fill");
       if (!fill) return;
-
       if (p === null){
         fill.style.width = "0%";
         return;
       }
       const percent = (p / PRESSURE_MAX) * 100;
       fill.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+    }
+
+    /************ Alarm box ************/
+    function setAlarmBox(text, isAlarm){
+      const box = document.getElementById("alarm-box");
+      box.textContent = text || "";
+      box.classList.toggle("alarm", !!isAlarm);
     }
 
     /************ MQTT ************/
@@ -738,26 +805,136 @@
       password: "044313187Ki@",
       clientId: `mqttjs_${Math.random().toString(16).slice(2,10)}`,
       keepalive: 30,
-      reconnectPeriod: 2000,
       connectTimeout: 10000,
       clean: true
+      // IMPORTANT: we disable library auto-reconnect; we do our own backoff
+      // reconnectPeriod: 0
     };
 
     let mqttClient = null;
-    let lastMessageTime = Date.now();
-    let isConnected = false;
     let activeServer = mqtt_server_primary;
 
-    function setAlarmBox(text, isAlarm){
-      const box = document.getElementById("alarm-box");
-      box.textContent = text || "";
-      box.classList.toggle("alarm", !!isAlarm);
+    // Separate states (professional):
+    let mqttConnected = false;     // websocket connected to broker
+    let lastPayloadTs = 0;         // last status message time
+
+    // Reconnect backoff
+    let retryMs = 1000;
+    function resetRetry(){ retryMs = 1000; }
+    function nextRetry(){
+      retryMs = Math.min(60000, Math.floor(retryMs * 1.8 + Math.random() * 600));
+      return retryMs;
+    }
+
+    // Failover control
+    let lastFailoverTs = 0;
+    const FAILOVER_COOLDOWN_MS = 15000;
+
+    // Stale thresholds
+    const STALE_MS = 15000;     // show stale banner
+    const OFFLINE_MS = 60000;   // declare offline/comm fail if no payload for 60s
+
+    // Sticky alarms (client-side latch)
+    let stickyAlarmLatch = false;
+    let stickyAlarmMessages = [];
+
+    function dataAgeMs(){
+      return lastPayloadTs ? (Date.now() - lastPayloadTs) : Infinity;
+    }
+
+    function updateConnectivityUI(){
+      const age = dataAgeMs();
+
+      // Decide status text
+      if (mqttConnected && age <= STALE_MS) {
+        setConn("Online", "ok");
+        setStale(false, "");
+      } else if (mqttConnected && age > STALE_MS && age <= OFFLINE_MS) {
+        setConn("Connected (No Data)", "");
+        setStale(true, `No data for ${Math.floor(age/1000)}s`);
+      } else if (!mqttConnected) {
+        setConn("Offline", "bad");
+        setStale(true, "Disconnected from broker");
+      } else {
+        // mqttConnected but very stale
+        setConn("Offline (Stale)", "bad");
+        setStale(true, `No data for ${Math.floor(age/1000)}s`);
+      }
+    }
+
+    function connectMqtt(server){
+      activeServer = server;
+
+      // Clean previous client
+      if (mqttClient) {
+        try { mqttClient.removeAllListeners(); mqttClient.end(true); } catch(e){}
+        mqttClient = null;
+      }
+
+      mqttConnected = false;
+      setConn("Connecting…", "");
+      updateConnectivityUI();
+
+      mqttClient = mqtt.connect(server, { ...options, reconnectPeriod: 0 });
+
+      mqttClient.on("connect", () => {
+        mqttConnected = true;
+        resetRetry();
+        setConn("Connected", "ok");
+        mqttClient.subscribe("fire-pump/status", { qos: 1 }, (err) => {
+          if (err) console.error("Subscribe error:", err);
+        });
+        // If you later add ack topic:
+        // mqttClient.subscribe("fire-pump/mode/ack", { qos: 1 });
+      });
+
+      mqttClient.on("message", (topic, message) => {
+        if (topic !== "fire-pump/status") return;
+        try {
+          const data = JSON.parse(message.toString());
+          lastPayloadTs = Date.now();
+          handleStatusUpdates(data);
+        } catch (e) {
+          console.error("Bad JSON:", e);
+        }
+      });
+
+      mqttClient.on("error", (err) => {
+        console.error("MQTT error:", err);
+        // Force close -> our reconnect handler will run on 'close'
+        try { mqttClient.end(true); } catch(e){}
+      });
+
+      mqttClient.on("close", () => {
+        mqttConnected = false;
+        updateConnectivityUI();
+
+        // Controlled reconnect with backoff + failover
+        const delay = nextRetry();
+        setTimeout(() => {
+          // alternate server after a few failures or if very stale
+          const now = Date.now();
+          const shouldFailover = (now - lastFailoverTs) > FAILOVER_COOLDOWN_MS;
+          const target = shouldFailover ? failoverServer() : activeServer;
+          if (shouldFailover) lastFailoverTs = now;
+          connectMqtt(target);
+        }, delay);
+      });
+    }
+
+    function failoverServer(){
+      return activeServer === mqtt_server_primary ? mqtt_server_secondary : mqtt_server_primary;
+    }
+
+    function showCommFailure(msg) {
+      // Keep last visuals; just show banner + alarm (more professional than blanking instantly)
+      setAlarmBox(msg, true);
+      playAlarmSound();
+      setSystemStatus(true);
     }
 
     function handleStatusUpdates(data) {
-      lastMessageTime = Date.now();
-      isConnected = true;
-      setConn("Online", "ok");
+      updateConnectivityUI();
 
       updateLedStatus("jockey-pump-run",  !!data.JP,  "led-run");
       updateLedStatus("jockey-pump-off",  !data.JP,   "led-off");
@@ -777,12 +954,10 @@
       updateLedStatus("flood-sensor-alarm",  !!data.FS, "led-alarm");
       updateLedStatus("flood-sensor-normal", !data.FS,  "led-normal");
 
-      // Temp/Humidity sanitize
       const th = sanitizeTempHum(data.TH);
       document.getElementById("room-temperature").textContent = (th.t === null) ? "--°C" : `${th.t.toFixed(1)}°C`;
       document.getElementById("room-humidity").textContent    = (th.h === null) ? "--%"  : `${th.h.toFixed(0)}%`;
 
-      // Pressure sanitize + gauge
       const pr = sanitizePressure(data.WP);
       const pressureNote = document.getElementById("pressure-note");
 
@@ -800,7 +975,7 @@
       updateSelector("main", data.MPM);
       updateSelector("diesel", data.DPM);
 
-      // Alarm logic
+      // Alarm logic (with sticky latch)
       let alarmMsgs = [];
       let alarmActive = false;
 
@@ -810,90 +985,72 @@
       if (data.SS1) { alarmMsgs.push("Smoke Detector Alarm"); alarmActive = true; }
       if (data.FS)  { alarmMsgs.push("Water Flood Sensor Alarm"); alarmActive = true; }
 
-      // Comms flags
-      if (data.RXTX === false || data.RXMQTT === false) {
-        alarmMsgs.push("Communication Failed");
-        alarmActive = true;
-        setAllLedsBlank();
-      }
-
-      // Pressure invalid -> show warning (optional)
+      // Pressure invalid warning
       if (pr.value === null && data.WP !== undefined) {
         alarmMsgs.push("Pressure reading invalid");
         alarmActive = true;
       }
 
-      if (alarmMsgs.length) setAlarmBox(alarmMsgs.join(" • "), alarmActive);
-      else setAlarmBox("", false);
-
-      if (alarmActive) playAlarmSound();
-      setSystemStatus(alarmActive);
-    }
-
-    function connectMqtt(server) {
-      activeServer = server;
-
-      if (mqttClient) {
-        try { mqttClient.end(true); } catch(e){}
-        mqttClient = null;
+      // Optional: comm flags from payload
+      if (data.RXTX === false || data.RXMQTT === false) {
+        alarmMsgs.push("Communication Failed");
+        alarmActive = true;
       }
 
-      setConn("Connecting…", "");
-      mqttClient = mqtt.connect(server, options);
+      // Sticky latch: once alarm active, keep it until Reset pressed
+      if (alarmActive) {
+        stickyAlarmLatch = true;
+        // store unique messages
+        alarmMsgs.forEach(m => { if (!stickyAlarmMessages.includes(m)) stickyAlarmMessages.push(m); });
+      }
 
-      mqttClient.on("connect", () => {
-        isConnected = true;
-        setConn("Connected", "ok");
-        mqttClient.subscribe("fire-pump/status", (err) => {
-          if (err) console.error("Subscribe error:", err);
-        });
-      });
-
-      mqttClient.on("message", (topic, message) => {
-        if (topic !== "fire-pump/status") return;
-        try {
-          const data = JSON.parse(message.toString());
-          handleStatusUpdates(data);
-        } catch (e) {
-          console.error("Bad JSON:", e);
-        }
-      });
-
-      mqttClient.on("error", (err) => {
-        console.error("MQTT error:", err);
-        isConnected = false;
-        setConn("MQTT Error", "bad");
-      });
-
-      mqttClient.on("close", () => {
-        isConnected = false;
-        setConn("Offline", "bad");
-      });
+      if (stickyAlarmLatch) {
+        setAlarmBox(stickyAlarmMessages.join(" • "), true);
+        playAlarmSound();
+        setSystemStatus(true);
+      } else {
+        setAlarmBox("", false);
+        setSystemStatus(false);
+      }
     }
 
-    function showCommFailure(msg) {
-      setAlarmBox(msg, true);
-      setAllLedsBlank();
-      playAlarmSound();
-      setSystemStatus(true);
-      setConn("Offline", "bad");
-    }
-
-    // Failover if no data for 60s
+    /************ OFFLINE / STALE WATCHDOG ************/
     setInterval(() => {
-      const elapsed = Date.now() - lastMessageTime;
-      if (elapsed <= 60000) return;
+      updateConnectivityUI();
 
-      if (isConnected) showCommFailure("Receiver-Transmitter Communication Failed");
-      else showCommFailure("Receiver-MQTT Communication Failed");
+      const age = dataAgeMs();
+      // If no payload for OFFLINE_MS, show comm failure and attempt failover reconnect
+      if (age > OFFLINE_MS) {
+        showCommFailure(`No data for ${Math.floor(age/1000)}s • Checking connection…`);
 
-      if (activeServer === mqtt_server_primary) connectMqtt(mqtt_server_secondary);
-      else connectMqtt(mqtt_server_primary);
-
-      lastMessageTime = Date.now();
+        // If still connected but no data, bounce connection
+        const now = Date.now();
+        if ((now - lastFailoverTs) > FAILOVER_COOLDOWN_MS) {
+          lastFailoverTs = now;
+          connectMqtt(failoverServer());
+        } else if (!mqttClient || !mqttClient.connected) {
+          connectMqtt(activeServer);
+        }
+        // Do NOT blank LEDs automatically; keep last known state (professional)
+      }
     }, 1000);
 
-    // Publish mode changes
+    /************ FAST RECOVERY AFTER MINIMIZE / LOCK ************/
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        // If stale or disconnected, reconnect immediately
+        if (!mqttClient || !mqttClient.connected || dataAgeMs() > STALE_MS) {
+          connectMqtt(activeServer);
+        }
+      }
+    });
+    window.addEventListener("focus", () => {
+      if (!mqttClient || !mqttClient.connected || dataAgeMs() > STALE_MS) {
+        connectMqtt(activeServer);
+      }
+    });
+
+    /************ Publish mode changes (QoS 1) ************/
     document.addEventListener("change", (e) => {
       const target = e.target;
       if (!target.classList || !target.classList.contains("control-input")) return;
@@ -901,17 +1058,17 @@
 
       const selectorGroup = target.id.split("-")[0];
       const selectedMode = target.value;
-      const payload = JSON.stringify({ group: selectorGroup, mode: selectedMode });
 
-      mqttClient.publish("fire-pump/mode", payload, (err) => {
+      // Recommended topic naming: fire-pump/mode/set
+      const payload = JSON.stringify({ group: selectorGroup, mode: selectedMode, ts: Date.now() });
+
+      mqttClient.publish("fire-pump/mode", payload, { qos: 1 }, (err) => {
         if (err) console.error("Publish error:", err);
       });
     });
 
-    // Optional: refresh every 30 minutes
-    setInterval(() => location.reload(), 30 * 60 * 1000);
-
-    // Start
+    /************ Start ************/
+    setConn("Starting…", "");
     connectMqtt(mqtt_server_primary);
   </script>
 </body>
