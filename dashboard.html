@@ -1,514 +1,650 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Pump Platform</title>
-  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-  <style>
-    :root{
-      --bg:#070b14;
-      --panel:#0d1426;
-      --panel2:#0b1020;
-      --stroke:#1c2a4d;
-      --stroke2:#223763;
-      --txt:#e9efff;
-      --muted:#a9b7df;
-      --ok:#43ffb5;
-      --bad:#ff7f9b;
-      --warn:#ffd166;
-      --btn:#121c35;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --r:18px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0; padding:18px;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      background: radial-gradient(1000px 600px at 20% 0%, #0c1330 0%, var(--bg) 55%) fixed;
-      color:var(--txt);
-    }
-    .top{
-      display:flex; gap:14px; flex-wrap:wrap; align-items:center; justify-content:space-between;
-      margin-bottom:14px;
-    }
-    .title{font-size:22px; font-weight:800; letter-spacing:.2px}
-    .statusbar{
-      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
-      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border:1px solid var(--stroke);
-      border-radius:999px;
-      padding:10px 12px;
-      box-shadow: var(--shadow);
-    }
-    .pill{
-      display:flex; gap:8px; align-items:center;
-      padding:6px 10px; border-radius:999px;
-      border:1px solid var(--stroke2);
-      background:rgba(10,16,35,.55);
-      font-size:12px;
-    }
-    .dot{width:10px; height:10px; border-radius:50%}
-    .dot.ok{background:var(--ok)}
-    .dot.bad{background:var(--bad)}
-    .dot.warn{background:var(--warn)}
-    .muted{color:var(--muted)}
-    .tabs{
-      display:flex; gap:10px; flex-wrap:wrap;
-      margin:14px 0;
-    }
-    .tabbtn{
-      border:1px solid var(--stroke);
-      background:rgba(255,255,255,.02);
-      color:var(--txt);
-      padding:10px 12px;
-      border-radius:999px;
-      cursor:pointer;
-      transition:.15s;
-      font-weight:700;
-      font-size:13px;
-    }
-    .tabbtn:hover{filter:brightness(1.08)}
-    .tabbtn.active{
-      background:linear-gradient(180deg, rgba(85,140,255,.22), rgba(85,140,255,.08));
-      border-color:#2d4a88;
-    }
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-      gap:12px;
-    }
-    .card{
-      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-      border:1px solid var(--stroke);
-      border-radius:var(--r);
-      padding:14px;
-      box-shadow: var(--shadow);
-      min-height:160px;
-    }
-    .card h3{
-      margin:0 0 10px 0;
-      font-size:14px;
-      letter-spacing:.3px;
-      color:var(--muted);
-      font-weight:800;
-      text-transform:uppercase;
-    }
-    .big{
-      font-size:34px;
-      font-weight:900;
-      margin:2px 0 8px 0;
-      letter-spacing:.3px;
-    }
-    .row{display:flex; justify-content:space-between; gap:12px; margin:8px 0}
-    .k{color:var(--muted); font-size:12px}
-    .v{font-weight:800}
-    .badge{
-      display:inline-flex; gap:8px; align-items:center;
-      padding:6px 10px; border-radius:999px;
-      font-size:12px; font-weight:900;
-      border:1px solid var(--stroke2);
-      background:rgba(10,16,35,.55);
-    }
-    .badge.ok{color:var(--ok)}
-    .badge.bad{color:var(--bad)}
-    .badge.warn{color:var(--warn)}
-    .btn{
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid var(--stroke2);
-      background:var(--btn);
-      color:var(--txt);
-      cursor:pointer;
-      font-weight:800;
-      transition:.15s;
-      width:100%;
-    }
-    .btn:hover{filter:brightness(1.08)}
-    .btnrow{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px}
-    .controls{
-      display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;
-      margin-top:12px;
-    }
-    input,select{
-      width:100%;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid var(--stroke2);
-      background:rgba(10,16,35,.55);
-      color:var(--txt);
-      font-weight:700;
-      outline:none;
-    }
-    .hint{font-size:12px;color:var(--muted);line-height:1.35}
-    .hidden{display:none}
-    .mini{font-size:12px;color:var(--muted)}
-    .hr{height:1px;background:rgba(255,255,255,.06);margin:10px 0}
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Pump Platform — Domestic + Irrigation</title>
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<style>
+  :root{
+    --bg:#070b14;
+    --panel:#0d1426;
+    --panel2:#0b1020;
+    --stroke:#1c2a4d;
+    --stroke2:#223763;
+    --txt:#e9efff;
+    --muted:#a9b7df;
+    --ok:#43ffb5;
+    --bad:#ff7f9b;
+    --warn:#ffd166;
+    --btn:#121c35;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --r:18px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:18px;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    background: radial-gradient(1000px 600px at 20% 0%, #0c1330 0%, var(--bg) 55%) fixed;
+    color:var(--txt);
+  }
+  .top{
+    display:flex; gap:14px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .title{font-size:22px; font-weight:900; letter-spacing:.2px}
+  .statusbar{
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    border:1px solid var(--stroke);
+    border-radius:999px;
+    padding:10px 12px;
+    box-shadow: var(--shadow);
+  }
+  .pill{
+    display:flex; gap:8px; align-items:center;
+    padding:6px 10px; border-radius:999px;
+    border:1px solid var(--stroke2);
+    background:rgba(10,16,35,.55);
+    font-size:12px;
+  }
+  .dot{width:10px; height:10px; border-radius:50%}
+  .dot.ok{background:var(--ok)}
+  .dot.bad{background:var(--bad)}
+  .dot.warn{background:var(--warn)}
+  .muted{color:var(--muted)}
+  .tabs{
+    display:flex; gap:10px; flex-wrap:wrap;
+    margin:14px 0;
+  }
+  .tabbtn{
+    border:1px solid var(--stroke);
+    background:rgba(255,255,255,.02);
+    color:var(--txt);
+    padding:10px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:.15s;
+    font-weight:800;
+    font-size:13px;
+  }
+  .tabbtn:hover{filter:brightness(1.08)}
+  .tabbtn.active{
+    background:linear-gradient(180deg, rgba(85,140,255,.22), rgba(85,140,255,.08));
+    border-color:#2d4a88;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:12px;
+  }
+  .card{
+    background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+    border:1px solid var(--stroke);
+    border-radius:var(--r);
+    padding:14px;
+    box-shadow: var(--shadow);
+    min-height:160px;
+  }
+  .card h3{
+    margin:0 0 10px 0;
+    font-size:14px;
+    letter-spacing:.3px;
+    color:var(--muted);
+    font-weight:900;
+    text-transform:uppercase;
+  }
+  .big{
+    font-size:34px;
+    font-weight:950;
+    margin:2px 0 8px 0;
+    letter-spacing:.3px;
+  }
+  .row{display:flex; justify-content:space-between; gap:12px; margin:8px 0}
+  .k{color:var(--muted); font-size:12px}
+  .v{font-weight:900}
+  .badge{
+    display:inline-flex; gap:8px; align-items:center;
+    padding:6px 10px; border-radius:999px;
+    font-size:12px; font-weight:950;
+    border:1px solid var(--stroke2);
+    background:rgba(10,16,35,.55);
+  }
+  .badge.ok{color:var(--ok)}
+  .badge.bad{color:var(--bad)}
+  .badge.warn{color:var(--warn)}
+  .btn{
+    padding:10px 12px;
+    border-radius:14px;
+    border:1px solid var(--stroke2);
+    background:var(--btn);
+    color:var(--txt);
+    cursor:pointer;
+    font-weight:900;
+    transition:.15s;
+    width:100%;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btnrow{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px}
+  .controls{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;
+    margin-top:12px;
+  }
+  input,select{
+    width:100%;
+    padding:10px 12px;
+    border-radius:14px;
+    border:1px solid var(--stroke2);
+    background:rgba(10,16,35,.55);
+    color:var(--txt);
+    font-weight:800;
+    outline:none;
+  }
+  .hint{font-size:12px;color:var(--muted);line-height:1.35}
+  .hidden{display:none}
+  .mini{font-size:12px;color:var(--muted)}
+  .hr{height:1px;background:rgba(255,255,255,.06);margin:10px 0}
+  .twoCol{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  @media(max-width:800px){ .twoCol{grid-template-columns:1fr;} }
+  code{color:rgba(234,240,255,.75)}
+</style>
 </head>
 <body>
 
-  <div class="top">
-    <div class="title">Pump Platform — Domestic + Irrigation</div>
+<div class="top">
+  <div class="title">Pump Platform — Domestic + Irrigation</div>
 
-    <div class="statusbar">
-      <div class="pill">
-        <span id="mqttDot" class="dot bad"></span>
-        <span class="v" id="mqttText">MQTT: disconnected</span>
-      </div>
-      <div class="pill">
-        <span class="muted">WS:</span>
-        <span class="v" id="wsUrl">—</span>
-      </div>
-      <div class="pill">
-        <span class="muted">Last Telemetry:</span>
-        <span class="v" id="lastTlm">—</span>
-      </div>
+  <div class="statusbar">
+    <div class="pill">
+      <span id="mqttDot" class="dot bad"></span>
+      <span class="v" id="mqttText">MQTT: disconnected</span>
+    </div>
+    <div class="pill">
+      <span class="muted">WS</span>
+      <span class="v"><code id="wsUrl">—</code></span>
+    </div>
+    <div class="pill">
+      <span class="muted">Last Telemetry</span>
+      <span class="v" id="lastTlm">—</span>
     </div>
   </div>
+</div>
 
-  <div class="tabs">
-    <button class="tabbtn active" data-tab="dom">Domestic A & B</button>
-    <button class="tabbtn" data-tab="irr">Irrigation</button>
-    <button class="tabbtn" data-tab="chg">Changeover & Setpoint</button>
-    <button class="tabbtn" data-tab="dtu">DTU / Comms Status</button>
-  </div>
+<div class="tabs">
+  <button class="tabbtn active" data-tab="dom">Domestic A & B</button>
+  <button class="tabbtn" data-tab="irr">Irrigation</button>
+  <button class="tabbtn" data-tab="chg">Changeover & Setpoint</button>
+  <button class="tabbtn" data-tab="dtu">DTU / Comms Status</button>
+</div>
 
-  <!-- Domestic -->
-  <div id="tab-dom">
-    <div class="grid">
-      <div class="card" id="domA"></div>
-      <div class="card" id="domB"></div>
-      <div class="card" id="domSummary"></div>
-    </div>
+<!-- Domestic -->
+<section id="tab-dom">
+  <div class="grid">
+    <div class="card" id="domA"></div>
+    <div class="card" id="domB"></div>
+    <div class="card" id="domSummary"></div>
   </div>
+</section>
 
-  <!-- Irrigation -->
-  <div id="tab-irr" class="hidden">
-    <div class="grid">
-      <div class="card" id="irr1"></div>
-      <div class="card" id="irrSummary"></div>
-    </div>
+<!-- Irrigation -->
+<section id="tab-irr" class="hidden">
+  <div class="grid">
+    <div class="card" id="irrCard"></div>
+    <div class="card" id="irrSummary"></div>
   </div>
+</section>
 
-  <!-- Changeover -->
-  <div id="tab-chg" class="hidden">
-    <div class="grid">
-      <div class="card" id="chgCard"></div>
-      <div class="card" id="actionsCard"></div>
-    </div>
+<!-- Changeover -->
+<section id="tab-chg" class="hidden">
+  <div class="grid">
+    <div class="card" id="chgCard"></div>
+    <div class="card" id="actionsCard"></div>
   </div>
+</section>
 
-  <!-- DTU -->
-  <div id="tab-dtu" class="hidden">
-    <div class="grid">
-      <div class="card" id="dtuA"></div>
-      <div class="card" id="dtuB"></div>
-      <div class="card" id="dtuI"></div>
-    </div>
+<!-- DTU -->
+<section id="tab-dtu" class="hidden">
+  <div class="grid">
+    <div class="card" id="dtuA"></div>
+    <div class="card" id="dtuB"></div>
+    <div class="card" id="dtuI"></div>
   </div>
+</section>
 
 <script>
-  // -------------------------
-  // MQTT config
-  // -------------------------
-  const WS_URL = "ws://" + location.hostname + ":9001";
-  const TOPIC_TLM = "compound/pumps/telemetry"; // published by controller
-  const TOPIC_CMD = "compound/pumps/cmd";       // commands from UI to controller
+/* =============================
+   CONFIG (edit only if needed)
+   ============================= */
+const WS_URL = "ws://" + location.hostname + ":9001"; // mosquitto websockets on Pi
+const teleBase = "compound/pumps/tele"; // expects /DOM_A /DOM_B /IRR
+const statPlatform = "compound/pumps/stat/platform";
+const statDTU = "compound/pumps/stat/dtu";
+const cmdBase = "compound/pumps/cmd"; // mode, set_duty, swap_now, set_setpoint
 
-  wsUrl.textContent = WS_URL;
+wsUrl.textContent = WS_URL;
 
-  // -------------------------
-  // State
-  // -------------------------
-  let lastTelemetryMs = 0;
+/* =============================
+   State model (never empty)
+   ============================= */
+const state = {
+  platform: { mode:"AUTO", duty:"DOM_A", setpoint_bar:2.5 },
+  pumps: {
+    DOM_A: emptyPump(),
+    DOM_B: emptyPump(),
+    IRR:   emptyPump()
+  },
+  dtu: null,
+  lastTelemetryMs: 0,
+};
 
-  // Default empty model so UI is never blank
-  const model = {
-    ts: null,
-    mode: "AUTO",
-    duty: "DOM_A",
-    setpointBar: 6.0,
-    headerPressureBar: null,
-    lowThresholdBar: null,
-    DOM_A: {ok:false,fault:false,running:false,pressure_bar:null,hz:null,amps:null},
-    DOM_B: {ok:false,fault:false,running:false,pressure_bar:null,hz:null,amps:null},
-    IRR:   {ok:false,fault:false,running:false,pressure_bar:null,hz:null,amps:null},
+function emptyPump(){
+  return {
+    key:null, name:null, role:null, slave_id:null,
+    online:false,
+    pressure_bar:null, v1_percent:null,
+    out_freq_hz:null, out_current_a:null,
+    op_status:{ fault_trip:false, running_fwd:false, stopped:false },
+    fault_info:{ latch_trip:false, level_trip:false, hw_diag:false },
+    ts:null
   };
+}
 
-  function dotClass(ok, warn=false){
-    if (warn) return "dot warn";
-    return ok ? "dot ok" : "dot bad";
+function dotClass(ok, warn=false){
+  if(warn) return "dot warn";
+  return ok ? "dot ok" : "dot bad";
+}
+function badge(ok, warn=false, okText="OK", badText="OFFLINE", warnText="CHECK"){
+  if(warn) return `<span class="badge warn"><span class="${dotClass(true,true)}"></span>${warnText}</span>`;
+  return ok
+    ? `<span class="badge ok"><span class="${dotClass(true)}"></span>${okText}</span>`
+    : `<span class="badge bad"><span class="${dotClass(false)}"></span>${badText}</span>`;
+}
+function fmt(x, d=2){
+  const n = Number(x);
+  if(!Number.isFinite(n)) return "--";
+  return n.toFixed(d);
+}
+function statusText(p){
+  if(!p.online) return "OFFLINE";
+  if(p.op_status?.fault_trip) return "FAULT TRIP";
+  if(p.op_status?.running_fwd) return "RUNNING";
+  if(p.op_status?.stopped) return "STOPPED";
+  return "READY";
+}
+function faultBool(p){
+  const os = p.op_status || {};
+  const fi = p.fault_info || {};
+  return !!os.fault_trip || !!fi.latch_trip || !!fi.level_trip || !!fi.hw_diag;
+}
+
+/* =============================
+   UI rendering
+   ============================= */
+function pumpCard(title, key, p, dutyKey){
+  const isDuty = (key === dutyKey);
+  const online = !!p.online;
+  const f = faultBool(p);
+
+  const stBadge = !online ? badge(false,false,"OK","OFFLINE")
+                 : f ? badge(false,false,"OK","FAULT")
+                 : badge(true,false, p.op_status?.running_fwd ? "RUN" : "OK", "OFFLINE");
+
+  const faultType = (p.fault_info?.hw_diag ? "HW" : (p.fault_info?.latch_trip ? "LATCH" : (p.fault_info?.level_trip ? "LEVEL" : (p.op_status?.fault_trip ? "TRIP" : "--"))));
+
+  return `
+    <h3>${title} ${isDuty ? '<span class="badge ok" style="margin-left:8px"><span class="dot ok"></span>DUTY</span>' : ''}</h3>
+
+    <div class="big">${fmt(p.pressure_bar,2)} <span class="mini">bar</span></div>
+
+    <div class="row">
+      <div class="k">Status</div>
+      <div>${stBadge}</div>
+    </div>
+
+    <div class="row">
+      <div class="k">Hz</div>
+      <div class="v">${fmt(p.out_freq_hz,2)} Hz</div>
+    </div>
+
+    <div class="row">
+      <div class="k">Current</div>
+      <div class="v">${fmt(p.out_current_a,1)} A</div>
+    </div>
+
+    <div class="row">
+      <div class="k">V1 (feedback)</div>
+      <div class="v">${fmt(p.v1_percent,1)} %</div>
+    </div>
+
+    <div class="row">
+      <div class="k">Fault Type</div>
+      <div class="v">${faultType}</div>
+    </div>
+
+    <div class="hr"></div>
+    <div class="btnrow">
+      <button class="btn" onclick="sendCmd('${cmdBase}/run', {pump:'${key}'})">RUN</button>
+      <button class="btn" onclick="sendCmd('${cmdBase}/stop', {pump:'${key}'})">STOP</button>
+      <button class="btn" onclick="sendCmd('${cmdBase}/reset', {pump:'${key}'})">RESET</button>
+    </div>
+
+    <div class="hint" style="margin-top:10px">
+      If OFFLINE: check DTU link, Modbus ID, A/B polarity, and that the controller is publishing telemetry.
+    </div>
+  `;
+}
+
+function domesticSummaryCard(){
+  const p = state.platform;
+  const duty = p.duty || "DOM_A";
+  const headerPressure = Math.max(
+    Number(state.pumps.DOM_A.pressure_bar) || 0,
+    Number(state.pumps.DOM_B.pressure_bar) || 0
+  );
+  return `
+    <h3>Domestic Summary</h3>
+
+    <div class="row"><div class="k">Mode</div><div class="v">${p.mode || "--"}</div></div>
+    <div class="row"><div class="k">Duty</div><div class="v">${p.duty || "--"}</div></div>
+    <div class="row"><div class="k">Supervisory Setpoint</div><div class="v">${fmt(p.setpoint_bar,1)} bar</div></div>
+    <div class="row"><div class="k">Header Pressure (est.)</div><div class="v">${fmt(headerPressure,2)} bar</div></div>
+
+    <div class="hr"></div>
+
+    <div class="controls">
+      <div>
+        <div class="k">Mode</div>
+        <select id="modeSel">
+          <option value="AUTO">AUTO</option>
+          <option value="MANUAL">MANUAL</option>
+          <option value="OFF">OFF</option>
+        </select>
+      </div>
+
+      <div>
+        <div class="k">Duty</div>
+        <select id="dutySel">
+          <option value="DOM_A">DOM_A</option>
+          <option value="DOM_B">DOM_B</option>
+        </select>
+      </div>
+
+      <div>
+        <div class="k">Setpoint (bar)</div>
+        <input id="spSel" type="number" step="0.1" min="0" max="16" value="${p.setpoint_bar ?? 2.5}">
+      </div>
+    </div>
+
+    <div class="btnrow" style="margin-top:12px">
+      <button class="btn" onclick="sendCmd('${cmdBase}/mode', {mode:document.getElementById('modeSel').value})">Apply Mode</button>
+      <button class="btn" onclick="sendCmd('${cmdBase}/set_duty', {duty:document.getElementById('dutySel').value})">Set Duty</button>
+      <button class="btn" onclick="sendCmd('${cmdBase}/swap_now', {ts:Date.now()})">Swap Duty Now</button>
+    </div>
+
+    <button class="btn" style="margin-top:10px" onclick="sendCmd('${cmdBase}/set_setpoint', {setpoint_bar:parseFloat(document.getElementById('spSel').value)})">
+      Set Setpoint
+    </button>
+
+    <div class="hint" style="margin-top:10px">
+      Note: Setpoint here is supervisory. Writing PID reference to H100 needs a confirmed scaling/register map.
+    </div>
+  `;
+}
+
+function irrigationSummaryCard(){
+  const p = state.pumps.IRR;
+  return `
+    <h3>Irrigation Summary</h3>
+    <div class="row"><div class="k">Online</div><div class="v">${p.online ? "YES" : "NO"}</div></div>
+    <div class="row"><div class="k">Fault</div><div class="v">${faultBool(p) ? "YES" : "NO"}</div></div>
+    <div class="row"><div class="k">Last Telemetry</div><div class="v">${state.lastTelemetryMs ? new Date(state.lastTelemetryMs).toLocaleString() : "—"}</div></div>
+    <div class="hint" style="margin-top:10px">
+      Irrigation is monitoring only (no changeover).
+    </div>
+  `;
+}
+
+function changeoverCard(){
+  const p = state.platform;
+  return `
+    <h3>Changeover & Setpoint</h3>
+    <div class="row"><div class="k">Mode</div><div class="v">${p.mode || "--"}</div></div>
+    <div class="row"><div class="k">Duty</div><div class="v">${p.duty || "--"}</div></div>
+    <div class="row"><div class="k">Setpoint</div><div class="v">${fmt(p.setpoint_bar,1)} bar</div></div>
+    <div class="hr"></div>
+    <div class="twoCol">
+      <div>
+        <div class="k">Mode</div>
+        <select id="chgMode">
+          <option value="AUTO">AUTO</option>
+          <option value="MANUAL">MANUAL</option>
+          <option value="OFF">OFF</option>
+        </select>
+      </div>
+      <div>
+        <div class="k">Duty</div>
+        <select id="chgDuty">
+          <option value="DOM_A">DOM_A</option>
+          <option value="DOM_B">DOM_B</option>
+        </select>
+      </div>
+      <div>
+        <div class="k">Setpoint (bar)</div>
+        <input id="chgSP" type="number" step="0.1" min="0" max="16" value="${p.setpoint_bar ?? 2.5}">
+      </div>
+      <div>
+        <div class="k">Actions</div>
+        <button class="btn" onclick="sendCmd('${cmdBase}/swap_now', {ts:Date.now()})">Swap Duty Now</button>
+      </div>
+    </div>
+    <div class="btnrow" style="margin-top:12px">
+      <button class="btn" onclick="sendCmd('${cmdBase}/mode', {mode:document.getElementById('chgMode').value})">Apply Mode</button>
+      <button class="btn" onclick="sendCmd('${cmdBase}/set_duty', {duty:document.getElementById('chgDuty').value})">Set Duty</button>
+      <button class="btn" onclick="sendCmd('${cmdBase}/set_setpoint', {setpoint_bar:parseFloat(document.getElementById('chgSP').value)})">Set Setpoint</button>
+    </div>
+    <div class="hint" style="margin-top:10px">
+      “OFF” means you disable automation and keep pumps under local control only.
+    </div>
+  `;
+}
+
+function actionsCard(){
+  return `
+    <h3>Quick Commands</h3>
+    <div class="btnrow">
+      <button class="btn" onclick="sendCmd('${cmdBase}/run', {pump:'DOM_A'})">RUN A</button>
+      <button class="btn" onclick="sendCmd('${cmdBase}/stop', {pump:'DOM_A'})">STOP A</button>
+      <button class="btn" onclick="sendCmd('${cmdBase}/reset', {pump:'DOM_A'})">RESET A</button>
+    </div>
+    <div class="btnrow" style="margin-top:10px">
+      <button class="btn" onclick="sendCmd('${cmdBase}/run', {pump:'DOM_B'})">RUN B</button>
+      <button class="btn" onclick="sendCmd('${cmdBase}/stop', {pump:'DOM_B'})">STOP B</button>
+      <button class="btn" onclick="sendCmd('${cmdBase}/reset', {pump:'DOM_B'})">RESET B</button>
+    </div>
+    <div class="btnrow" style="margin-top:10px">
+      <button class="btn" onclick="sendCmd('${cmdBase}/run', {pump:'IRR'})">RUN IRR</button>
+      <button class="btn" onclick="sendCmd('${cmdBase}/stop', {pump:'IRR'})">STOP IRR</button>
+      <button class="btn" onclick="sendCmd('${cmdBase}/reset', {pump:'IRR'})">RESET IRR</button>
+    </div>
+    <div class="hint" style="margin-top:10px">
+      These buttons publish MQTT commands. The controller must subscribe and execute them.
+    </div>
+  `;
+}
+
+function dtuCard(title, pumpKey){
+  const p = state.pumps[pumpKey];
+  const mqttConnected = mqttClient && mqttClient.connected;
+  const ok = !!p.online;
+  const warn = mqttConnected && !ok;
+
+  // If we have DTU status topic, show last_seen
+  let lastSeen = "--";
+  if(state.dtu?.nodes?.[pumpKey]?.last_seen_sec !== undefined && state.dtu.nodes[pumpKey].last_seen_sec !== null){
+    lastSeen = state.dtu.nodes[pumpKey].last_seen_sec + " s";
   }
 
-  function badge(ok, warn=false, labelOk="OK", labelBad="OFFLINE", labelWarn="WARN"){
-    if (warn) return `<span class="badge warn"><span class="${dotClass(true,true)}"></span>${labelWarn}</span>`;
-    return ok
-      ? `<span class="badge ok"><span class="${dotClass(true)}"></span>${labelOk}</span>`
-      : `<span class="badge bad"><span class="${dotClass(false)}"></span>${labelBad}</span>`;
-  }
+  return `
+    <h3>${title}</h3>
+    <div class="row"><div class="k">Link</div><div>${ ok ? badge(true,false,"ONLINE","OFFLINE") : (warn ? badge(false,true,"ONLINE","OFFLINE","CHECK LINK") : badge(false,false,"ONLINE","OFFLINE")) }</div></div>
+    <div class="row"><div class="k">Last Seen</div><div class="v">${lastSeen}</div></div>
+    <div class="row"><div class="k">Hints</div><div class="v">${ok ? "Stable" : "Check ID / A-B / antenna"}</div></div>
+    <div class="hr"></div>
+    <div class="hint">
+      DTU status is inferred from Modbus response + optional DTU stats topic.
+      True RSSI/SNR requires DTU support and controller publishing.
+    </div>
+  `;
+}
 
-  function fmt(x, d=2){
-    const n = Number(x);
-    if (!Number.isFinite(n)) return "--";
-    return n.toFixed(d);
-  }
+function render(){
+  const duty = state.platform.duty || "DOM_A";
 
-  function statusBadge(p){
-    if(!p.ok) return badge(false,false,"OK","OFFLINE");
-    if(p.fault) return badge(false,false,"OK","FAULT");
-    return p.running ? badge(true,false,"RUN","STOP") : badge(true,false,"STOP","STOP");
-  }
+  domA.innerHTML = pumpCard("Domestic Pump A", "DOM_A", state.pumps.DOM_A, duty);
+  domB.innerHTML = pumpCard("Domestic Pump B", "DOM_B", state.pumps.DOM_B, duty);
+  domSummary.innerHTML = domesticSummaryCard();
 
-  function pumpCard(title, key, p, dutyKey){
-    const isDuty = (key === dutyKey);
-    return `
-      <h3>${title} ${isDuty ? '<span class="badge ok" style="margin-left:8px"><span class="dot ok"></span>DUTY</span>' : ''}</h3>
-      <div class="big">${fmt(p.pressure_bar,2)} <span class="mini">bar</span></div>
-      <div class="row">
-        <div class="k">Status</div>
-        <div>${statusBadge(p)}</div>
-      </div>
-      <div class="row">
-        <div class="k">Frequency</div>
-        <div class="v">${fmt(p.hz,2)} Hz</div>
-      </div>
-      <div class="row">
-        <div class="k">Current</div>
-        <div class="v">${fmt(p.amps,2)} A</div>
-      </div>
-      <div class="hr"></div>
-      <div class="btnrow">
-        <button class="btn" onclick="sendCmd({cmd:'runPump', pump:'${key}'})">RUN</button>
-        <button class="btn" onclick="sendCmd({cmd:'stopPump', pump:'${key}'})">STOP</button>
-        <button class="btn" onclick="sendCmd({cmd:'resetTrip', pump:'${key}'})">RESET</button>
-      </div>
-      <div class="hint" style="margin-top:10px">
-        Tip: If this shows OFFLINE, the controller is not publishing telemetry or MQTT WS is not enabled.
-      </div>
-    `;
-  }
+  // sync selects (domestic summary & changeover tab)
+  const modeSel = document.getElementById("modeSel");
+  const dutySel = document.getElementById("dutySel");
+  if(modeSel) modeSel.value = state.platform.mode || "AUTO";
+  if(dutySel) dutySel.value = duty;
 
-  function summaryDomestic(){
-    return `
-      <h3>Domestic Summary</h3>
-      <div class="row"><div class="k">Mode</div><div class="v">${model.mode}</div></div>
-      <div class="row"><div class="k">Duty</div><div class="v">${model.duty}</div></div>
-      <div class="row"><div class="k">Setpoint</div><div class="v">${fmt(model.setpointBar,2)} bar</div></div>
-      <div class="row"><div class="k">Header Pressure</div><div class="v">${fmt(model.headerPressureBar,2)} bar</div></div>
-      <div class="row"><div class="k">Low Threshold</div><div class="v">${fmt(model.lowThresholdBar,2)} bar</div></div>
-      <div class="hr"></div>
-      <div class="controls">
-        <div>
-          <div class="k">Mode</div>
-          <select id="modeSel">
-            <option value="AUTO">AUTO</option>
-            <option value="MANUAL">MANUAL</option>
-          </select>
-        </div>
-        <div>
-          <div class="k">Duty</div>
-          <select id="dutySel">
-            <option value="DOM_A">DOM_A</option>
-            <option value="DOM_B">DOM_B</option>
-          </select>
-        </div>
-        <div>
-          <div class="k">Setpoint (bar)</div>
-          <input id="spSel" type="number" step="0.1" min="0" max="16" value="${model.setpointBar}">
-        </div>
-      </div>
-      <div class="btnrow" style="margin-top:12px">
-        <button class="btn" onclick="sendCmd({cmd:'mode', value:document.getElementById('modeSel').value})">Apply Mode</button>
-        <button class="btn" onclick="sendCmd({cmd:'setDuty', value:document.getElementById('dutySel').value})">Set Duty</button>
-        <button class="btn" onclick="sendCmd({cmd:'swapDuty'})">Swap Duty</button>
-      </div>
-      <button class="btn" style="margin-top:10px" onclick="sendCmd({cmd:'setSetpoint', bar:parseFloat(document.getElementById('spSel').value)})">
-        Send Setpoint
-      </button>
-      <div class="hint" style="margin-top:10px">
-        Setpoint here is used by the controller logic. Writing into the VFD PID reference is possible, but must match your H100 scaling/register plan.
-      </div>
-    `;
-  }
+  irrCard.innerHTML = pumpCard("Irrigation Pump", "IRR", state.pumps.IRR, "NONE");
+  irrSummary.innerHTML = irrigationSummaryCard();
 
-  function irrigationCard(){
-    return pumpCard("Irrigation Pump", "IRR", model.IRR, "NONE");
-  }
+  chgCard.innerHTML = changeoverCard();
+  actionsCardEl.innerHTML = actionsCard();
 
-  function irrigationSummary(){
-    return `
-      <h3>Irrigation Summary</h3>
-      <div class="row"><div class="k">Online</div><div class="v">${model.IRR.ok ? "YES" : "NO"}</div></div>
-      <div class="row"><div class="k">Fault</div><div class="v">${model.IRR.fault ? "YES" : "NO"}</div></div>
-      <div class="row"><div class="k">Last Telemetry</div><div class="v">${lastTelemetryMs ? new Date(lastTelemetryMs).toLocaleString() : "—"}</div></div>
-      <div class="hint" style="margin-top:10px">
-        Irrigation is monitoring only. No auto changeover.
-      </div>
-    `;
-  }
+  // sync changeover selects
+  const chgMode = document.getElementById("chgMode");
+  const chgDuty = document.getElementById("chgDuty");
+  if(chgMode) chgMode.value = state.platform.mode || "AUTO";
+  if(chgDuty) chgDuty.value = duty;
 
-  function changeoverCard(){
-    return `
-      <h3>Changeover Logic</h3>
-      <div class="row"><div class="k">Mode</div><div class="v">${model.mode}</div></div>
-      <div class="row"><div class="k">Duty</div><div class="v">${model.duty}</div></div>
-      <div class="row"><div class="k">Setpoint</div><div class="v">${fmt(model.setpointBar,2)} bar</div></div>
-      <div class="row"><div class="k">Low Threshold</div><div class="v">${fmt(model.lowThresholdBar,2)} bar</div></div>
-      <div class="row"><div class="k">Header Pressure</div><div class="v">${fmt(model.headerPressureBar,2)} bar</div></div>
-      <div class="hr"></div>
-      <div class="hint">
-        AUTO mode: weekly swap + trip swap. <br/>
-        MANUAL mode: you choose duty and the controller enforces it. <br/>
-        If DTU link fails, pump data becomes OFFLINE.
-      </div>
-    `;
-  }
+  dtuA.innerHTML = dtuCard("DTU — Domestic A", "DOM_A");
+  dtuB.innerHTML = dtuCard("DTU — Domestic B", "DOM_B");
+  dtuI.innerHTML = dtuCard("DTU — Irrigation", "IRR");
+}
 
-  function actionsCard(){
-    return `
-      <h3>Quick Actions</h3>
-      <div class="btnrow">
-        <button class="btn" onclick="sendCmd({cmd:'runPump', pump:'DOM_A'})">RUN A</button>
-        <button class="btn" onclick="sendCmd({cmd:'stopPump', pump:'DOM_A'})">STOP A</button>
-        <button class="btn" onclick="sendCmd({cmd:'resetTrip', pump:'DOM_A'})">RESET A</button>
-      </div>
-      <div class="btnrow" style="margin-top:10px">
-        <button class="btn" onclick="sendCmd({cmd:'runPump', pump:'DOM_B'})">RUN B</button>
-        <button class="btn" onclick="sendCmd({cmd:'stopPump', pump:'DOM_B'})">STOP B</button>
-        <button class="btn" onclick="sendCmd({cmd:'resetTrip', pump:'DOM_B'})">RESET B</button>
-      </div>
-      <div class="btnrow" style="margin-top:10px">
-        <button class="btn" onclick="sendCmd({cmd:'swapDuty'})">Swap Duty</button>
-        <button class="btn" onclick="sendCmd({cmd:'mode', value:'AUTO'})">AUTO</button>
-        <button class="btn" onclick="sendCmd({cmd:'mode', value:'MANUAL'})">MANUAL</button>
-      </div>
-      <div class="hint" style="margin-top:10px">
-        Commands will do nothing until the Pi controller is running and subscribed to <b>${TOPIC_CMD}</b>.
-      </div>
-    `;
-  }
-
-  // DTU status: inferred from telemetry presence per pump
-  function dtuCard(title, pumpKey, pump){
-    const now = Date.now();
-    // Consider pump "DTU OK" if pump is online; "DTU WARN" if offline but MQTT connected
-    const mqttConnected = mqttClient && mqttClient.connected;
-    const ok = pump.ok;
-    const warn = mqttConnected && !ok;
-
-    // Without real RSSI from DTU, we show inferred link state only.
-    return `
-      <h3>${title}</h3>
-      <div class="row"><div class="k">Link</div><div>${ ok ? badge(true,false,"ONLINE","OFFLINE") : (warn ? badge(false,true,"ONLINE","OFFLINE","CHECK LINK") : badge(false,false,"ONLINE","OFFLINE")) }</div></div>
-      <div class="row"><div class="k">Modbus</div><div class="v">${ok ? "RESPONDING" : "NO RESPONSE"}</div></div>
-      <div class="row"><div class="k">Hints</div><div class="v">${ok ? "Stable" : "Check ID / A-B / antenna"}</div></div>
-      <div class="hr"></div>
-      <div class="hint">
-        “DTU status” here is inferred from Modbus response. For true RF info (RSSI/SNR), your DTU must report it and the controller must publish it.
-      </div>
-    `;
-  }
-
-  function render(){
-    // Domestic
-    domA.innerHTML = pumpCard("Domestic Pump A", "DOM_A", model.DOM_A, model.duty);
-    domB.innerHTML = pumpCard("Domestic Pump B", "DOM_B", model.DOM_B, model.duty);
-    domSummary.innerHTML = summaryDomestic();
-
-    // Sync dropdowns after rendering summary card
-    const ms = document.getElementById("modeSel");
-    const ds = document.getElementById("dutySel");
-    if(ms) ms.value = model.mode;
-    if(ds) ds.value = model.duty;
-
-    // Irrigation
-    irr1.innerHTML = irrigationCard();
-    irrSummary.innerHTML = irrigationSummary();
-
-    // Changeover
-    chgCard.innerHTML = changeoverCard();
-    actionsCard.innerHTML = actionsCard();
-
-    // DTU
-    dtuA.innerHTML = dtuCard("DTU — Domestic A", "DOM_A", model.DOM_A);
-    dtuB.innerHTML = dtuCard("DTU — Domestic B", "DOM_B", model.DOM_B);
-    dtuI.innerHTML = dtuCard("DTU — Irrigation", "IRR", model.IRR);
-  }
-
-  // Tabs
-  document.querySelectorAll(".tabbtn").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      document.querySelectorAll(".tabbtn").forEach(x=>x.classList.remove("active"));
-      btn.classList.add("active");
-      const t = btn.dataset.tab;
-      ["dom","irr","chg","dtu"].forEach(x=>{
-        document.getElementById("tab-"+x).classList.toggle("hidden", x!==t);
-      });
+/* =============================
+   Tabs
+   ============================= */
+document.querySelectorAll(".tabbtn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tabbtn").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    const t = btn.dataset.tab;
+    ["dom","irr","chg","dtu"].forEach(x=>{
+      document.getElementById("tab-"+x).classList.toggle("hidden", x!==t);
     });
   });
+});
 
-  // Command publish
-  let mqttClient = null;
-  function sendCmd(obj){
-    if(!mqttClient || !mqttClient.connected){
-      alert("MQTT not connected. Enable Mosquitto WebSocket on port 9001.");
-      return;
-    }
-    mqttClient.publish(TOPIC_CMD, JSON.stringify(obj));
+/* =============================
+   MQTT wiring
+   ============================= */
+let mqttClient = null;
+
+function setMqttState(stateName){
+  if(stateName==="connected"){
+    mqttDot.className = "dot ok";
+    mqttText.textContent = "MQTT: connected";
+  } else if(stateName==="connecting"){
+    mqttDot.className = "dot warn";
+    mqttText.textContent = "MQTT: connecting…";
+  } else {
+    mqttDot.className = "dot bad";
+    mqttText.textContent = "MQTT: disconnected";
   }
-  window.sendCmd = sendCmd;
+}
 
-  // MQTT connect
-  function setMqttState(state){
-    if(state==="connected"){
-      mqttDot.className = "dot ok";
-      mqttText.textContent = "MQTT: connected";
-    } else if(state==="connecting"){
-      mqttDot.className = "dot warn";
-      mqttText.textContent = "MQTT: connecting…";
-    } else {
-      mqttDot.className = "dot bad";
-      mqttText.textContent = "MQTT: disconnected";
+function sendCmd(topic, obj){
+  if(!mqttClient || !mqttClient.connected){
+    alert("MQTT not connected. Enable Mosquitto WebSocket on port 9001 and open this page via http://PI_IP/ (not file://).");
+    return;
+  }
+  mqttClient.publish(topic, JSON.stringify({...obj, ts: Date.now()}));
+}
+
+window.sendCmd = sendCmd;
+
+// Start UI
+const actionsCardEl = document.getElementById("actionsCard");
+setMqttState("connecting");
+render();
+
+mqttClient = mqtt.connect(WS_URL, { reconnectPeriod: 2000 });
+
+mqttClient.on("connect", ()=>{
+  setMqttState("connected");
+  mqttClient.subscribe(`${teleBase}/#`);
+  mqttClient.subscribe(statPlatform);
+  mqttClient.subscribe(statDTU);
+});
+
+mqttClient.on("reconnect", ()=> setMqttState("connecting"));
+mqttClient.on("offline", ()=> setMqttState("disconnected"));
+mqttClient.on("close", ()=> setMqttState("disconnected"));
+
+mqttClient.on("message", (topic, msg)=>{
+  let data;
+  try{ data = JSON.parse(msg.toString()); } catch(e){ return; }
+
+  state.lastTelemetryMs = Date.now();
+  lastTlm.textContent = new Date(state.lastTelemetryMs).toLocaleString();
+
+  // Telemetry per pump:
+  if(topic.startsWith(`${teleBase}/`)){
+    const key = topic.split("/").pop();
+    if(state.pumps[key]){
+      state.pumps[key] = normalizePump(data, key);
+      render();
     }
+    return;
   }
 
-  setMqttState("connecting");
-  render();
-
-  mqttClient = mqtt.connect(WS_URL, { reconnectPeriod: 2000 });
-
-  mqttClient.on("connect", ()=>{
-    setMqttState("connected");
-    mqttClient.subscribe(TOPIC_TLM);
-  });
-  mqttClient.on("reconnect", ()=> setMqttState("connecting"));
-  mqttClient.on("offline", ()=> setMqttState("disconnected"));
-  mqttClient.on("close", ()=> setMqttState("disconnected"));
-
-  mqttClient.on("message", (topic, msg)=>{
-    if(topic !== TOPIC_TLM) return;
-    lastTelemetryMs = Date.now();
-    lastTlm.textContent = new Date(lastTelemetryMs).toLocaleString();
-
-    let t;
-    try{ t = JSON.parse(msg.toString()); } catch(e){ return; }
-
-    // Update model safely
-    model.ts = t.ts ?? model.ts;
-    model.mode = t.mode ?? model.mode;
-    model.duty = t.duty ?? model.duty;
-    model.setpointBar = (typeof t.setpointBar==="number") ? t.setpointBar : model.setpointBar;
-    model.headerPressureBar = (typeof t.headerPressureBar==="number") ? t.headerPressureBar : model.headerPressureBar;
-    model.lowThresholdBar = (typeof t.lowThresholdBar==="number") ? t.lowThresholdBar : model.lowThresholdBar;
-
-    // Pump payloads (expect pressure_bar/hz/amps/ok/fault/running)
-    model.DOM_A = t.DOM_A ?? model.DOM_A;
-    model.DOM_B = t.DOM_B ?? model.DOM_B;
-    model.IRR   = t.IRR   ?? model.IRR;
-
+  // Platform state:
+  if(topic === statPlatform){
+    state.platform = {
+      mode: data.mode ?? state.platform.mode,
+      duty: data.duty ?? state.platform.duty,
+      setpoint_bar: (data.setpoint_bar !== undefined) ? data.setpoint_bar : state.platform.setpoint_bar
+    };
     render();
-  });
+    return;
+  }
+
+  // DTU status:
+  if(topic === statDTU){
+    state.dtu = data;
+    render();
+    return;
+  }
+});
+
+function normalizePump(d, key){
+  // Deep-check: accept both naming styles (out_freq_hz vs hz) to avoid silent failures.
+  // Prefer official fields from our backend structure.
+  const p = emptyPump();
+  p.key = key;
+  p.online = !!(d.online ?? d.ok ?? false);
+
+  p.pressure_bar = (d.pressure_bar ?? d.pressureBar ?? null);
+  p.v1_percent = (d.v1_percent ?? d.v1Percent ?? d.v1 ?? null);
+  p.out_freq_hz = (d.out_freq_hz ?? d.hz ?? d.outFreqHz ?? null);
+  p.out_current_a = (d.out_current_a ?? d.amps ?? d.currentA ?? null);
+
+  p.op_status = d.op_status || d.opStatus || p.op_status;
+  p.fault_info = d.fault_info || d.faultInfo || p.fault_info;
+
+  p.ts = d.ts ?? null;
+  return p;
+}
 </script>
 </body>
 </html>
