@@ -3,648 +3,504 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Pump Platform — Domestic + Irrigation</title>
-<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<title>Compound Pumps Platform</title>
 <style>
   :root{
-    --bg:#070b14;
-    --panel:#0d1426;
-    --panel2:#0b1020;
-    --stroke:#1c2a4d;
-    --stroke2:#223763;
-    --txt:#e9efff;
-    --muted:#a9b7df;
-    --ok:#43ffb5;
-    --bad:#ff7f9b;
-    --warn:#ffd166;
-    --btn:#121c35;
-    --shadow: 0 10px 30px rgba(0,0,0,.35);
-    --r:18px;
+    --bg:#070B16; --card:#0E1630; --card2:#0C132A; --stroke:#1C2A52;
+    --text:#EAF0FF; --muted:#9BB0E5; --good:#35D07F; --bad:#FF4D6D; --warn:#FFC857;
+    --accent:#6EA8FE; --accent2:#9B7BFF;
+    --shadow: 0 14px 45px rgba(0,0,0,.45);
+    --radius:18px;
   }
   *{box-sizing:border-box}
   body{
-    margin:0; padding:18px;
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-    background: radial-gradient(1000px 600px at 20% 0%, #0c1330 0%, var(--bg) 55%) fixed;
-    color:var(--txt);
+    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    background: radial-gradient(1200px 700px at 20% 10%, rgba(110,168,254,.25), transparent 60%),
+                radial-gradient(1000px 600px at 80% 20%, rgba(155,123,255,.18), transparent 55%),
+                radial-gradient(900px 600px at 40% 90%, rgba(53,208,127,.12), transparent 50%),
+                var(--bg);
+    color:var(--text);
   }
-  .top{
-    display:flex; gap:14px; flex-wrap:wrap; align-items:center; justify-content:space-between;
-    margin-bottom:14px;
+  .wrap{max-width:1200px;margin:28px auto;padding:0 18px}
+  header{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:14px; margin-bottom:18px;
   }
-  .title{font-size:22px; font-weight:900; letter-spacing:.2px}
-  .statusbar{
-    display:flex; gap:10px; flex-wrap:wrap; align-items:center;
-    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-    border:1px solid var(--stroke);
-    border-radius:999px;
-    padding:10px 12px;
-    box-shadow: var(--shadow);
-  }
+  h1{margin:0;font-size:26px;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:13px;margin-top:6px}
   .pill{
-    display:flex; gap:8px; align-items:center;
-    padding:6px 10px; border-radius:999px;
-    border:1px solid var(--stroke2);
-    background:rgba(10,16,35,.55);
-    font-size:12px;
+    display:inline-flex; align-items:center; gap:8px; padding:10px 12px;
+    background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+    border-radius: 999px;
   }
-  .dot{width:10px; height:10px; border-radius:50%}
-  .dot.ok{background:var(--ok)}
-  .dot.bad{background:var(--bad)}
-  .dot.warn{background:var(--warn)}
-  .muted{color:var(--muted)}
-  .tabs{
-    display:flex; gap:10px; flex-wrap:wrap;
-    margin:14px 0;
-  }
-  .tabbtn{
-    border:1px solid var(--stroke);
-    background:rgba(255,255,255,.02);
-    color:var(--txt);
-    padding:10px 12px;
-    border-radius:999px;
-    cursor:pointer;
-    transition:.15s;
-    font-weight:800;
-    font-size:13px;
-  }
-  .tabbtn:hover{filter:brightness(1.08)}
-  .tabbtn.active{
-    background:linear-gradient(180deg, rgba(85,140,255,.22), rgba(85,140,255,.08));
-    border-color:#2d4a88;
-  }
+  .dot{width:10px;height:10px;border-radius:50%}
   .grid{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-    gap:12px;
+    grid-template-columns: 1.15fr .85fr;
+    gap:14px;
   }
+  @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
   .card{
-    background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-    border:1px solid var(--stroke);
-    border-radius:var(--r);
-    padding:14px;
+    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.08);
+    border-radius: var(--radius);
     box-shadow: var(--shadow);
-    min-height:160px;
+    overflow:hidden;
   }
-  .card h3{
-    margin:0 0 10px 0;
-    font-size:14px;
-    letter-spacing:.3px;
-    color:var(--muted);
-    font-weight:900;
-    text-transform:uppercase;
+  .card .hd{
+    padding:14px 16px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background: rgba(0,0,0,.12);
   }
-  .big{
-    font-size:34px;
-    font-weight:950;
-    margin:2px 0 8px 0;
-    letter-spacing:.3px;
+  .card .bd{padding:14px 16px}
+  .title{font-weight:700}
+  .muted{color:var(--muted)}
+  .row{display:flex; gap:12px; flex-wrap:wrap}
+  .kpi{
+    flex:1 1 160px;
+    padding:12px;
+    border-radius: 14px;
+    border:1px solid rgba(255,255,255,.08);
+    background: rgba(0,0,0,.12);
   }
-  .row{display:flex; justify-content:space-between; gap:12px; margin:8px 0}
-  .k{color:var(--muted); font-size:12px}
-  .v{font-weight:900}
-  .badge{
-    display:inline-flex; gap:8px; align-items:center;
-    padding:6px 10px; border-radius:999px;
-    font-size:12px; font-weight:950;
-    border:1px solid var(--stroke2);
-    background:rgba(10,16,35,.55);
-  }
-  .badge.ok{color:var(--ok)}
-  .badge.bad{color:var(--bad)}
-  .badge.warn{color:var(--warn)}
+  .kpi .label{color:var(--muted);font-size:12px}
+  .kpi .value{font-size:22px;font-weight:800;margin-top:6px}
+  .kpi small{color:var(--muted)}
+  .bad{color:var(--bad)}
+  .good{color:var(--good)}
+  .warn{color:var(--warn)}
   .btn{
-    padding:10px 12px;
-    border-radius:14px;
-    border:1px solid var(--stroke2);
-    background:var(--btn);
-    color:var(--txt);
+    padding:10px 12px; border-radius: 12px; border:1px solid rgba(255,255,255,.14);
+    background: rgba(110,168,254,.12);
+    color:var(--text);
     cursor:pointer;
-    font-weight:900;
-    transition:.15s;
-    width:100%;
   }
   .btn:hover{filter:brightness(1.08)}
-  .btnrow{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px}
-  .controls{
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;
-    margin-top:12px;
-  }
-  input,select{
-    width:100%;
-    padding:10px 12px;
-    border-radius:14px;
-    border:1px solid var(--stroke2);
-    background:rgba(10,16,35,.55);
-    color:var(--txt);
-    font-weight:800;
+  .btn.secondary{background: rgba(155,123,255,.10)}
+  .btn.ghost{background: rgba(255,255,255,.04)}
+  .btn.danger{background: rgba(255,77,109,.12)}
+  select,input{
+    background: rgba(0,0,0,.18);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius: 12px;
+    color:var(--text);
+    padding:10px 10px;
     outline:none;
   }
-  .hint{font-size:12px;color:var(--muted);line-height:1.35}
-  .hidden{display:none}
-  .mini{font-size:12px;color:var(--muted)}
-  .hr{height:1px;background:rgba(255,255,255,.06);margin:10px 0}
-  .twoCol{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
+  input{width:120px}
+  .controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width: 720px){ .split{grid-template-columns:1fr} }
+
+  canvas{width:100%;height:190px; background: rgba(0,0,0,.10); border:1px solid rgba(255,255,255,.08); border-radius: 14px;}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px}
+  th{color:var(--muted);font-weight:700;text-align:left}
+  .tag{
+    padding:6px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:8px;
+    border:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.10);
+    font-size:12px;
   }
-  @media(max-width:800px){ .twoCol{grid-template-columns:1fr;} }
-  code{color:rgba(234,240,255,.75)}
 </style>
 </head>
 <body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Domestic Pumps (Duty/Standby) + Irrigation</h1>
+      <div class="sub">MQTT realtime + history (pressure + Hz + current + faults) • Hosted on Raspberry Pi</div>
+    </div>
+    <div class="pill">
+      <div id="mqttDot" class="dot" style="background:#777"></div>
+      <div>
+        <div style="font-weight:800" id="mqttText">MQTT: connecting…</div>
+        <div class="sub" id="mqttSub">ws://HOST:9001</div>
+      </div>
+    </div>
+  </header>
 
-<div class="top">
-  <div class="title">Pump Platform — Domestic + Irrigation</div>
+  <div class="grid">
+    <!-- LEFT: Control + Domestic -->
+    <div class="card">
+      <div class="hd">
+        <div>
+          <div class="title">Control Center</div>
+          <div class="sub">Mode, duty selection, swap, setpoint (platform), thresholds</div>
+        </div>
+        <div class="tag" id="platformTag">Mode: -- • Duty: --</div>
+      </div>
+      <div class="bd">
+        <div class="controls">
+          <label class="muted">Mode</label>
+          <select id="modeSel">
+            <option value="AUTO">AUTO</option>
+            <option value="MANUAL">MANUAL</option>
+          </select>
 
-  <div class="statusbar">
-    <div class="pill">
-      <span id="mqttDot" class="dot bad"></span>
-      <span class="v" id="mqttText">MQTT: disconnected</span>
+          <label class="muted">Duty</label>
+          <select id="dutySel">
+            <option value="DOM_A">DOM_A</option>
+            <option value="DOM_B">DOM_B</option>
+          </select>
+
+          <button class="btn" id="applyModeBtn">Apply Mode</button>
+          <button class="btn secondary" id="setDutyBtn">Set Duty</button>
+          <button class="btn ghost" id="swapBtn">Swap Duty Now</button>
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div class="controls">
+          <label class="muted">Setpoint (bar)</label>
+          <input id="setpointInp" type="number" step="0.1" value="2.5"/>
+          <button class="btn" id="setpointBtn">Set Setpoint</button>
+
+          <label class="muted">Weekly swap</label>
+          <select id="weeklySel">
+            <option value="true">Enabled</option>
+            <option value="false">Disabled</option>
+          </select>
+          <button class="btn ghost" id="weeklyBtn">Apply</button>
+        </div>
+
+        <div style="height:14px"></div>
+
+        <div class="split">
+          <div class="card" style="box-shadow:none;background:rgba(0,0,0,.08)">
+            <div class="hd"><div class="title">Domestic Pump A</div><div class="tag" id="tagA">--</div></div>
+            <div class="bd">
+              <div class="row">
+                <div class="kpi"><div class="label">Header Pressure</div><div class="value" id="aP">--</div><small>bar</small></div>
+                <div class="kpi"><div class="label">Output Frequency</div><div class="value" id="aHz">--</div><small>Hz</small></div>
+                <div class="kpi"><div class="label">Output Current</div><div class="value" id="aA">--</div><small>A</small></div>
+                <div class="kpi"><div class="label">Trip Code</div><div class="value" id="aTrip">--</div><small>0 = OK</small></div>
+              </div>
+              <div style="height:10px"></div>
+              <canvas id="chartA"></canvas>
+            </div>
+          </div>
+
+          <div class="card" style="box-shadow:none;background:rgba(0,0,0,.08)">
+            <div class="hd"><div class="title">Domestic Pump B</div><div class="tag" id="tagB">--</div></div>
+            <div class="bd">
+              <div class="row">
+                <div class="kpi"><div class="label">Header Pressure</div><div class="value" id="bP">--</div><small>bar</small></div>
+                <div class="kpi"><div class="label">Output Frequency</div><div class="value" id="bHz">--</div><small>Hz</small></div>
+                <div class="kpi"><div class="label">Output Current</div><div class="value" id="bA">--</div><small>A</small></div>
+                <div class="kpi"><div class="label">Trip Code</div><div class="value" id="bTrip">--</div><small>0 = OK</small></div>
+              </div>
+              <div style="height:10px"></div>
+              <canvas id="chartB"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
-    <div class="pill">
-      <span class="muted">WS</span>
-      <span class="v"><code id="wsUrl">—</code></span>
+
+    <!-- RIGHT: Irrigation + DTU Health + Events -->
+    <div class="card">
+      <div class="hd">
+        <div>
+          <div class="title">Irrigation + DTU Status</div>
+          <div class="sub">Monitoring only (no changeover)</div>
+        </div>
+        <div class="tag" id="tagIRR">--</div>
+      </div>
+      <div class="bd">
+        <div class="row">
+          <div class="kpi"><div class="label">Irrigation Pressure</div><div class="value" id="iP">--</div><small>bar</small></div>
+          <div class="kpi"><div class="label">Irrigation Frequency</div><div class="value" id="iHz">--</div><small>Hz</small></div>
+          <div class="kpi"><div class="label">Irrigation Current</div><div class="value" id="iA">--</div><small>A</small></div>
+          <div class="kpi"><div class="label">Irrigation Trip</div><div class="value" id="iTrip">--</div><small>0 = OK</small></div>
+        </div>
+        <div style="height:10px"></div>
+        <canvas id="chartI"></canvas>
+
+        <div style="height:16px"></div>
+
+        <div class="card" style="box-shadow:none;background:rgba(0,0,0,.08)">
+          <div class="hd">
+            <div class="title">DTU / Link Health</div>
+            <div class="sub">Based on last telemetry time</div>
+          </div>
+          <div class="bd">
+            <table>
+              <thead><tr><th>Pump</th><th>Online</th><th>Last Seen</th></tr></thead>
+              <tbody>
+                <tr><td>DOM_A</td><td id="hA">--</td><td id="tA">--</td></tr>
+                <tr><td>DOM_B</td><td id="hB">--</td><td id="tB">--</td></tr>
+                <tr><td>IRR</td><td id="hI">--</td><td id="tI">--</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div style="height:16px"></div>
+
+        <div class="card" style="box-shadow:none;background:rgba(0,0,0,.08)">
+          <div class="hd"><div class="title">Realtime Events</div><div class="sub">Faults / swaps</div></div>
+          <div class="bd">
+            <div id="events" class="muted" style="font-size:13px;line-height:1.6">Waiting for telemetry…</div>
+          </div>
+        </div>
+
+      </div>
     </div>
-    <div class="pill">
-      <span class="muted">Last Telemetry</span>
-      <span class="v" id="lastTlm">—</span>
-    </div>
+
   </div>
 </div>
-
-<div class="tabs">
-  <button class="tabbtn active" data-tab="dom">Domestic A & B</button>
-  <button class="tabbtn" data-tab="irr">Irrigation</button>
-  <button class="tabbtn" data-tab="chg">Changeover & Setpoint</button>
-  <button class="tabbtn" data-tab="dtu">DTU / Comms Status</button>
-</div>
-
-<!-- Domestic -->
-<section id="tab-dom">
-  <div class="grid">
-    <div class="card" id="domA"></div>
-    <div class="card" id="domB"></div>
-    <div class="card" id="domSummary"></div>
-  </div>
-</section>
-
-<!-- Irrigation -->
-<section id="tab-irr" class="hidden">
-  <div class="grid">
-    <div class="card" id="irrCard"></div>
-    <div class="card" id="irrSummary"></div>
-  </div>
-</section>
-
-<!-- Changeover -->
-<section id="tab-chg" class="hidden">
-  <div class="grid">
-    <div class="card" id="chgCard"></div>
-    <div class="card" id="actionsCard"></div>
-  </div>
-</section>
-
-<!-- DTU -->
-<section id="tab-dtu" class="hidden">
-  <div class="grid">
-    <div class="card" id="dtuA"></div>
-    <div class="card" id="dtuB"></div>
-    <div class="card" id="dtuI"></div>
-  </div>
-</section>
 
 <script>
-/* =============================
-   CONFIG (edit only if needed)
-   ============================= */
-const WS_URL = "ws://" + location.hostname + ":9001"; // mosquitto websockets on Pi
-const teleBase = "compound/pumps/tele"; // expects /DOM_A /DOM_B /IRR
-const statPlatform = "compound/pumps/stat/platform";
-const statDTU = "compound/pumps/stat/dtu";
-const cmdBase = "compound/pumps/cmd"; // mode, set_duty, swap_now, set_setpoint
+/* ===== MQTT over WebSockets (no external libs) =====
+   Uses browser-native WebSocket + minimal MQTT 3.1.1 client.
+   Works with Mosquitto websockets listener.
+*/
+const HOST = location.hostname || "127.0.0.1";
+const WS_URL = `ws://${HOST}:9001`;
+document.getElementById("mqttSub").textContent = WS_URL;
 
-wsUrl.textContent = WS_URL;
+function u8(...a){return new Uint8Array(a)}
+function encStr(s){
+  const te=new TextEncoder(); const b=te.encode(s);
+  const out=new Uint8Array(2+b.length); out[0]=b.length>>8; out[1]=b.length&255; out.set(b,2); return out;
+}
+function concat(...arrs){
+  let len=0; arrs.forEach(a=>len+=a.length);
+  const o=new Uint8Array(len); let p=0;
+  arrs.forEach(a=>{o.set(a,p); p+=a.length});
+  return o;
+}
+function mqttConnectPacket(clientId){
+  const proto=encStr("MQTT");
+  const lvl=u8(4);
+  const flags=u8(0x02); // clean session
+  const keep=u8(0,60);
+  const cid=encStr(clientId);
+  const vh=concat(proto,lvl,flags,keep);
+  const pl=cid;
+  const rl=vh.length+pl.length;
+  const fh=u8(0x10, rl); // assume <127
+  return concat(fh,vh,pl);
+}
+function mqttSubscribePacket(pid, topic){
+  const t=encStr(topic);
+  const qos=u8(0);
+  const vh=u8(pid>>8,pid&255);
+  const pl=concat(t,qos);
+  const rl=vh.length+pl.length;
+  const fh=u8(0x82, rl);
+  return concat(fh,vh,pl);
+}
+function mqttPublishPacket(topic, payloadStr){
+  const t=encStr(topic);
+  const te=new TextEncoder(); const p=te.encode(payloadStr);
+  const rl=t.length+p.length;
+  const fh=u8(0x30, rl);
+  return concat(fh,t,p);
+}
+function parsePublish(buf){
+  const b=new Uint8Array(buf);
+  const type=b[0]>>4;
+  if(type!==3) return null;
+  let idx=1; let rl=b[idx++]; // assume <127
+  const tlen=(b[idx]<<8)|b[idx+1]; idx+=2;
+  const topic=new TextDecoder().decode(b.slice(idx,idx+tlen)); idx+=tlen;
+  const payload=new TextDecoder().decode(b.slice(idx,idx+rl-(2+tlen)));
+  return {topic,payload};
+}
 
-/* =============================
-   State model (never empty)
-   ============================= */
-const state = {
-  platform: { mode:"AUTO", duty:"DOM_A", setpoint_bar:2.5 },
-  pumps: {
-    DOM_A: emptyPump(),
-    DOM_B: emptyPump(),
-    IRR:   emptyPump()
-  },
-  dtu: null,
-  lastTelemetryMs: 0,
-};
+let ws=null, connected=false, pid=1;
+const mqttDot=document.getElementById("mqttDot");
+const mqttText=document.getElementById("mqttText");
+function setMqttStatus(ok, text){
+  mqttDot.style.background = ok ? "#35D07F" : "#FF4D6D";
+  mqttText.textContent = text;
+}
 
-function emptyPump(){
-  return {
-    key:null, name:null, role:null, slave_id:null,
-    online:false,
-    pressure_bar:null, v1_percent:null,
-    out_freq_hz:null, out_current_a:null,
-    op_status:{ fault_trip:false, running_fwd:false, stopped:false },
-    fault_info:{ latch_trip:false, level_trip:false, hw_diag:false },
-    ts:null
+const TOPIC_TELE="compound/pumps/tele";
+const CMD_BASE="compound/pumps/cmd";
+
+function mqttSend(topic, obj){
+  if(!connected) return;
+  ws.send(mqttPublishPacket(topic, JSON.stringify(obj)));
+}
+
+// Charts (simple ring buffer)
+function makeSeries(n=180){ return Array.from({length:n}, ()=>null); }
+const seriesA=makeSeries(), seriesB=makeSeries(), seriesI=makeSeries();
+let si=0;
+
+function drawChart(canvas, series){
+  const ctx=canvas.getContext("2d");
+  const w=canvas.width=canvas.clientWidth;
+  const h=canvas.height=canvas.clientHeight;
+  ctx.clearRect(0,0,w,h);
+
+  // grid
+  ctx.globalAlpha=.25;
+  ctx.beginPath();
+  for(let i=0;i<5;i++){
+    const y = (h-20) * (i/4) + 10;
+    ctx.moveTo(10,y); ctx.lineTo(w-10,y);
+  }
+  ctx.strokeStyle="#9BB0E5"; ctx.stroke();
+  ctx.globalAlpha=1;
+
+  const vals=series.filter(v=>v!==null);
+  if(vals.length<2) return;
+  const min=Math.min(...vals), max=Math.max(...vals);
+  const pad=(max-min)*0.15 || 1;
+  const lo=min-pad, hi=max+pad;
+
+  ctx.beginPath();
+  let started=false;
+  for(let i=0;i<series.length;i++){
+    const v=series[(si+i)%series.length];
+    if(v===null) continue;
+    const x = 10 + (w-20)*(i/(series.length-1));
+    const y = 10 + (h-20)*(1 - ((v-lo)/(hi-lo)));
+    if(!started){ctx.moveTo(x,y); started=true;} else ctx.lineTo(x,y);
+  }
+  ctx.lineWidth=2;
+  ctx.strokeStyle="#6EA8FE";
+  ctx.stroke();
+
+  // label
+  ctx.fillStyle="#EAF0FF";
+  ctx.font="12px ui-sans-serif,system-ui";
+  ctx.fillText(`Pressure bar (auto scale)`, 14, 20);
+}
+
+function fmtTs(ts){
+  if(!ts) return "--";
+  const d=new Date(ts*1000);
+  return d.toLocaleString();
+}
+function setTag(el, p){
+  const t = !p ? "--" : (p.fault ? "FAULT" : (p.running ? "RUN" : "STOP"));
+  el.textContent = `${t} • ${p.online ? "ONLINE" : "OFFLINE"}`;
+  el.style.borderColor = p && p.fault ? "rgba(255,77,109,.45)" : "rgba(255,255,255,.10)";
+}
+function setValue(id, v){ document.getElementById(id).textContent = (v===null||v===undefined) ? "--" : v; }
+
+function pushEvent(line){
+  const el=document.getElementById("events");
+  const now=new Date().toLocaleTimeString();
+  if(el.textContent.startsWith("Waiting")) el.textContent="";
+  el.innerHTML = `<div>• <span class="muted">${now}</span> ${line}</div>` + el.innerHTML;
+}
+
+function applyTelemetry(payload){
+  const plat = payload.platform || {};
+  const pumps = payload.pumps || {};
+
+  document.getElementById("platformTag").textContent = `Mode: ${plat.mode||"--"} • Duty: ${plat.duty||"--"}`;
+  document.getElementById("modeSel").value = plat.mode || "AUTO";
+  document.getElementById("dutySel").value = plat.duty || "DOM_A";
+  document.getElementById("setpointInp").value = plat.setpoint_bar ?? 2.5;
+  document.getElementById("weeklySel").value = String(!!plat.weekly_swap);
+
+  const A=pumps.DOM_A, B=pumps.DOM_B, I=pumps.IRR;
+  if(A){
+    setTag(document.getElementById("tagA"), A);
+    setValue("aP", A.pressure_bar?.toFixed?.(2));
+    setValue("aHz", A.freq_hz?.toFixed?.(2));
+    setValue("aA", A.current_a?.toFixed?.(1));
+    setValue("aTrip", A.trip_code ?? 0);
+    seriesA[si]=A.pressure_bar ?? null;
+    document.getElementById("hA").textContent = A.online ? "YES" : "NO";
+    document.getElementById("tA").textContent = fmtTs(A.last_seen);
+  }
+  if(B){
+    setTag(document.getElementById("tagB"), B);
+    setValue("bP", B.pressure_bar?.toFixed?.(2));
+    setValue("bHz", B.freq_hz?.toFixed?.(2));
+    setValue("bA", B.current_a?.toFixed?.(1));
+    setValue("bTrip", B.trip_code ?? 0);
+    seriesB[si]=B.pressure_bar ?? null;
+    document.getElementById("hB").textContent = B.online ? "YES" : "NO";
+    document.getElementById("tB").textContent = fmtTs(B.last_seen);
+  }
+  if(I){
+    setTag(document.getElementById("tagIRR"), I);
+    setValue("iP", I.pressure_bar?.toFixed?.(2));
+    setValue("iHz", I.freq_hz?.toFixed?.(2));
+    setValue("iA", I.current_a?.toFixed?.(1));
+    setValue("iTrip", I.trip_code ?? 0);
+    seriesI[si]=I.pressure_bar ?? null;
+    document.getElementById("hI").textContent = I.online ? "YES" : "NO";
+    document.getElementById("tI").textContent = fmtTs(I.last_seen);
+  }
+
+  si=(si+1)%seriesA.length;
+  drawChart(document.getElementById("chartA"), seriesA);
+  drawChart(document.getElementById("chartB"), seriesB);
+  drawChart(document.getElementById("chartI"), seriesI);
+
+  // Simple event logic
+  if(A?.fault) pushEvent(`<span class="bad">DOM_A fault</span> trip=${A.trip_code}`);
+  if(B?.fault) pushEvent(`<span class="bad">DOM_B fault</span> trip=${B.trip_code}`);
+  if(I?.fault) pushEvent(`<span class="bad">IRR fault</span> trip=${I.trip_code}`);
+}
+
+function start(){
+  setMqttStatus(false, "MQTT: connecting…");
+  ws = new WebSocket(WS_URL);
+  ws.binaryType="arraybuffer";
+  ws.onopen=()=>{
+    ws.send(mqttConnectPacket("dash-"+Math.random().toString(16).slice(2)));
+  };
+  ws.onmessage=(ev)=>{
+    const pub=parsePublish(ev.data);
+    if(!connected){
+      // CONNACK is type 2, but our minimal parser ignores. We'll mark connected when first SUBACK/PUBLISH arrives.
+    }
+    if(pub){
+      if(pub.topic===TOPIC_TELE){
+        connected=true;
+        setMqttStatus(true, "MQTT: connected");
+        try{ applyTelemetry(JSON.parse(pub.payload)); }catch(e){}
+      }
+    }else{
+      // Try to detect SUBACK
+      const b=new Uint8Array(ev.data);
+      if((b[0]>>4)===2){ // CONNACK
+        ws.send(mqttSubscribePacket(pid++, TOPIC_TELE));
+        connected=true;
+        setMqttStatus(true, "MQTT: connected");
+      }
+    }
+  };
+  ws.onclose=()=>{
+    connected=false;
+    setMqttStatus(false, "MQTT: disconnected (retrying)");
+    setTimeout(start, 1500);
+  };
+  ws.onerror=()=>{
+    connected=false;
+    setMqttStatus(false, "MQTT: error (retrying)");
+    try{ws.close();}catch(e){}
   };
 }
+start();
 
-function dotClass(ok, warn=false){
-  if(warn) return "dot warn";
-  return ok ? "dot ok" : "dot bad";
-}
-function badge(ok, warn=false, okText="OK", badText="OFFLINE", warnText="CHECK"){
-  if(warn) return `<span class="badge warn"><span class="${dotClass(true,true)}"></span>${warnText}</span>`;
-  return ok
-    ? `<span class="badge ok"><span class="${dotClass(true)}"></span>${okText}</span>`
-    : `<span class="badge bad"><span class="${dotClass(false)}"></span>${badText}</span>`;
-}
-function fmt(x, d=2){
-  const n = Number(x);
-  if(!Number.isFinite(n)) return "--";
-  return n.toFixed(d);
-}
-function statusText(p){
-  if(!p.online) return "OFFLINE";
-  if(p.op_status?.fault_trip) return "FAULT TRIP";
-  if(p.op_status?.running_fwd) return "RUNNING";
-  if(p.op_status?.stopped) return "STOPPED";
-  return "READY";
-}
-function faultBool(p){
-  const os = p.op_status || {};
-  const fi = p.fault_info || {};
-  return !!os.fault_trip || !!fi.latch_trip || !!fi.level_trip || !!fi.hw_diag;
-}
-
-/* =============================
-   UI rendering
-   ============================= */
-function pumpCard(title, key, p, dutyKey){
-  const isDuty = (key === dutyKey);
-  const online = !!p.online;
-  const f = faultBool(p);
-
-  const stBadge = !online ? badge(false,false,"OK","OFFLINE")
-                 : f ? badge(false,false,"OK","FAULT")
-                 : badge(true,false, p.op_status?.running_fwd ? "RUN" : "OK", "OFFLINE");
-
-  const faultType = (p.fault_info?.hw_diag ? "HW" : (p.fault_info?.latch_trip ? "LATCH" : (p.fault_info?.level_trip ? "LEVEL" : (p.op_status?.fault_trip ? "TRIP" : "--"))));
-
-  return `
-    <h3>${title} ${isDuty ? '<span class="badge ok" style="margin-left:8px"><span class="dot ok"></span>DUTY</span>' : ''}</h3>
-
-    <div class="big">${fmt(p.pressure_bar,2)} <span class="mini">bar</span></div>
-
-    <div class="row">
-      <div class="k">Status</div>
-      <div>${stBadge}</div>
-    </div>
-
-    <div class="row">
-      <div class="k">Hz</div>
-      <div class="v">${fmt(p.out_freq_hz,2)} Hz</div>
-    </div>
-
-    <div class="row">
-      <div class="k">Current</div>
-      <div class="v">${fmt(p.out_current_a,1)} A</div>
-    </div>
-
-    <div class="row">
-      <div class="k">V1 (feedback)</div>
-      <div class="v">${fmt(p.v1_percent,1)} %</div>
-    </div>
-
-    <div class="row">
-      <div class="k">Fault Type</div>
-      <div class="v">${faultType}</div>
-    </div>
-
-    <div class="hr"></div>
-    <div class="btnrow">
-      <button class="btn" onclick="sendCmd('${cmdBase}/run', {pump:'${key}'})">RUN</button>
-      <button class="btn" onclick="sendCmd('${cmdBase}/stop', {pump:'${key}'})">STOP</button>
-      <button class="btn" onclick="sendCmd('${cmdBase}/reset', {pump:'${key}'})">RESET</button>
-    </div>
-
-    <div class="hint" style="margin-top:10px">
-      If OFFLINE: check DTU link, Modbus ID, A/B polarity, and that the controller is publishing telemetry.
-    </div>
-  `;
-}
-
-function domesticSummaryCard(){
-  const p = state.platform;
-  const duty = p.duty || "DOM_A";
-  const headerPressure = Math.max(
-    Number(state.pumps.DOM_A.pressure_bar) || 0,
-    Number(state.pumps.DOM_B.pressure_bar) || 0
-  );
-  return `
-    <h3>Domestic Summary</h3>
-
-    <div class="row"><div class="k">Mode</div><div class="v">${p.mode || "--"}</div></div>
-    <div class="row"><div class="k">Duty</div><div class="v">${p.duty || "--"}</div></div>
-    <div class="row"><div class="k">Supervisory Setpoint</div><div class="v">${fmt(p.setpoint_bar,1)} bar</div></div>
-    <div class="row"><div class="k">Header Pressure (est.)</div><div class="v">${fmt(headerPressure,2)} bar</div></div>
-
-    <div class="hr"></div>
-
-    <div class="controls">
-      <div>
-        <div class="k">Mode</div>
-        <select id="modeSel">
-          <option value="AUTO">AUTO</option>
-          <option value="MANUAL">MANUAL</option>
-          <option value="OFF">OFF</option>
-        </select>
-      </div>
-
-      <div>
-        <div class="k">Duty</div>
-        <select id="dutySel">
-          <option value="DOM_A">DOM_A</option>
-          <option value="DOM_B">DOM_B</option>
-        </select>
-      </div>
-
-      <div>
-        <div class="k">Setpoint (bar)</div>
-        <input id="spSel" type="number" step="0.1" min="0" max="16" value="${p.setpoint_bar ?? 2.5}">
-      </div>
-    </div>
-
-    <div class="btnrow" style="margin-top:12px">
-      <button class="btn" onclick="sendCmd('${cmdBase}/mode', {mode:document.getElementById('modeSel').value})">Apply Mode</button>
-      <button class="btn" onclick="sendCmd('${cmdBase}/set_duty', {duty:document.getElementById('dutySel').value})">Set Duty</button>
-      <button class="btn" onclick="sendCmd('${cmdBase}/swap_now', {ts:Date.now()})">Swap Duty Now</button>
-    </div>
-
-    <button class="btn" style="margin-top:10px" onclick="sendCmd('${cmdBase}/set_setpoint', {setpoint_bar:parseFloat(document.getElementById('spSel').value)})">
-      Set Setpoint
-    </button>
-
-    <div class="hint" style="margin-top:10px">
-      Note: Setpoint here is supervisory. Writing PID reference to H100 needs a confirmed scaling/register map.
-    </div>
-  `;
-}
-
-function irrigationSummaryCard(){
-  const p = state.pumps.IRR;
-  return `
-    <h3>Irrigation Summary</h3>
-    <div class="row"><div class="k">Online</div><div class="v">${p.online ? "YES" : "NO"}</div></div>
-    <div class="row"><div class="k">Fault</div><div class="v">${faultBool(p) ? "YES" : "NO"}</div></div>
-    <div class="row"><div class="k">Last Telemetry</div><div class="v">${state.lastTelemetryMs ? new Date(state.lastTelemetryMs).toLocaleString() : "—"}</div></div>
-    <div class="hint" style="margin-top:10px">
-      Irrigation is monitoring only (no changeover).
-    </div>
-  `;
-}
-
-function changeoverCard(){
-  const p = state.platform;
-  return `
-    <h3>Changeover & Setpoint</h3>
-    <div class="row"><div class="k">Mode</div><div class="v">${p.mode || "--"}</div></div>
-    <div class="row"><div class="k">Duty</div><div class="v">${p.duty || "--"}</div></div>
-    <div class="row"><div class="k">Setpoint</div><div class="v">${fmt(p.setpoint_bar,1)} bar</div></div>
-    <div class="hr"></div>
-    <div class="twoCol">
-      <div>
-        <div class="k">Mode</div>
-        <select id="chgMode">
-          <option value="AUTO">AUTO</option>
-          <option value="MANUAL">MANUAL</option>
-          <option value="OFF">OFF</option>
-        </select>
-      </div>
-      <div>
-        <div class="k">Duty</div>
-        <select id="chgDuty">
-          <option value="DOM_A">DOM_A</option>
-          <option value="DOM_B">DOM_B</option>
-        </select>
-      </div>
-      <div>
-        <div class="k">Setpoint (bar)</div>
-        <input id="chgSP" type="number" step="0.1" min="0" max="16" value="${p.setpoint_bar ?? 2.5}">
-      </div>
-      <div>
-        <div class="k">Actions</div>
-        <button class="btn" onclick="sendCmd('${cmdBase}/swap_now', {ts:Date.now()})">Swap Duty Now</button>
-      </div>
-    </div>
-    <div class="btnrow" style="margin-top:12px">
-      <button class="btn" onclick="sendCmd('${cmdBase}/mode', {mode:document.getElementById('chgMode').value})">Apply Mode</button>
-      <button class="btn" onclick="sendCmd('${cmdBase}/set_duty', {duty:document.getElementById('chgDuty').value})">Set Duty</button>
-      <button class="btn" onclick="sendCmd('${cmdBase}/set_setpoint', {setpoint_bar:parseFloat(document.getElementById('chgSP').value)})">Set Setpoint</button>
-    </div>
-    <div class="hint" style="margin-top:10px">
-      “OFF” means you disable automation and keep pumps under local control only.
-    </div>
-  `;
-}
-
-function actionsCard(){
-  return `
-    <h3>Quick Commands</h3>
-    <div class="btnrow">
-      <button class="btn" onclick="sendCmd('${cmdBase}/run', {pump:'DOM_A'})">RUN A</button>
-      <button class="btn" onclick="sendCmd('${cmdBase}/stop', {pump:'DOM_A'})">STOP A</button>
-      <button class="btn" onclick="sendCmd('${cmdBase}/reset', {pump:'DOM_A'})">RESET A</button>
-    </div>
-    <div class="btnrow" style="margin-top:10px">
-      <button class="btn" onclick="sendCmd('${cmdBase}/run', {pump:'DOM_B'})">RUN B</button>
-      <button class="btn" onclick="sendCmd('${cmdBase}/stop', {pump:'DOM_B'})">STOP B</button>
-      <button class="btn" onclick="sendCmd('${cmdBase}/reset', {pump:'DOM_B'})">RESET B</button>
-    </div>
-    <div class="btnrow" style="margin-top:10px">
-      <button class="btn" onclick="sendCmd('${cmdBase}/run', {pump:'IRR'})">RUN IRR</button>
-      <button class="btn" onclick="sendCmd('${cmdBase}/stop', {pump:'IRR'})">STOP IRR</button>
-      <button class="btn" onclick="sendCmd('${cmdBase}/reset', {pump:'IRR'})">RESET IRR</button>
-    </div>
-    <div class="hint" style="margin-top:10px">
-      These buttons publish MQTT commands. The controller must subscribe and execute them.
-    </div>
-  `;
-}
-
-function dtuCard(title, pumpKey){
-  const p = state.pumps[pumpKey];
-  const mqttConnected = mqttClient && mqttClient.connected;
-  const ok = !!p.online;
-  const warn = mqttConnected && !ok;
-
-  // If we have DTU status topic, show last_seen
-  let lastSeen = "--";
-  if(state.dtu?.nodes?.[pumpKey]?.last_seen_sec !== undefined && state.dtu.nodes[pumpKey].last_seen_sec !== null){
-    lastSeen = state.dtu.nodes[pumpKey].last_seen_sec + " s";
-  }
-
-  return `
-    <h3>${title}</h3>
-    <div class="row"><div class="k">Link</div><div>${ ok ? badge(true,false,"ONLINE","OFFLINE") : (warn ? badge(false,true,"ONLINE","OFFLINE","CHECK LINK") : badge(false,false,"ONLINE","OFFLINE")) }</div></div>
-    <div class="row"><div class="k">Last Seen</div><div class="v">${lastSeen}</div></div>
-    <div class="row"><div class="k">Hints</div><div class="v">${ok ? "Stable" : "Check ID / A-B / antenna"}</div></div>
-    <div class="hr"></div>
-    <div class="hint">
-      DTU status is inferred from Modbus response + optional DTU stats topic.
-      True RSSI/SNR requires DTU support and controller publishing.
-    </div>
-  `;
-}
-
-function render(){
-  const duty = state.platform.duty || "DOM_A";
-
-  domA.innerHTML = pumpCard("Domestic Pump A", "DOM_A", state.pumps.DOM_A, duty);
-  domB.innerHTML = pumpCard("Domestic Pump B", "DOM_B", state.pumps.DOM_B, duty);
-  domSummary.innerHTML = domesticSummaryCard();
-
-  // sync selects (domestic summary & changeover tab)
-  const modeSel = document.getElementById("modeSel");
-  const dutySel = document.getElementById("dutySel");
-  if(modeSel) modeSel.value = state.platform.mode || "AUTO";
-  if(dutySel) dutySel.value = duty;
-
-  irrCard.innerHTML = pumpCard("Irrigation Pump", "IRR", state.pumps.IRR, "NONE");
-  irrSummary.innerHTML = irrigationSummaryCard();
-
-  chgCard.innerHTML = changeoverCard();
-  actionsCardEl.innerHTML = actionsCard();
-
-  // sync changeover selects
-  const chgMode = document.getElementById("chgMode");
-  const chgDuty = document.getElementById("chgDuty");
-  if(chgMode) chgMode.value = state.platform.mode || "AUTO";
-  if(chgDuty) chgDuty.value = duty;
-
-  dtuA.innerHTML = dtuCard("DTU — Domestic A", "DOM_A");
-  dtuB.innerHTML = dtuCard("DTU — Domestic B", "DOM_B");
-  dtuI.innerHTML = dtuCard("DTU — Irrigation", "IRR");
-}
-
-/* =============================
-   Tabs
-   ============================= */
-document.querySelectorAll(".tabbtn").forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    document.querySelectorAll(".tabbtn").forEach(x=>x.classList.remove("active"));
-    btn.classList.add("active");
-    const t = btn.dataset.tab;
-    ["dom","irr","chg","dtu"].forEach(x=>{
-      document.getElementById("tab-"+x).classList.toggle("hidden", x!==t);
-    });
-  });
-});
-
-/* =============================
-   MQTT wiring
-   ============================= */
-let mqttClient = null;
-
-function setMqttState(stateName){
-  if(stateName==="connected"){
-    mqttDot.className = "dot ok";
-    mqttText.textContent = "MQTT: connected";
-  } else if(stateName==="connecting"){
-    mqttDot.className = "dot warn";
-    mqttText.textContent = "MQTT: connecting…";
-  } else {
-    mqttDot.className = "dot bad";
-    mqttText.textContent = "MQTT: disconnected";
-  }
-}
-
-function sendCmd(topic, obj){
-  if(!mqttClient || !mqttClient.connected){
-    alert("MQTT not connected. Enable Mosquitto WebSocket on port 9001 and open this page via http://PI_IP/ (not file://).");
-    return;
-  }
-  mqttClient.publish(topic, JSON.stringify({...obj, ts: Date.now()}));
-}
-
-window.sendCmd = sendCmd;
-
-// Start UI
-const actionsCardEl = document.getElementById("actionsCard");
-setMqttState("connecting");
-render();
-
-mqttClient = mqtt.connect(WS_URL, { reconnectPeriod: 2000 });
-
-mqttClient.on("connect", ()=>{
-  setMqttState("connected");
-  mqttClient.subscribe(`${teleBase}/#`);
-  mqttClient.subscribe(statPlatform);
-  mqttClient.subscribe(statDTU);
-});
-
-mqttClient.on("reconnect", ()=> setMqttState("connecting"));
-mqttClient.on("offline", ()=> setMqttState("disconnected"));
-mqttClient.on("close", ()=> setMqttState("disconnected"));
-
-mqttClient.on("message", (topic, msg)=>{
-  let data;
-  try{ data = JSON.parse(msg.toString()); } catch(e){ return; }
-
-  state.lastTelemetryMs = Date.now();
-  lastTlm.textContent = new Date(state.lastTelemetryMs).toLocaleString();
-
-  // Telemetry per pump:
-  if(topic.startsWith(`${teleBase}/`)){
-    const key = topic.split("/").pop();
-    if(state.pumps[key]){
-      state.pumps[key] = normalizePump(data, key);
-      render();
-    }
-    return;
-  }
-
-  // Platform state:
-  if(topic === statPlatform){
-    state.platform = {
-      mode: data.mode ?? state.platform.mode,
-      duty: data.duty ?? state.platform.duty,
-      setpoint_bar: (data.setpoint_bar !== undefined) ? data.setpoint_bar : state.platform.setpoint_bar
-    };
-    render();
-    return;
-  }
-
-  // DTU status:
-  if(topic === statDTU){
-    state.dtu = data;
-    render();
-    return;
-  }
-});
-
-function normalizePump(d, key){
-  // Deep-check: accept both naming styles (out_freq_hz vs hz) to avoid silent failures.
-  // Prefer official fields from our backend structure.
-  const p = emptyPump();
-  p.key = key;
-  p.online = !!(d.online ?? d.ok ?? false);
-
-  p.pressure_bar = (d.pressure_bar ?? d.pressureBar ?? null);
-  p.v1_percent = (d.v1_percent ?? d.v1Percent ?? d.v1 ?? null);
-  p.out_freq_hz = (d.out_freq_hz ?? d.hz ?? d.outFreqHz ?? null);
-  p.out_current_a = (d.out_current_a ?? d.amps ?? d.currentA ?? null);
-
-  p.op_status = d.op_status || d.opStatus || p.op_status;
-  p.fault_info = d.fault_info || d.faultInfo || p.fault_info;
-
-  p.ts = d.ts ?? null;
-  return p;
-}
+// Buttons
+document.getElementById("applyModeBtn").onclick=()=>{
+  mqttSend(`${CMD_BASE}/mode`, {mode: document.getElementById("modeSel").value});
+};
+document.getElementById("setDutyBtn").onclick=()=>{
+  mqttSend(`${CMD_BASE}/duty`, {duty: document.getElementById("dutySel").value});
+};
+document.getElementById("swapBtn").onclick=()=>{
+  mqttSend(`${CMD_BASE}/swap`, {now:true});
+};
+document.getElementById("setpointBtn").onclick=()=>{
+  mqttSend(`${CMD_BASE}/setpoint`, {setpoint_bar: parseFloat(document.getElementById("setpointInp").value||"0")});
+};
+document.getElementById("weeklyBtn").onclick=()=>{
+  mqttSend(`${CMD_BASE}/weekly_swap`, {enabled: document.getElementById("weeklySel").value==="true"});
+};
 </script>
 </body>
 </html>
