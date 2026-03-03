@@ -4,158 +4,283 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Compound Pumps Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#070B16; --card:#0E1630; --card2:#0C132A; --stroke:#1C2A52;
-    --text:#EAF0FF; --muted:#9BB0E5; --good:#35D07F; --bad:#FF4D6D; --warn:#FFC857;
-    --accent:#6EA8FE; --accent2:#9B7BFF;
-    --shadow: 0 14px 45px rgba(0,0,0,.45);
-    --radius:18px;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-    background: radial-gradient(1200px 700px at 20% 10%, rgba(110,168,254,.25), transparent 60%),
-                radial-gradient(1000px 600px at 80% 20%, rgba(155,123,255,.18), transparent 55%),
-                radial-gradient(900px 600px at 40% 90%, rgba(53,208,127,.12), transparent 50%),
-                var(--bg);
-    color:var(--text);
-  }
-  .wrap{max-width:1200px;margin:28px auto;padding:0 18px}
-  header{
-    display:flex; align-items:flex-end; justify-content:space-between; gap:14px; margin-bottom:18px;
-  }
-  h1{margin:0;font-size:26px;letter-spacing:.2px}
-  .sub{color:var(--muted);font-size:13px;margin-top:6px}
-  .pill{
-    display:inline-flex; align-items:center; gap:8px; padding:10px 12px;
-    background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
-    border-radius: 999px;
-  }
-  .dot{width:10px;height:10px;border-radius:50%}
-  .grid{
-    display:grid;
-    grid-template-columns: 1.15fr .85fr;
-    gap:14px;
-  }
-  @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
-  .card{
-    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-    border:1px solid rgba(255,255,255,.08);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow:hidden;
-  }
-  .card .hd{
-    padding:14px 16px;
-    border-bottom:1px solid rgba(255,255,255,.08);
-    display:flex; align-items:center; justify-content:space-between; gap:12px;
-    background: rgba(0,0,0,.12);
-  }
-  .card .bd{padding:14px 16px}
-  .title{font-weight:700}
-  .muted{color:var(--muted)}
-  .row{display:flex; gap:12px; flex-wrap:wrap}
-  .kpi{
-    flex:1 1 160px;
-    padding:12px;
-    border-radius: 14px;
-    border:1px solid rgba(255,255,255,.08);
-    background: rgba(0,0,0,.12);
-  }
-  .kpi .label{color:var(--muted);font-size:12px}
-  .kpi .value{font-size:22px;font-weight:800;margin-top:6px}
-  .kpi small{color:var(--muted)}
-  .bad{color:var(--bad)}
-  .good{color:var(--good)}
-  .warn{color:var(--warn)}
-  .btn{
-    padding:10px 12px; border-radius: 12px; border:1px solid rgba(255,255,255,.14);
-    background: rgba(110,168,254,.12);
-    color:var(--text);
-    cursor:pointer;
-  }
-  .btn:hover{filter:brightness(1.08)}
-  .btn.secondary{background: rgba(155,123,255,.10)}
-  .btn.ghost{background: rgba(255,255,255,.04)}
-  .btn.danger{background: rgba(255,77,109,.12)}
-  select,input{
-    background: rgba(0,0,0,.18);
-    border:1px solid rgba(255,255,255,.12);
-    border-radius: 12px;
-    color:var(--text);
-    padding:10px 10px;
-    outline:none;
-  }
-  input{width:120px}
-  .controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-  .split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media (max-width: 720px){ .split{grid-template-columns:1fr} }
+/* ═══════════════════════════════════════════
+   Design tokens
+═══════════════════════════════════════════ */
+:root {
+  --bg:      #060911;
+  --surface: #0B1120;
+  --panel:   rgba(0,0,0,.18);
+  --border:  rgba(100,160,255,.11);
+  --border2: rgba(100,160,255,.22);
+  --text:    #D8E8FF;
+  --muted:   #5A7898;
+  --good:    #00F0A0;
+  --bad:     #FF3D6B;
+  --warn:    #FFB830;
+  --accent:  #3B82F6;
+  --accent2: #7C3AED;
+  --mono:    'IBM Plex Mono', monospace;
+  --sans:    'Syne', sans-serif;
+  --r:       14px;
+  --r-sm:    9px;
+}
 
-  canvas{width:100%;height:190px; background: rgba(0,0,0,.10); border:1px solid rgba(255,255,255,.08); border-radius: 14px;}
-  table{width:100%;border-collapse:collapse}
-  th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px}
-  th{color:var(--muted);font-weight:700;text-align:left}
-  .tag{
-    padding:6px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:8px;
-    border:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.10);
-    font-size:12px;
-  }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 1400px 600px at 10% 0%,  rgba(59,130,246,.10) 0%, transparent 60%),
+    radial-gradient(ellipse 900px  500px at 90% 10%, rgba(124,58,237,.08) 0%, transparent 55%),
+    radial-gradient(ellipse 700px  400px at 50% 100%,rgba(0,245,160,.06)  0%, transparent 50%);
+}
+
+body::before {           /* subtle noise texture */
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  opacity: .35;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+.wrap { max-width: 1300px; margin: 0 auto; padding: 28px 20px 48px; position: relative; z-index: 1; }
+
+/* ── Page load animation ── */
+.wrap { animation: fadein .45s ease both; }
+@keyframes fadein { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+/* ═══════════════════════════════════════════
+   Header
+═══════════════════════════════════════════ */
+header {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
+}
+.logo-mark {
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; box-shadow: 0 0 28px rgba(59,130,246,.35);
+}
+.header-left { display: flex; align-items: center; gap: 14px; }
+h1 { font-size: 18px; font-weight: 800; letter-spacing: -.3px; line-height: 1.2; }
+.sub { color: var(--muted); font-size: 11px; font-family: var(--mono); margin-top: 4px; letter-spacing: .3px; }
+
+/* MQTT badge */
+.mqtt-badge {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.mqtt-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #444; transition: background .4s;
+}
+.mqtt-dot.online { background: var(--good); animation: pulse-dot 2s infinite; }
+.mqtt-dot.error  { background: var(--bad); }
+@keyframes pulse-dot {
+  0%  { box-shadow: 0 0 0 0   rgba(0,240,160,.55); }
+  70% { box-shadow: 0 0 0 6px rgba(0,240,160,0); }
+  100%{ box-shadow: 0 0 0 0   rgba(0,240,160,0); }
+}
+.mqtt-label { font-size: 13px; font-weight: 700; }
+.mqtt-url   { font-family: var(--mono); color: var(--muted); font-size: 10px; margin-top: 2px; }
+
+/* ═══════════════════════════════════════════
+   Layout
+═══════════════════════════════════════════ */
+.main-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 16px; }
+@media (max-width: 1020px) { .main-grid { grid-template-columns: 1fr; } }
+
+/* ── Card ── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); overflow: hidden; position: relative;
+}
+.card::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(135deg, rgba(255,255,255,.022) 0%, transparent 60%);
+}
+.card-head {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: rgba(0,0,0,.18);
+}
+.card-head .title { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: rgba(216,232,255,.65); }
+.card-head .desc  { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-top: 3px; letter-spacing: .3px; }
+.card-body { padding: 16px; }
+
+/* ── Status tag ── */
+.tag {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .6px; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 6px;
+  background: rgba(0,0,0,.25); border: 1px solid var(--border);
+  white-space: nowrap; transition: border-color .3s, background .3s, color .3s;
+}
+.tag.run   { border-color: rgba(0,240,160,.35); background: rgba(0,240,160,.07); color: var(--good); }
+.tag.stop  { border-color: var(--border); color: var(--muted); }
+.tag.fault { border-color: rgba(255,61,107,.5); background: rgba(255,61,107,.1); color: var(--bad); animation: flicker 1.6s infinite; }
+@keyframes flicker { 0%,100%{opacity:1} 50%{opacity:.7} }
+
+/* ── Divider ── */
+hr.sep { border: none; border-top: 1px solid var(--border); margin: 13px 0; }
+
+/* ── Controls ── */
+.ctrl-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ctrl-lbl { font-size: 10px; color: var(--muted); font-family: var(--mono); letter-spacing: .5px; text-transform: uppercase; }
+
+select, input[type=number] {
+  font-family: var(--mono); font-size: 12px;
+  background: rgba(0,0,0,.3); border: 1px solid var(--border2);
+  border-radius: var(--r-sm); color: var(--text);
+  padding: 8px 10px; outline: none; appearance: none; -webkit-appearance: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+select:focus, input:focus {
+  border-color: rgba(59,130,246,.55);
+  box-shadow: 0 0 0 3px rgba(59,130,246,.13);
+}
+input[type=number] { width: 100px; }
+
+.btn {
+  font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .3px;
+  padding: 8px 14px; border-radius: var(--r-sm);
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(59,130,246,.15); color: var(--text);
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: filter .15s, transform .1s, box-shadow .15s;
+}
+.btn::after { content:''; position:absolute; inset:0; background:linear-gradient(transparent 40%,rgba(255,255,255,.04)); }
+.btn:hover  { filter: brightness(1.18); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.4); }
+.btn:active { transform: translateY(0); filter: brightness(.94); }
+.btn.secondary { background: rgba(124,58,237,.15); border-color: rgba(124,58,237,.22); }
+.btn.ghost     { background: rgba(255,255,255,.05); }
+.btn.danger    { background: rgba(255,61,107,.14); border-color: rgba(255,61,107,.22); }
+
+/* ── KPI grid ── */
+.kpi-row  { display: flex; gap: 10px; flex-wrap: wrap; }
+.kpi {
+  flex: 1 1 118px; padding: 11px 12px;
+  border-radius: 11px; border: 1px solid var(--border);
+  background: rgba(0,0,0,.22); position: relative; overflow: hidden;
+  transition: border-color .3s;
+}
+.kpi::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(59,130,246,.22), transparent);
+}
+.kpi .lbl  { font-size: 10px; color: var(--muted); font-family: var(--mono); letter-spacing: .5px; text-transform: uppercase; }
+.kpi .val  { font-size: 19px; font-weight: 600; font-family: var(--mono); margin-top: 7px; line-height: 1; letter-spacing: -.5px; }
+.kpi .unit { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-top: 4px; }
+.kpi.kpi-fault { border-color: rgba(255,61,107,.35); }
+.kpi.kpi-fault .val { color: var(--bad); }
+
+/* ── Pump pair ── */
+.pump-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+@media (max-width: 740px) { .pump-pair { grid-template-columns: 1fr; } }
+
+.pump-card { background: rgba(0,0,0,.15); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.pump-card-head {
+  padding: 10px 13px; display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border); background: rgba(0,0,0,.2);
+}
+.pump-card-head .pname { font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+.pump-card-body { padding: 12px 13px; }
+
+/* ── Chart ── */
+.chart-wrap { margin-top: 12px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: rgba(0,0,0,.25); height: 150px; position: relative; }
+canvas { display: block; width: 100%; height: 100%; }
+
+/* ── Right column ── */
+.right-col { display: flex; flex-direction: column; gap: 14px; }
+
+/* ── Table ── */
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 9px 10px; font-size: 12px; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-family: var(--mono); font-size: 10px; letter-spacing: .5px; text-transform: uppercase; font-weight: 600; text-align: left; }
+td { font-family: var(--mono); }
+tr:last-child td { border-bottom: none; }
+.online-yes { color: var(--good); }
+.online-yes::before { content: '● '; font-size: 8px; }
+.online-no  { color: var(--muted); }
+.online-no::before  { content: '○ '; font-size: 8px; }
+
+/* ── Events feed ── */
+.events-feed { font-size: 12px; font-family: var(--mono); line-height: 2; max-height: 180px; overflow-y: auto; }
+.events-feed::-webkit-scrollbar { width: 3px; }
+.events-feed::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.evt { display: flex; gap: 8px; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+.evt-time { color: var(--muted); flex-shrink: 0; }
+.evt-bad  { color: var(--bad); }
+.evt-good { color: var(--good); }
+.evt-warn { color: var(--warn); }
+.evt-info { color: var(--muted); }
 </style>
 </head>
 <body>
 <div class="wrap">
+
+  <!-- ══ Header ══ -->
   <header>
-    <div>
-      <h1>Domestic Pumps (Duty/Standby) + Irrigation</h1>
-      <div class="sub">MQTT realtime + history (pressure + Hz + current + faults) • Hosted on Raspberry Pi</div>
-    </div>
-    <div class="pill">
-      <div id="mqttDot" class="dot" style="background:#777"></div>
+    <div class="header-left">
+      <div class="logo-mark">⟳</div>
       <div>
-        <div style="font-weight:800" id="mqttText">MQTT: connecting…</div>
-        <div class="sub" id="mqttSub">ws://HOST:9001</div>
+        <h1>Compound Pumps Platform</h1>
+        <div class="sub">Domestic Duty/Standby + Irrigation &nbsp;·&nbsp; MQTT Realtime &nbsp;·&nbsp; Raspberry Pi</div>
+      </div>
+    </div>
+    <div class="mqtt-badge">
+      <div id="mqttDot" class="mqtt-dot"></div>
+      <div>
+        <div class="mqtt-label" id="mqttText">MQTT: connecting…</div>
+        <div class="mqtt-url"   id="mqttSub">ws://…</div>
       </div>
     </div>
   </header>
 
-  <div class="grid">
-    <!-- LEFT: Control + Domestic -->
+  <!-- ══ Main grid ══ -->
+  <div class="main-grid">
+
+    <!-- ████ LEFT : Control + Domestic Pumps ████ -->
     <div class="card">
-      <div class="hd">
+      <div class="card-head">
         <div>
           <div class="title">Control Center</div>
-          <div class="sub">Mode, duty selection, swap, setpoint (platform), thresholds</div>
+          <div class="desc">Mode · Duty selection · Setpoint · Weekly swap</div>
         </div>
-        <div class="tag" id="platformTag">Mode: -- • Duty: --</div>
+        <div class="tag stop" id="platformTag">Mode: -- · Duty: --</div>
       </div>
-      <div class="bd">
-        <div class="controls">
-          <label class="muted">Mode</label>
+      <div class="card-body">
+
+        <div class="ctrl-row">
+          <span class="ctrl-lbl">Mode</span>
           <select id="modeSel">
             <option value="AUTO">AUTO</option>
             <option value="MANUAL">MANUAL</option>
           </select>
-
-          <label class="muted">Duty</label>
+          <span class="ctrl-lbl">Duty</span>
           <select id="dutySel">
             <option value="DOM_A">DOM_A</option>
             <option value="DOM_B">DOM_B</option>
           </select>
-
-          <button class="btn" id="applyModeBtn">Apply Mode</button>
+          <button class="btn"           id="applyModeBtn">Apply Mode</button>
           <button class="btn secondary" id="setDutyBtn">Set Duty</button>
-          <button class="btn ghost" id="swapBtn">Swap Duty Now</button>
+          <button class="btn ghost"     id="swapBtn">⇄ Swap Now</button>
         </div>
 
-        <div style="height:10px"></div>
+        <hr class="sep">
 
-        <div class="controls">
-          <label class="muted">Setpoint (bar)</label>
-          <input id="setpointInp" type="number" step="0.1" value="2.5"/>
+        <div class="ctrl-row">
+          <span class="ctrl-lbl">Setpoint (bar)</span>
+          <input id="setpointInp" type="number" step="0.1" value="2.5" min="0" max="16"/>
           <button class="btn" id="setpointBtn">Set Setpoint</button>
-
-          <label class="muted">Weekly swap</label>
+          <span class="ctrl-lbl">Weekly swap</span>
           <select id="weeklySel">
             <option value="true">Enabled</option>
             <option value="false">Disabled</option>
@@ -163,344 +288,530 @@
           <button class="btn ghost" id="weeklyBtn">Apply</button>
         </div>
 
-        <div style="height:14px"></div>
+        <hr class="sep">
 
-        <div class="split">
-          <div class="card" style="box-shadow:none;background:rgba(0,0,0,.08)">
-            <div class="hd"><div class="title">Domestic Pump A</div><div class="tag" id="tagA">--</div></div>
-            <div class="bd">
-              <div class="row">
-                <div class="kpi"><div class="label">Header Pressure</div><div class="value" id="aP">--</div><small>bar</small></div>
-                <div class="kpi"><div class="label">Output Frequency</div><div class="value" id="aHz">--</div><small>Hz</small></div>
-                <div class="kpi"><div class="label">Output Current</div><div class="value" id="aA">--</div><small>A</small></div>
-                <div class="kpi"><div class="label">Trip Code</div><div class="value" id="aTrip">--</div><small>0 = OK</small></div>
+        <!-- ── Pump pair ── -->
+        <div class="pump-pair">
+
+          <!-- Pump A -->
+          <div class="pump-card">
+            <div class="pump-card-head">
+              <span class="pname">Domestic A</span>
+              <div class="tag stop" id="tagA">--</div>
+            </div>
+            <div class="pump-card-body">
+              <div class="kpi-row">
+                <div class="kpi"><div class="lbl">Pressure</div><div class="val" id="aP">--</div><div class="unit">bar</div></div>
+                <div class="kpi"><div class="lbl">Frequency</div><div class="val" id="aHz">--</div><div class="unit">Hz</div></div>
+                <div class="kpi"><div class="lbl">Current</div><div class="val" id="aA">--</div><div class="unit">A</div></div>
+                <div class="kpi" id="kpiATrip"><div class="lbl">Trip</div><div class="val" id="aTrip">--</div><div class="unit">0=OK</div></div>
               </div>
-              <div style="height:10px"></div>
-              <canvas id="chartA"></canvas>
+              <div class="chart-wrap"><canvas id="chartA"></canvas></div>
             </div>
           </div>
 
-          <div class="card" style="box-shadow:none;background:rgba(0,0,0,.08)">
-            <div class="hd"><div class="title">Domestic Pump B</div><div class="tag" id="tagB">--</div></div>
-            <div class="bd">
-              <div class="row">
-                <div class="kpi"><div class="label">Header Pressure</div><div class="value" id="bP">--</div><small>bar</small></div>
-                <div class="kpi"><div class="label">Output Frequency</div><div class="value" id="bHz">--</div><small>Hz</small></div>
-                <div class="kpi"><div class="label">Output Current</div><div class="value" id="bA">--</div><small>A</small></div>
-                <div class="kpi"><div class="label">Trip Code</div><div class="value" id="bTrip">--</div><small>0 = OK</small></div>
+          <!-- Pump B -->
+          <div class="pump-card">
+            <div class="pump-card-head">
+              <span class="pname">Domestic B</span>
+              <div class="tag stop" id="tagB">--</div>
+            </div>
+            <div class="pump-card-body">
+              <div class="kpi-row">
+                <div class="kpi"><div class="lbl">Pressure</div><div class="val" id="bP">--</div><div class="unit">bar</div></div>
+                <div class="kpi"><div class="lbl">Frequency</div><div class="val" id="bHz">--</div><div class="unit">Hz</div></div>
+                <div class="kpi"><div class="lbl">Current</div><div class="val" id="bA">--</div><div class="unit">A</div></div>
+                <div class="kpi" id="kpiBTrip"><div class="lbl">Trip</div><div class="val" id="bTrip">--</div><div class="unit">0=OK</div></div>
               </div>
-              <div style="height:10px"></div>
-              <canvas id="chartB"></canvas>
+              <div class="chart-wrap"><canvas id="chartB"></canvas></div>
             </div>
           </div>
-        </div>
 
+        </div><!-- /pump-pair -->
       </div>
-    </div>
+    </div><!-- /left card -->
 
-    <!-- RIGHT: Irrigation + DTU Health + Events -->
-    <div class="card">
-      <div class="hd">
-        <div>
-          <div class="title">Irrigation + DTU Status</div>
-          <div class="sub">Monitoring only (no changeover)</div>
+    <!-- ████ RIGHT : Irrigation + DTU + Events ████ -->
+    <div class="right-col">
+
+      <!-- Irrigation -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="title">Irrigation Pump</div>
+            <div class="desc">Monitoring only — no changeover</div>
+          </div>
+          <div class="tag stop" id="tagIRR">--</div>
         </div>
-        <div class="tag" id="tagIRR">--</div>
+        <div class="card-body">
+          <div class="kpi-row">
+            <div class="kpi"><div class="lbl">Pressure</div><div class="val" id="iP">--</div><div class="unit">bar</div></div>
+            <div class="kpi"><div class="lbl">Frequency</div><div class="val" id="iHz">--</div><div class="unit">Hz</div></div>
+            <div class="kpi"><div class="lbl">Current</div><div class="val" id="iA">--</div><div class="unit">A</div></div>
+            <div class="kpi" id="kpiITrip"><div class="lbl">Trip</div><div class="val" id="iTrip">--</div><div class="unit">0=OK</div></div>
+          </div>
+          <div class="chart-wrap"><canvas id="chartI"></canvas></div>
+        </div>
       </div>
-      <div class="bd">
-        <div class="row">
-          <div class="kpi"><div class="label">Irrigation Pressure</div><div class="value" id="iP">--</div><small>bar</small></div>
-          <div class="kpi"><div class="label">Irrigation Frequency</div><div class="value" id="iHz">--</div><small>Hz</small></div>
-          <div class="kpi"><div class="label">Irrigation Current</div><div class="value" id="iA">--</div><small>A</small></div>
-          <div class="kpi"><div class="label">Irrigation Trip</div><div class="value" id="iTrip">--</div><small>0 = OK</small></div>
-        </div>
-        <div style="height:10px"></div>
-        <canvas id="chartI"></canvas>
 
-        <div style="height:16px"></div>
-
-        <div class="card" style="box-shadow:none;background:rgba(0,0,0,.08)">
-          <div class="hd">
+      <!-- DTU Health -->
+      <div class="card">
+        <div class="card-head">
+          <div>
             <div class="title">DTU / Link Health</div>
-            <div class="sub">Based on last telemetry time</div>
-          </div>
-          <div class="bd">
-            <table>
-              <thead><tr><th>Pump</th><th>Online</th><th>Last Seen</th></tr></thead>
-              <tbody>
-                <tr><td>DOM_A</td><td id="hA">--</td><td id="tA">--</td></tr>
-                <tr><td>DOM_B</td><td id="hB">--</td><td id="tB">--</td></tr>
-                <tr><td>IRR</td><td id="hI">--</td><td id="tI">--</td></tr>
-              </tbody>
-            </table>
+            <div class="desc">Based on last telemetry timestamp</div>
           </div>
         </div>
-
-        <div style="height:16px"></div>
-
-        <div class="card" style="box-shadow:none;background:rgba(0,0,0,.08)">
-          <div class="hd"><div class="title">Realtime Events</div><div class="sub">Faults / swaps</div></div>
-          <div class="bd">
-            <div id="events" class="muted" style="font-size:13px;line-height:1.6">Waiting for telemetry…</div>
-          </div>
+        <div class="card-body">
+          <table>
+            <thead>
+              <tr><th>Pump</th><th>Online</th><th>Last Seen</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>DOM_A</td><td id="hA">--</td><td id="tA" style="font-size:11px">--</td></tr>
+              <tr><td>DOM_B</td><td id="hB">--</td><td id="tB" style="font-size:11px">--</td></tr>
+              <tr><td>IRR</td>  <td id="hI">--</td><td id="tI" style="font-size:11px">--</td></tr>
+            </tbody>
+          </table>
         </div>
-
       </div>
-    </div>
 
-  </div>
-</div>
+      <!-- Events -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="title">Realtime Events</div>
+            <div class="desc">Faults · swaps · state changes</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="events" class="events-feed evt-info">Waiting for telemetry…</div>
+        </div>
+      </div>
+
+    </div><!-- /right-col -->
+  </div><!-- /main-grid -->
+</div><!-- /wrap -->
 
 <script>
-/* ===== MQTT over WebSockets (no external libs) =====
-   Uses browser-native WebSocket + minimal MQTT 3.1.1 client.
-   Works with Mosquitto websockets listener.
-*/
-const HOST = location.hostname || "127.0.0.1";
-const WS_URL = `ws://${HOST}:9001`;
-document.getElementById("mqttSub").textContent = WS_URL;
+/* ══════════════════════════════════════════════════════════════════
+   Minimal MQTT 3.1.1 over WebSocket
+   • Proper multi-byte remaining-length (VarInt) encoder/decoder
+   • PINGREQ keepalive so Mosquitto won't drop idle connections
+   • Reconnect on close/error with exponential backoff cap
+══════════════════════════════════════════════════════════════════ */
 
-function u8(...a){return new Uint8Array(a)}
-function encStr(s){
-  const te=new TextEncoder(); const b=te.encode(s);
-  const out=new Uint8Array(2+b.length); out[0]=b.length>>8; out[1]=b.length&255; out.set(b,2); return out;
-}
-function concat(...arrs){
-  let len=0; arrs.forEach(a=>len+=a.length);
-  const o=new Uint8Array(len); let p=0;
-  arrs.forEach(a=>{o.set(a,p); p+=a.length});
+const WS_URL = "wss://w219d1f1.ala.us-east-1.emqxsl.com:8084/mqtt";
+document.getElementById("mqttSub").textContent = WS_URL;
+const MQTT_USERNAME = "engineer";
+const MQTT_PASSWORD = "12345678";
+/* ── Binary helpers ── */
+const enc = new TextEncoder();
+const dec = new TextDecoder();
+
+function encStr(s) {
+  const b = enc.encode(s);
+  const o = new Uint8Array(2 + b.length);
+  o[0] = b.length >> 8;  o[1] = b.length & 0xFF;  o.set(b, 2);
   return o;
 }
-function mqttConnectPacket(clientId){
-  const proto=encStr("MQTT");
-  const lvl=u8(4);
-  const flags=u8(0x02); // clean session
-  const keep=u8(0,60);
-  const cid=encStr(clientId);
-  const vh=concat(proto,lvl,flags,keep);
-  const pl=cid;
-  const rl=vh.length+pl.length;
-  const fh=u8(0x10, rl); // assume <127
-  return concat(fh,vh,pl);
+function concat(...arrs) {
+  const len = arrs.reduce((s, a) => s + a.length, 0);
+  const o = new Uint8Array(len);
+  let p = 0; arrs.forEach(a => { o.set(a, p); p += a.length; });
+  return o;
 }
-function mqttSubscribePacket(pid, topic){
-  const t=encStr(topic);
-  const qos=u8(0);
-  const vh=u8(pid>>8,pid&255);
-  const pl=concat(t,qos);
-  const rl=vh.length+pl.length;
-  const fh=u8(0x82, rl);
-  return concat(fh,vh,pl);
-}
-function mqttPublishPacket(topic, payloadStr){
-  const t=encStr(topic);
-  const te=new TextEncoder(); const p=te.encode(payloadStr);
-  const rl=t.length+p.length;
-  const fh=u8(0x30, rl);
-  return concat(fh,t,p);
-}
-function parsePublish(buf){
-  const b=new Uint8Array(buf);
-  const type=b[0]>>4;
-  if(type!==3) return null;
-  let idx=1; let rl=b[idx++]; // assume <127
-  const tlen=(b[idx]<<8)|b[idx+1]; idx+=2;
-  const topic=new TextDecoder().decode(b.slice(idx,idx+tlen)); idx+=tlen;
-  const payload=new TextDecoder().decode(b.slice(idx,idx+rl-(2+tlen)));
-  return {topic,payload};
+/** Encode MQTT variable-length integer (remaining-length field) */
+function encVarInt(n) {
+  const out = [];
+  do {
+    let b = n & 0x7F; n >>>= 7;
+    if (n > 0) b |= 0x80;
+    out.push(b);
+  } while (n > 0);
+  return new Uint8Array(out);
 }
 
-let ws=null, connected=false, pid=1;
-const mqttDot=document.getElementById("mqttDot");
-const mqttText=document.getElementById("mqttText");
-function setMqttStatus(ok, text){
-  mqttDot.style.background = ok ? "#35D07F" : "#FF4D6D";
+/* ── Packet builders ── */
+function pktConnect(clientId, username, password) {
+  // MQTT 3.1.1 CONNECT with username/password
+  const hasUser = !!username;
+  const hasPass = !!password;
+  const flags   = (hasUser ? 0x80 : 0) | (hasPass ? 0x40 : 0) | 0x02; // CleanSession=1
+  const keepalive = 60; // seconds
+
+  const vh = concat(
+    encStr("MQTT"),
+    new Uint8Array([4, flags, keepalive >> 8, keepalive & 0xFF])
+  );
+
+  const parts = [encStr(clientId)];
+  if (hasUser) parts.push(encStr(username));
+  if (hasPass) parts.push(encStr(password));
+  const pl = concat(...parts);
+
+  return concat(new Uint8Array([0x10]), encVarInt(vh.length + pl.length), vh, pl);
+}
+function pktSubscribe(pid, topic) {
+  const vh = new Uint8Array([pid >> 8, pid & 0xFF]);
+  const pl = concat(encStr(topic), new Uint8Array([0]));
+  return concat(new Uint8Array([0x82]), encVarInt(vh.length + pl.length), vh, pl);
+}
+function pktPublish(topic, payloadStr) {
+  const t = encStr(topic);
+  const p = enc.encode(payloadStr);
+  return concat(new Uint8Array([0x30]), encVarInt(t.length + p.length), t, p);
+}
+function pktPingreq() { return new Uint8Array([0xC0, 0x00]); }
+
+/** Decode MQTT VarInt from ArrayBuffer at offset, returns {value, bytesRead} */
+function decVarInt(b, offset) {
+  let value = 0, mult = 1, i = offset;
+  do { value += (b[i] & 0x7F) * mult; mult <<= 7; } while ((b[i++] & 0x80) && i < offset + 5);
+  return { value, bytesRead: i - offset };
+}
+
+/** Try to decode PUBLISH packet from ArrayBuffer. Returns {topic, payload} or null. */
+function parsePublish(buf) {
+  const b = new Uint8Array(buf);
+  if ((b[0] >> 4) !== 3) return null;
+  const { value: rl, bytesRead } = decVarInt(b, 1);
+  let idx = 1 + bytesRead;
+  const tlen = (b[idx] << 8) | b[idx + 1]; idx += 2;
+  const topic   = dec.decode(b.slice(idx, idx + tlen)); idx += tlen;
+  const payload = dec.decode(b.slice(idx, 1 + bytesRead + rl));
+  return { topic, payload };
+}
+
+/* ── Connection state ── */
+let ws          = null;
+let connected   = false;
+let pid         = 1;
+let pingTimer   = null;
+let retryDelay  = 1500;
+
+const mqttDot  = document.getElementById("mqttDot");
+const mqttText = document.getElementById("mqttText");
+
+function setMqttStatus(ok, text) {
+  mqttDot.className  = "mqtt-dot" + (ok ? " online" : " error");
   mqttText.textContent = text;
 }
 
-const TOPIC_TELE="compound/pumps/tele";
-const CMD_BASE="compound/pumps/cmd";
+const TOPIC_TELE = "compound/pumps/tele";
+const CMD_BASE   = "compound/pumps/cmd";
 
-function mqttSend(topic, obj){
-  if(!connected) return;
-  ws.send(mqttPublishPacket(topic, JSON.stringify(obj)));
+function mqttSend(topic, obj) {
+  if (!connected || !ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(pktPublish(topic, JSON.stringify(obj)));
 }
 
-// Charts (simple ring buffer)
-function makeSeries(n=180){ return Array.from({length:n}, ()=>null); }
-const seriesA=makeSeries(), seriesB=makeSeries(), seriesI=makeSeries();
-let si=0;
+/* ══════════════════════════════════════════════════════════════════
+   Charts  —  per-pump ring buffers
+══════════════════════════════════════════════════════════════════ */
+const RING  = 180;
+const mkBuf = () => Array(RING).fill(null);
+const serA  = mkBuf(), serB = mkBuf(), serI = mkBuf();
+let   si    = 0;
 
-function drawChart(canvas, series){
-  const ctx=canvas.getContext("2d");
-  const w=canvas.width=canvas.clientWidth;
-  const h=canvas.height=canvas.clientHeight;
-  ctx.clearRect(0,0,w,h);
+function drawChart(canvas, series) {
+  const wrap = canvas.parentElement;
+  const w    = canvas.width  = wrap.clientWidth;
+  const h    = canvas.height = wrap.clientHeight;
+  const ctx  = canvas.getContext("2d");
+  ctx.clearRect(0, 0, w, h);
 
-  // grid
-  ctx.globalAlpha=.25;
-  ctx.beginPath();
-  for(let i=0;i<5;i++){
-    const y = (h-20) * (i/4) + 10;
-    ctx.moveTo(10,y); ctx.lineTo(w-10,y);
+  /* grid */
+  ctx.save();
+  ctx.globalAlpha = .15;
+  ctx.strokeStyle = "#6080b0"; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = 8 + (h - 16) * (i / 4);
+    ctx.beginPath(); ctx.moveTo(8, y); ctx.lineTo(w - 8, y); ctx.stroke();
   }
-  ctx.strokeStyle="#9BB0E5"; ctx.stroke();
-  ctx.globalAlpha=1;
+  ctx.restore();
 
-  const vals=series.filter(v=>v!==null);
-  if(vals.length<2) return;
-  const min=Math.min(...vals), max=Math.max(...vals);
-  const pad=(max-min)*0.15 || 1;
-  const lo=min-pad, hi=max+pad;
-
-  ctx.beginPath();
-  let started=false;
-  for(let i=0;i<series.length;i++){
-    const v=series[(si+i)%series.length];
-    if(v===null) continue;
-    const x = 10 + (w-20)*(i/(series.length-1));
-    const y = 10 + (h-20)*(1 - ((v-lo)/(hi-lo)));
-    if(!started){ctx.moveTo(x,y); started=true;} else ctx.lineTo(x,y);
+  const vals = series.filter(v => v !== null);
+  if (vals.length < 2) {
+    ctx.fillStyle = "rgba(96,120,152,.45)";
+    ctx.font = `11px ${getComputedStyle(document.body).fontFamily}`;
+    ctx.fillText("Awaiting data…", 14, h / 2 + 4);
+    return;
   }
-  ctx.lineWidth=2;
-  ctx.strokeStyle="#6EA8FE";
-  ctx.stroke();
 
-  // label
-  ctx.fillStyle="#EAF0FF";
-  ctx.font="12px ui-sans-serif,system-ui";
-  ctx.fillText(`Pressure bar (auto scale)`, 14, 20);
+  const min  = Math.min(...vals), max = Math.max(...vals);
+  const pad  = (max - min) * 0.18 || 0.5;
+  const lo   = min - pad, hi = max + pad;
+
+  const pts = [];
+  for (let i = 0; i < RING; i++) {
+    const v = series[(si + i) % RING];
+    if (v === null) continue;
+    pts.push([
+      8 + (w - 16) * (i / (RING - 1)),
+      8 + (h - 16) * (1 - (v - lo) / (hi - lo)),
+    ]);
+  }
+
+  /* gradient fill */
+  const grd = ctx.createLinearGradient(0, 0, 0, h);
+  grd.addColorStop(0, "rgba(59,130,246,.20)");
+  grd.addColorStop(1, "rgba(59,130,246,0)");
+  ctx.beginPath();
+  pts.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+  ctx.lineTo(pts[pts.length-1][0], h);
+  ctx.lineTo(pts[0][0], h);
+  ctx.closePath();
+  ctx.fillStyle = grd; ctx.fill();
+
+  /* line */
+  ctx.beginPath();
+  pts.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+  ctx.lineWidth = 2; ctx.strokeStyle = "#6EA8FE";
+  ctx.lineJoin  = "round"; ctx.stroke();
+
+  /* latest value label */
+  const last = vals[vals.length - 1];
+  ctx.fillStyle = "rgba(216,232,255,.6)";
+  ctx.font = "10px 'IBM Plex Mono',monospace";
+  ctx.fillText(`${last.toFixed(2)} bar`, 12, 18);
 }
 
-function fmtTs(ts){
-  if(!ts) return "--";
-  const d=new Date(ts*1000);
-  return d.toLocaleString();
-}
-function setTag(el, p){
-  const t = !p ? "--" : (p.fault ? "FAULT" : (p.running ? "RUN" : "STOP"));
-  el.textContent = `${t} • ${p.online ? "ONLINE" : "OFFLINE"}`;
-  el.style.borderColor = p && p.fault ? "rgba(255,77,109,.45)" : "rgba(255,255,255,.10)";
-}
-function setValue(id, v){ document.getElementById(id).textContent = (v===null||v===undefined) ? "--" : v; }
-
-function pushEvent(line){
-  const el=document.getElementById("events");
-  const now=new Date().toLocaleTimeString();
-  if(el.textContent.startsWith("Waiting")) el.textContent="";
-  el.innerHTML = `<div>• <span class="muted">${now}</span> ${line}</div>` + el.innerHTML;
+/* ══════════════════════════════════════════════════════════════════
+   UI helpers
+══════════════════════════════════════════════════════════════════ */
+function fmtTs(ts) {
+  if (!ts) return "--";
+  return new Date(ts * 1000).toLocaleString();
 }
 
-function applyTelemetry(payload){
-  const plat = payload.platform || {};
-  const pumps = payload.pumps || {};
+function setTag(el, p) {
+  if (!p) { el.textContent = "--"; el.className = "tag stop"; return; }
+  if (p.fault) {
+    el.textContent = "FAULT";
+    el.className   = "tag fault";
+  } else if (p.running) {
+    el.textContent = "RUNNING";
+    el.className   = "tag run";
+  } else {
+    el.textContent = "STOP";
+    el.className   = "tag stop";
+  }
+}
 
-  document.getElementById("platformTag").textContent = `Mode: ${plat.mode||"--"} • Duty: ${plat.duty||"--"}`;
-  document.getElementById("modeSel").value = plat.mode || "AUTO";
-  document.getElementById("dutySel").value = plat.duty || "DOM_A";
+function setVal(id, v) {
+  document.getElementById(id).textContent =
+    (v === null || v === undefined) ? "--" : v;
+}
+
+function setOnline(tdId, online) {
+  const el = document.getElementById(tdId);
+  if (online) {
+    el.innerHTML = '<span class="online-yes">YES</span>';
+  } else {
+    el.innerHTML = '<span class="online-no">NO</span>';
+  }
+}
+
+function setTripKpi(kpiId, code) {
+  document.getElementById(kpiId)
+    .classList.toggle("kpi-fault", !!(code && code !== 0));
+}
+
+let eventsInitialized = false;
+function pushEvent(html, cls) {
+  const feed = document.getElementById("events");
+  if (!eventsInitialized) { feed.innerHTML = ""; eventsInitialized = true; }
+  const now = new Date().toLocaleTimeString();
+  const div = document.createElement("div");
+  div.className = "evt";
+  div.innerHTML = `<span class="evt-time">${now}</span><span class="${cls}">${html}</span>`;
+  feed.insertBefore(div, feed.firstChild);
+  while (feed.children.length > 80) feed.removeChild(feed.lastChild);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Telemetry handler
+   Data contract matches pump_platform.py mqtt_publish_state():
+     { ts, platform: {mode, duty, weekly_swap, setpoint_bar, last_swap_ts},
+       pumps: { DOM_A, DOM_B, IRR: {
+         name, slave, role, online, last_seen,
+         pressure_bar, freq_hz, current_a,
+         running, fault, trip_code, op_status } } }
+══════════════════════════════════════════════════════════════════ */
+const prevFault = { DOM_A: false, DOM_B: false, IRR: false };
+
+function applyTelemetry(payload) {
+  const plat  = payload.platform || {};
+  const pumps = payload.pumps    || {};
+
+  /* ── Platform controls ── */
+  document.getElementById("platformTag").textContent =
+    `Mode: ${plat.mode || "--"} · Duty: ${plat.duty || "--"}`;
+  document.getElementById("modeSel").value     = plat.mode        || "AUTO";
+  document.getElementById("dutySel").value     = plat.duty        || "DOM_A";
   document.getElementById("setpointInp").value = plat.setpoint_bar ?? 2.5;
-  document.getElementById("weeklySel").value = String(!!plat.weekly_swap);
+  document.getElementById("weeklySel").value   = String(!!plat.weekly_swap);
 
-  const A=pumps.DOM_A, B=pumps.DOM_B, I=pumps.IRR;
-  if(A){
+  const A = pumps.DOM_A, B = pumps.DOM_B, I = pumps.IRR;
+
+  /* ── Domestic A ── */
+  if (A) {
     setTag(document.getElementById("tagA"), A);
-    setValue("aP", A.pressure_bar?.toFixed?.(2));
-    setValue("aHz", A.freq_hz?.toFixed?.(2));
-    setValue("aA", A.current_a?.toFixed?.(1));
-    setValue("aTrip", A.trip_code ?? 0);
-    seriesA[si]=A.pressure_bar ?? null;
-    document.getElementById("hA").textContent = A.online ? "YES" : "NO";
+    setVal("aP",    A.pressure_bar?.toFixed?.(2));
+    setVal("aHz",   A.freq_hz?.toFixed?.(2));
+    setVal("aA",    A.current_a?.toFixed?.(1));
+    setVal("aTrip", A.trip_code ?? 0);
+    setTripKpi("kpiATrip", A.trip_code);
+    serA[si] = A.pressure_bar ?? null;
+    setOnline("hA", A.online);
     document.getElementById("tA").textContent = fmtTs(A.last_seen);
+    if (A.fault && !prevFault.DOM_A)
+      pushEvent(`DOM_A fault — trip code ${A.trip_code}`, "evt-bad");
+    if (!A.fault && prevFault.DOM_A)
+      pushEvent(`DOM_A fault cleared`, "evt-good");
+    prevFault.DOM_A = !!A.fault;
   }
-  if(B){
+
+  /* ── Domestic B ── */
+  if (B) {
     setTag(document.getElementById("tagB"), B);
-    setValue("bP", B.pressure_bar?.toFixed?.(2));
-    setValue("bHz", B.freq_hz?.toFixed?.(2));
-    setValue("bA", B.current_a?.toFixed?.(1));
-    setValue("bTrip", B.trip_code ?? 0);
-    seriesB[si]=B.pressure_bar ?? null;
-    document.getElementById("hB").textContent = B.online ? "YES" : "NO";
+    setVal("bP",    B.pressure_bar?.toFixed?.(2));
+    setVal("bHz",   B.freq_hz?.toFixed?.(2));
+    setVal("bA",    B.current_a?.toFixed?.(1));
+    setVal("bTrip", B.trip_code ?? 0);
+    setTripKpi("kpiBTrip", B.trip_code);
+    serB[si] = B.pressure_bar ?? null;
+    setOnline("hB", B.online);
     document.getElementById("tB").textContent = fmtTs(B.last_seen);
+    if (B.fault && !prevFault.DOM_B)
+      pushEvent(`DOM_B fault — trip code ${B.trip_code}`, "evt-bad");
+    if (!B.fault && prevFault.DOM_B)
+      pushEvent(`DOM_B fault cleared`, "evt-good");
+    prevFault.DOM_B = !!B.fault;
   }
-  if(I){
+
+  /* ── Irrigation ── */
+  if (I) {
     setTag(document.getElementById("tagIRR"), I);
-    setValue("iP", I.pressure_bar?.toFixed?.(2));
-    setValue("iHz", I.freq_hz?.toFixed?.(2));
-    setValue("iA", I.current_a?.toFixed?.(1));
-    setValue("iTrip", I.trip_code ?? 0);
-    seriesI[si]=I.pressure_bar ?? null;
-    document.getElementById("hI").textContent = I.online ? "YES" : "NO";
+    setVal("iP",    I.pressure_bar?.toFixed?.(2));
+    setVal("iHz",   I.freq_hz?.toFixed?.(2));
+    setVal("iA",    I.current_a?.toFixed?.(1));
+    setVal("iTrip", I.trip_code ?? 0);
+    setTripKpi("kpiITrip", I.trip_code);
+    serI[si] = I.pressure_bar ?? null;
+    setOnline("hI", I.online);
     document.getElementById("tI").textContent = fmtTs(I.last_seen);
+    if (I.fault && !prevFault.IRR)
+      pushEvent(`IRR fault — trip code ${I.trip_code}`, "evt-bad");
+    if (!I.fault && prevFault.IRR)
+      pushEvent(`IRR fault cleared`, "evt-good");
+    prevFault.IRR = !!I.fault;
   }
 
-  si=(si+1)%seriesA.length;
-  drawChart(document.getElementById("chartA"), seriesA);
-  drawChart(document.getElementById("chartB"), seriesB);
-  drawChart(document.getElementById("chartI"), seriesI);
-
-  // Simple event logic
-  if(A?.fault) pushEvent(`<span class="bad">DOM_A fault</span> trip=${A.trip_code}`);
-  if(B?.fault) pushEvent(`<span class="bad">DOM_B fault</span> trip=${B.trip_code}`);
-  if(I?.fault) pushEvent(`<span class="bad">IRR fault</span> trip=${I.trip_code}`);
+  /* ── Advance ring and redraw ── */
+  si = (si + 1) % RING;
+  drawChart(document.getElementById("chartA"), serA);
+  drawChart(document.getElementById("chartB"), serB);
+  drawChart(document.getElementById("chartI"), serI);
 }
 
-function start(){
+/* ══════════════════════════════════════════════════════════════════
+   WebSocket / MQTT connection with exponential-backoff retry
+══════════════════════════════════════════════════════════════════ */
+function start() {
   setMqttStatus(false, "MQTT: connecting…");
-  ws = new WebSocket(WS_URL);
-  ws.binaryType="arraybuffer";
-  ws.onopen=()=>{
-    ws.send(mqttConnectPacket("dash-"+Math.random().toString(16).slice(2)));
+  clearInterval(pingTimer);
+
+  try { ws = new WebSocket(WS_URL); }
+  catch (e) {
+    setMqttStatus(false, "MQTT: invalid URL");
+    return;
+  }
+  ws.binaryType = "arraybuffer";
+
+  ws.onopen = () => {
+    retryDelay = 1500;   // reset backoff on successful open
+    ws.send(pktConnect("dash-" + Math.random().toString(16).slice(2), MQTT_USERNAME, MQTT_PASSWORD));
   };
-  ws.onmessage=(ev)=>{
-    const pub=parsePublish(ev.data);
-    if(!connected){
-      // CONNACK is type 2, but our minimal parser ignores. We'll mark connected when first SUBACK/PUBLISH arrives.
-    }
-    if(pub){
-      if(pub.topic===TOPIC_TELE){
-        connected=true;
-        setMqttStatus(true, "MQTT: connected");
-        try{ applyTelemetry(JSON.parse(pub.payload)); }catch(e){}
+
+  ws.onmessage = ev => {
+    const b    = new Uint8Array(ev.data);
+    const type = b[0] >> 4;
+
+    if (type === 2) {           // CONNACK
+      const rc = b[3];          // return code (0 = accepted)
+      if (rc !== 0) {
+        setMqttStatus(false, `MQTT: broker refused (rc=${rc})`);
+        return;
       }
-    }else{
-      // Try to detect SUBACK
-      const b=new Uint8Array(ev.data);
-      if((b[0]>>4)===2){ // CONNACK
-        ws.send(mqttSubscribePacket(pid++, TOPIC_TELE));
-        connected=true;
-        setMqttStatus(true, "MQTT: connected");
-      }
+      connected = true;
+      setMqttStatus(true, "MQTT: connected");
+      ws.send(pktSubscribe(pid++, TOPIC_TELE));
+      // Keepalive PINGREQ every 45 s (broker keepalive = 60 s)
+      pingTimer = setInterval(() => {
+        if (connected && ws && ws.readyState === WebSocket.OPEN)
+          ws.send(pktPingreq());
+      }, 45_000);
+      pushEvent("MQTT connected", "evt-good");
+      return;
+    }
+
+    if (type === 13) return;    // PINGRESP — ignore
+
+    const pub = parsePublish(ev.data);
+    if (pub && pub.topic === TOPIC_TELE) {
+      try { applyTelemetry(JSON.parse(pub.payload)); }
+      catch (e) { console.warn("Bad telemetry JSON:", e); }
     }
   };
-  ws.onclose=()=>{
-    connected=false;
-    setMqttStatus(false, "MQTT: disconnected (retrying)");
-    setTimeout(start, 1500);
+
+  ws.onclose = () => {
+    connected = false; clearInterval(pingTimer);
+    setMqttStatus(false, `MQTT: disconnected (retry in ${(retryDelay/1000).toFixed(0)}s)`);
+    setTimeout(start, retryDelay);
+    retryDelay = Math.min(retryDelay * 1.5, 15_000);   // cap at 15 s
   };
-  ws.onerror=()=>{
-    connected=false;
-    setMqttStatus(false, "MQTT: error (retrying)");
-    try{ws.close();}catch(e){}
+
+  ws.onerror = () => {
+    connected = false; clearInterval(pingTimer);
+    setMqttStatus(false, "MQTT: error — retrying…");
+    try { ws.close(); } catch (_) {}
   };
 }
+
 start();
 
-// Buttons
-document.getElementById("applyModeBtn").onclick=()=>{
-  mqttSend(`${CMD_BASE}/mode`, {mode: document.getElementById("modeSel").value});
+/* ══════════════════════════════════════════════════════════════════
+   Button handlers — publish to compound/pumps/cmd/<action>
+══════════════════════════════════════════════════════════════════ */
+document.getElementById("applyModeBtn").onclick = () =>
+  mqttSend(`${CMD_BASE}/mode`,        { mode: document.getElementById("modeSel").value });
+
+document.getElementById("setDutyBtn").onclick = () =>
+  mqttSend(`${CMD_BASE}/duty`,        { duty: document.getElementById("dutySel").value });
+
+document.getElementById("swapBtn").onclick = () =>
+  mqttSend(`${CMD_BASE}/swap`,        { now: true });
+
+document.getElementById("setpointBtn").onclick = () => {
+  const v = parseFloat(document.getElementById("setpointInp").value);
+  if (!isNaN(v) && v >= 0) mqttSend(`${CMD_BASE}/setpoint`, { setpoint_bar: v });
 };
-document.getElementById("setDutyBtn").onclick=()=>{
-  mqttSend(`${CMD_BASE}/duty`, {duty: document.getElementById("dutySel").value});
-};
-document.getElementById("swapBtn").onclick=()=>{
-  mqttSend(`${CMD_BASE}/swap`, {now:true});
-};
-document.getElementById("setpointBtn").onclick=()=>{
-  mqttSend(`${CMD_BASE}/setpoint`, {setpoint_bar: parseFloat(document.getElementById("setpointInp").value||"0")});
-};
-document.getElementById("weeklyBtn").onclick=()=>{
-  mqttSend(`${CMD_BASE}/weekly_swap`, {enabled: document.getElementById("weeklySel").value==="true"});
-};
+
+document.getElementById("weeklyBtn").onclick = () =>
+  mqttSend(`${CMD_BASE}/weekly_swap`, { enabled: document.getElementById("weeklySel").value === "true" });
+
+/* ── Resize → redraw charts ── */
+let rzT;
+window.addEventListener("resize", () => {
+  clearTimeout(rzT);
+  rzT = setTimeout(() => {
+    drawChart(document.getElementById("chartA"), serA);
+    drawChart(document.getElementById("chartB"), serB);
+    drawChart(document.getElementById("chartI"), serI);
+  }, 80);
+});
 </script>
 </body>
 </html>
