@@ -3,1313 +3,941 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>ALSHARQ VILLAGE — Pump Station SCADA</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<title>Alsharq Village | Pumps Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════ DESIGN SYSTEM ═══════════════════════ */
+/* ═══════════════════════════════════════════
+   Design tokens
+═══════════════════════════════════════════ */
 :root {
-  --bg0:       #04080F;
-  --bg1:       #070D18;
-  --bg2:       #0A1220;
-  --bg3:       #0E1A2E;
-  --border:    rgba(0,200,255,.12);
-  --border2:   rgba(0,200,255,.22);
-  --border3:   rgba(0,200,255,.4);
-  --text:      #C8E8FF;
-  --text2:     #6A9ABF;
-  --text3:     #3A6080;
-  --cyan:      #00D4FF;
-  --cyan2:     #0099CC;
-  --green:     #00FF9D;
-  --green2:    #00CC7A;
-  --red:       #FF3355;
-  --red2:      #CC2244;
-  --amber:     #FFB020;
-  --amber2:    #CC8810;
-  --purple:    #7B4FFF;
-  --mono:      'Share Tech Mono', monospace;
-  --head:      'Rajdhani', sans-serif;
-  --glow-c:    0 0 20px rgba(0,212,255,.25);
-  --glow-g:    0 0 20px rgba(0,255,157,.25);
-  --glow-r:    0 0 20px rgba(255,51,85,.35);
-  --glow-a:    0 0 20px rgba(255,176,32,.25);
+  --bg:      #060911;
+  --surface: #0B1120;
+  --panel:   rgba(0,0,0,.18);
+  --border:  rgba(100,160,255,.11);
+  --border2: rgba(100,160,255,.22);
+  --text:    #D8E8FF;
+  --muted:   #5A7898;
+  --good:    #00F0A0;
+  --bad:     #FF3D6B;
+  --warn:    #FFB830;
+  --accent:  #3B82F6;
+  --accent2: #7C3AED;
+  --mono:    'IBM Plex Mono', monospace;
+  --sans:    'Syne', sans-serif;
+  --r:       14px;
+  --r-sm:    9px;
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 
-/* ── Scanlines + grid overlay ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
-  font-family: var(--head);
-  background: var(--bg0);
+  font-family: var(--sans);
+  background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  overflow-x: hidden;
+  background-image:
+    radial-gradient(ellipse 1400px 600px at 10% 0%,  rgba(59,130,246,.10) 0%, transparent 60%),
+    radial-gradient(ellipse 900px  500px at 90% 10%, rgba(124,58,237,.08) 0%, transparent 55%),
+    radial-gradient(ellipse 700px  400px at 50% 100%,rgba(0,245,160,.06)  0%, transparent 50%);
 }
+
 body::before {
-  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background:
-    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.08) 2px, rgba(0,0,0,.08) 4px),
-    radial-gradient(ellipse 120% 60% at 50% 0%, rgba(0,212,255,.06) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 80% at 0% 100%, rgba(123,79,255,.05) 0%, transparent 60%);
-}
-body::after {
-  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='none'/%3E%3Cpath d='M0 0h40M0 0v40' stroke='rgba(0,200,255,0.025)' stroke-width='1'/%3E%3C/svg%3E");
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  opacity: .35;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
 }
 
-/* ═══════════════════════ LOGIN ═══════════════════════ */
-#loginOverlay {
-  position:fixed; inset:0; z-index:9999;
-  display:flex; align-items:center; justify-content:center;
-  background: rgba(4,8,15,.95);
-}
-.login-box {
-  width:380px; padding:0;
-  background: var(--bg2);
-  border:1px solid var(--border3);
-  box-shadow: 0 0 60px rgba(0,212,255,.12), 0 0 120px rgba(0,212,255,.05), inset 0 1px 0 rgba(0,212,255,.15);
-  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
-}
-.login-header {
-  padding:24px 28px 18px;
-  border-bottom:1px solid var(--border);
-  background: linear-gradient(180deg, rgba(0,212,255,.05) 0%, transparent 100%);
-}
-.login-header .sys-id {
-  font-family:var(--mono); font-size:10px; color:var(--cyan); letter-spacing:2px;
-  text-transform:uppercase; margin-bottom:6px;
-}
-.login-header h2 {
-  font-size:20px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
-  color:#fff;
-}
-.login-body { padding:24px 28px; }
-.login-field { margin-bottom:16px; }
-.login-field label {
-  display:block; font-family:var(--mono); font-size:10px; color:var(--text2);
-  letter-spacing:1.5px; text-transform:uppercase; margin-bottom:7px;
-}
-.login-field input {
-  width:100%; padding:10px 13px;
-  background:rgba(0,0,0,.4); border:1px solid var(--border2);
-  color:var(--text); font-family:var(--mono); font-size:13px;
-  outline:none; transition: border-color .2s, box-shadow .2s;
-  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
-}
-.login-field input:focus {
-  border-color:var(--cyan); box-shadow:0 0 12px rgba(0,212,255,.2);
-}
-#loginError {
-  font-family:var(--mono); font-size:11px; color:var(--red);
-  min-height:18px; margin-bottom:14px; letter-spacing:.5px;
-}
-.login-btn {
-  width:100%; padding:13px;
-  background:linear-gradient(135deg, rgba(0,212,255,.15), rgba(0,153,204,.1));
-  border:1px solid var(--border3); color:var(--cyan);
-  font-family:var(--head); font-size:14px; font-weight:700;
-  letter-spacing:3px; text-transform:uppercase;
-  cursor:pointer; transition:all .2s; position:relative;
-  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
-}
-.login-btn:hover { background:linear-gradient(135deg,rgba(0,212,255,.25),rgba(0,153,204,.18)); box-shadow:var(--glow-c); }
-.login-footer {
-  padding:14px 28px; border-top:1px solid var(--border);
-  font-family:var(--mono); font-size:10px; color:var(--text3);
-  letter-spacing:1px; text-align:center;
-}
+.wrap { max-width: 1300px; margin: 0 auto; padding: 28px 20px 48px; position: relative; z-index: 1; }
 
-/* ═══════════════════════ MAIN APP ═══════════════════════ */
-#mainApp { position:relative; z-index:1; }
+/* ── Page load animation ── */
+.wrap { animation: fadein .45s ease both; }
+@keyframes fadein { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-/* ── TOP BAR ── */
-.topbar {
-  display:flex; align-items:stretch; gap:0;
-  height:56px;
-  background:var(--bg2);
-  border-bottom:1px solid var(--border2);
-  box-shadow:0 1px 0 rgba(0,212,255,.08), 0 4px 20px rgba(0,0,0,.4);
-  position:sticky; top:0; z-index:100;
+/* ═══════════════════════════════════════════
+   Header
+═══════════════════════════════════════════ */
+header {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
 }
-.topbar-brand {
-  display:flex; align-items:center; gap:14px;
-  padding:0 20px 0 16px;
-  border-right:1px solid var(--border);
-  min-width:240px;
+.logo-mark {
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; box-shadow: 0 0 28px rgba(59,130,246,.35);
 }
-.brand-icon {
-  width:34px; height:34px; flex-shrink:0;
-  background:linear-gradient(135deg,var(--cyan),var(--cyan2));
-  clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  display:flex; align-items:center; justify-content:center;
-  font-size:16px; filter:drop-shadow(0 0 8px rgba(0,212,255,.5));
-}
-.brand-text .site { font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#fff; line-height:1; }
-.brand-text .sub  { font-family:var(--mono); font-size:9px; color:var(--cyan); letter-spacing:1.5px; margin-top:3px; }
+.header-left { display: flex; align-items: center; gap: 14px; }
+h1 { font-size: 18px; font-weight: 800; letter-spacing: -.3px; line-height: 1.2; }
+.sub { color: var(--muted); font-size: 11px; font-family: var(--mono); margin-top: 4px; letter-spacing: .3px; }
 
-.topbar-kpis {
-  display:flex; flex:1; align-items:center;
-  gap:0; overflow:hidden;
+/* MQTT badge */
+.mqtt-badge {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  flex-shrink: 0;
 }
-.tb-kpi {
-  display:flex; flex-direction:column; justify-content:center;
-  padding:0 18px; border-right:1px solid var(--border);
-  min-width:100px;
+.mqtt-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #444; transition: background .4s;
 }
-.tb-kpi .lbl { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:1.5px; text-transform:uppercase; }
-.tb-kpi .val { font-family:var(--mono); font-size:16px; font-weight:600; color:var(--cyan); margin-top:2px; letter-spacing:1px; }
-.tb-kpi .val.good  { color:var(--green); }
-.tb-kpi .val.bad   { color:var(--red); }
-.tb-kpi .val.amber { color:var(--amber); }
+.mqtt-dot.online { background: var(--good); animation: pulse-dot 2s infinite; }
+.mqtt-dot.error  { background: var(--bad); }
+@keyframes pulse-dot {
+  0%  { box-shadow: 0 0 0 0   rgba(0,240,160,.55); }
+  70% { box-shadow: 0 0 0 6px rgba(0,240,160,0); }
+  100%{ box-shadow: 0 0 0 0   rgba(0,240,160,0); }
+}
+.mqtt-label { font-size: 13px; font-weight: 700; }
+.mqtt-url   { font-family: var(--mono); color: var(--muted); font-size: 10px; margin-top: 2px; }
 
-.topbar-right {
-  display:flex; align-items:center; gap:0;
-  margin-left:auto;
-  border-left:1px solid var(--border);
-}
-.tb-time {
-  display:flex; flex-direction:column; justify-content:center; align-items:flex-end;
-  padding:0 18px; border-right:1px solid var(--border);
-}
-.tb-time .clock { font-family:var(--mono); font-size:16px; color:var(--text); letter-spacing:2px; }
-.tb-time .date  { font-family:var(--mono); font-size:9px;  color:var(--text3); letter-spacing:1px; margin-top:2px; }
+/* ═══════════════════════════════════════════
+   Layout
+═══════════════════════════════════════════ */
+.main-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 16px; }
+@media (max-width: 1020px) { .main-grid { grid-template-columns: 1fr; } }
 
-.mqtt-pill {
-  display:flex; align-items:center; gap:9px;
-  padding:0 18px;
+/* ── Card ── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); overflow: hidden; position: relative;
 }
-.mqtt-led {
-  width:8px; height:8px; border-radius:50%;
-  background:var(--text3); flex-shrink:0; transition:background .3s;
+.card::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(135deg, rgba(255,255,255,.022) 0%, transparent 60%);
 }
-.mqtt-led.on  { background:var(--green); box-shadow:0 0 8px var(--green2); animation:blink 2s infinite; }
-.mqtt-led.err { background:var(--red);   box-shadow:0 0 8px var(--red2);   animation:blink-fast 0.8s infinite; }
-@keyframes blink      { 0%,100%{opacity:1}50%{opacity:.5} }
-@keyframes blink-fast { 0%,100%{opacity:1}50%{opacity:.2} }
-.mqtt-info .status  { font-family:var(--mono); font-size:11px; color:var(--text); }
-.mqtt-info .broker  { font-family:var(--mono); font-size:9px;  color:var(--text3); letter-spacing:.5px; margin-top:2px; }
+.card-head {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: rgba(0,0,0,.18);
+}
+.card-head .title { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: rgba(216,232,255,.65); }
+.card-head .desc  { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-top: 3px; letter-spacing: .3px; }
+.card-body { padding: 16px; }
 
-/* ── MAIN GRID ── */
-.page { display:grid; grid-template-columns:1fr 320px; gap:0; height:calc(100vh - 56px); overflow:hidden; }
-@media (max-width:1100px) { .page { grid-template-columns:1fr; height:auto; overflow:auto; } }
+/* ── Status tag ── */
+.tag {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .6px; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 6px;
+  background: rgba(0,0,0,.25); border: 1px solid var(--border);
+  white-space: nowrap; transition: border-color .3s, background .3s, color .3s;
+}
+.tag.run   { border-color: rgba(0,240,160,.35); background: rgba(0,240,160,.07); color: var(--good); }
+.tag.stop  { border-color: var(--border); color: var(--muted); }
+.tag.fault { border-color: rgba(255,61,107,.5); background: rgba(255,61,107,.1); color: var(--bad); animation: flicker 1.6s infinite; }
+@keyframes flicker { 0%,100%{opacity:1} 50%{opacity:.7} }
 
-/* ── LEFT PANE ── */
-.left-pane { overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:14px; }
-.left-pane::-webkit-scrollbar { width:4px; }
-.left-pane::-webkit-scrollbar-track { background:transparent; }
-.left-pane::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+/* ── Divider ── */
+hr.sep { border: none; border-top: 1px solid var(--border); margin: 13px 0; }
 
-/* ── RIGHT PANE ── */
-.right-pane { border-left:1px solid var(--border); overflow-y:auto; display:flex; flex-direction:column; }
-.right-pane::-webkit-scrollbar { width:4px; }
-.right-pane::-webkit-scrollbar-track { background:transparent; }
-.right-pane::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
-
-/* ═══════════════════════ SECTION HEADER ═══════════════════════ */
-.sec-head {
-  display:flex; align-items:center; gap:10px;
-  padding:8px 12px;
-  background:var(--bg2);
-  border:1px solid var(--border);
-  border-left:2px solid var(--cyan);
-  position:relative;
-}
-.sec-head::after {
-  content:''; position:absolute; right:0; top:0; bottom:0; width:30px;
-  background:linear-gradient(90deg, transparent, rgba(0,212,255,.04));
-}
-.sec-head .title {
-  font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase;
-  color:var(--cyan);
-}
-.sec-head .badge {
-  font-family:var(--mono); font-size:9px; color:var(--text3);
-  background:rgba(0,0,0,.4); border:1px solid var(--border); padding:2px 7px;
-  letter-spacing:1px; margin-left:auto;
-}
-
-/* ═══════════════════════ PUMP CARDS ═══════════════════════ */
-.pumps-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-@media (max-width:900px) { .pumps-grid { grid-template-columns:1fr 1fr; } }
-@media (max-width:580px) { .pumps-grid { grid-template-columns:1fr; } }
-
-.pump-card {
-  background:var(--bg2);
-  border:1px solid var(--border);
-  position:relative; overflow:hidden;
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
-  transition:border-color .3s;
-}
-.pump-card::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:1px;
-  background:linear-gradient(90deg,transparent 0%, var(--cyan) 50%,transparent 100%);
-  opacity:.3;
-}
-.pump-card.running { border-color:rgba(0,255,157,.3); }
-.pump-card.running::before { background:linear-gradient(90deg,transparent 0%,var(--green) 50%,transparent 100%); opacity:.5; }
-.pump-card.fault   { border-color:rgba(255,51,85,.4); animation:card-alarm 1.5s infinite; }
-.pump-card.fault::before   { background:linear-gradient(90deg,transparent 0%,var(--red) 50%,transparent 100%); opacity:.6; }
-@keyframes card-alarm { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 20px rgba(255,51,85,.25)} }
-
-.pump-head {
-  padding:10px 13px 9px;
-  border-bottom:1px solid var(--border);
-  background:rgba(0,0,0,.25);
-  display:flex; align-items:center; justify-content:space-between;
-}
-.pump-id {
-  display:flex; align-items:center; gap:8px;
-}
-.pump-num {
-  width:24px; height:24px;
-  background:linear-gradient(135deg,rgba(0,212,255,.2),rgba(0,212,255,.05));
-  border:1px solid var(--border2);
-  display:flex; align-items:center; justify-content:center;
-  font-family:var(--mono); font-size:11px; color:var(--cyan); font-weight:700;
-  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
-}
-.pump-name { font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
-.pump-type { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:1px; margin-top:2px; }
-
-.status-tag {
-  font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:1.5px;
-  text-transform:uppercase; padding:4px 9px;
-  border:1px solid; position:relative;
-  clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);
-}
-.status-tag.run  { color:var(--green); border-color:rgba(0,255,157,.4); background:rgba(0,255,157,.07); }
-.status-tag.stop { color:var(--text3); border-color:var(--border); background:rgba(0,0,0,.2); }
-.status-tag.fault{ color:var(--red);   border-color:rgba(255,51,85,.5); background:rgba(255,51,85,.1); animation:blink-fast .8s infinite; }
-
-.pump-metrics {
-  padding:12px 13px; display:grid; grid-template-columns:1fr 1fr; gap:8px;
-}
-.metric {
-  background:rgba(0,0,0,.2); border:1px solid var(--border); padding:8px 10px;
-  position:relative;
-}
-.metric::before {
-  content:''; position:absolute; top:0; left:0; width:2px; height:100%;
-  background:var(--cyan); opacity:.3;
-}
-.metric.val-green::before { background:var(--green); opacity:.5; }
-.metric.val-red::before   { background:var(--red);   opacity:.6; }
-.metric .m-lbl { font-family:var(--mono); font-size:8px; color:var(--text3); letter-spacing:1.5px; text-transform:uppercase; }
-.metric .m-val { font-family:var(--mono); font-size:17px; color:var(--text); font-weight:600; margin-top:4px; line-height:1; letter-spacing:1px; }
-.metric .m-val.good  { color:var(--green); }
-.metric .m-val.bad   { color:var(--red); }
-.metric .m-unit { font-family:var(--mono); font-size:9px; color:var(--text3); margin-top:3px; }
-
-/* ── Online indicator ── */
-.online-row {
-  padding:6px 13px 9px;
-  display:flex; align-items:center; gap:8px;
-  font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:.8px;
-}
-.online-dot { width:6px; height:6px; border-radius:50%; background:var(--text3); }
-.online-dot.on  { background:var(--green); box-shadow:0 0 6px var(--green2); animation:blink 3s infinite; }
-.online-dot.off { background:var(--red); }
-
-/* ── Mini chart ── */
-.pump-chart-wrap {
-  padding:0 13px 12px;
-}
-.pump-chart-label {
-  font-family:var(--mono); font-size:8px; color:var(--text3); letter-spacing:1px;
-  text-transform:uppercase; margin-bottom:5px;
-  display:flex; justify-content:space-between;
-}
-canvas.pump-chart {
-  width:100%; height:60px; display:block;
-  background:rgba(0,0,0,.3); border:1px solid var(--border);
-  border-left:2px solid rgba(0,212,255,.2);
-}
-
-/* ═══════════════════════ CONTROL PANEL ═══════════════════════ */
-.ctrl-panel { padding:14px; display:flex; flex-direction:column; gap:12px; }
-
-.ctrl-group {
-  background:var(--bg2); border:1px solid var(--border); padding:12px 13px;
-  position:relative;
-}
-.ctrl-group::before {
-  content:''; position:absolute; top:0; left:0; bottom:0; width:2px;
-  background:linear-gradient(180deg,var(--purple),transparent);
-}
-.ctrl-group-title {
-  font-family:var(--mono); font-size:9px; color:var(--purple); letter-spacing:2px;
-  text-transform:uppercase; margin-bottom:12px; padding-bottom:8px;
-  border-bottom:1px solid var(--border);
-}
-.ctrl-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
-.ctrl-row:last-child { margin-bottom:0; }
-.ctrl-lbl { font-family:var(--mono); font-size:9px; color:var(--text2); letter-spacing:1.5px; text-transform:uppercase; flex-shrink:0; min-width:80px; }
+/* ── Controls ── */
+.ctrl-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ctrl-lbl { font-size: 10px; color: var(--muted); font-family: var(--mono); letter-spacing: .5px; text-transform: uppercase; }
 
 select, input[type=number] {
-  font-family:var(--mono); font-size:11px;
-  background:rgba(0,0,0,.5); border:1px solid var(--border2);
-  color:var(--text); padding:7px 10px; outline:none; appearance:none; flex:1;
-  transition:border-color .2s, box-shadow .2s;
-  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,0 100%);
+  font-family: var(--mono); font-size: 12px;
+  background: rgba(0,0,0,.3); border: 1px solid var(--border2);
+  border-radius: var(--r-sm); color: var(--text);
+  padding: 8px 10px; outline: none; appearance: none; -webkit-appearance: none;
+  transition: border-color .2s, box-shadow .2s;
 }
-select:focus, input:focus { border-color:var(--cyan); box-shadow:0 0 10px rgba(0,212,255,.15); }
+select:focus, input:focus {
+  border-color: rgba(59,130,246,.55);
+  box-shadow: 0 0 0 3px rgba(59,130,246,.13);
+}
+input[type=number] { width: 100px; }
 
-.cmd-btn {
-  font-family:var(--head); font-size:11px; font-weight:700; letter-spacing:2px;
-  text-transform:uppercase; padding:7px 14px; border:1px solid;
-  cursor:pointer; transition:all .15s; white-space:nowrap;
-  clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);
-  flex-shrink:0;
+.btn {
+  font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .3px;
+  padding: 8px 14px; border-radius: var(--r-sm);
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(59,130,246,.15); color: var(--text);
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: filter .15s, transform .1s, box-shadow .15s;
 }
-.cmd-btn.cyan   { color:var(--cyan);  border-color:rgba(0,212,255,.35); background:rgba(0,212,255,.08); }
-.cmd-btn.green  { color:var(--green); border-color:rgba(0,255,157,.35); background:rgba(0,255,157,.07); }
-.cmd-btn.purple { color:#A07FFF;      border-color:rgba(123,79,255,.4); background:rgba(123,79,255,.1); }
-.cmd-btn.amber  { color:var(--amber); border-color:rgba(255,176,32,.4); background:rgba(255,176,32,.08); }
-.cmd-btn:hover  { filter:brightness(1.2); transform:translateY(-1px); }
-.cmd-btn:active { transform:translateY(0); filter:brightness(.9); }
+.btn::after { content:''; position:absolute; inset:0; background:linear-gradient(transparent 40%,rgba(255,255,255,.04)); }
+.btn:hover  { filter: brightness(1.18); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.4); }
+.btn:active { transform: translateY(0); filter: brightness(.94); }
+.btn.secondary { background: rgba(124,58,237,.15); border-color: rgba(124,58,237,.22); }
+.btn.ghost     { background: rgba(255,255,255,.05); }
+.btn.danger    { background: rgba(255,61,107,.14); border-color: rgba(255,61,107,.22); }
 
-/* ═══════════════════════ RIGHT PANE ═══════════════════════ */
-.rp-section { border-bottom:1px solid var(--border); }
-.rp-head {
-  padding:9px 14px;
-  background:rgba(0,0,0,.3);
-  display:flex; align-items:center; gap:8px;
-  border-bottom:1px solid var(--border);
+/* ── KPI grid ── */
+.kpi-row  { display: flex; gap: 10px; flex-wrap: wrap; }
+.kpi {
+  flex: 1 1 118px; padding: 11px 12px;
+  border-radius: 11px; border: 1px solid var(--border);
+  background: rgba(0,0,0,.22); position: relative; overflow: hidden;
+  transition: border-color .3s;
 }
-.rp-head .t {
-  font-family:var(--mono); font-size:9px; color:var(--text2);
-  letter-spacing:2px; text-transform:uppercase;
+.kpi::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(59,130,246,.22), transparent);
 }
-.rp-head .count {
-  margin-left:auto; font-family:var(--mono); font-size:9px; color:var(--text3);
-  background:rgba(0,0,0,.4); border:1px solid var(--border); padding:1px 6px;
+.kpi .lbl  { font-size: 10px; color: var(--muted); font-family: var(--mono); letter-spacing: .5px; text-transform: uppercase; }
+.kpi .val  { font-size: 19px; font-weight: 600; font-family: var(--mono); margin-top: 7px; line-height: 1; letter-spacing: -.5px; }
+.kpi .unit { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-top: 4px; }
+.kpi.kpi-fault { border-color: rgba(255,61,107,.35); }
+.kpi.kpi-fault .val { color: var(--bad); }
+
+/* ── Pump pair ── */
+.pump-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+@media (max-width: 740px) { .pump-pair { grid-template-columns: 1fr; } }
+
+.pump-card { background: rgba(0,0,0,.15); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.pump-card-head {
+  padding: 10px 13px; display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border); background: rgba(0,0,0,.2);
+}
+.pump-card-head .pname { font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+.pump-card-body { padding: 12px 13px; }
+
+/* ── Chart ── */
+.chart-wrap { margin-top: 12px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: rgba(0,0,0,.25); height: 150px; position: relative; }
+canvas { display: block; width: 100%; height: 100%; }
+
+/* ── Right column ── */
+.right-col { display: flex; flex-direction: column; gap: 14px; }
+
+/* ── Table ── */
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 9px 10px; font-size: 12px; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-family: var(--mono); font-size: 10px; letter-spacing: .5px; text-transform: uppercase; font-weight: 600; text-align: left; }
+td { font-family: var(--mono); }
+tr:last-child td { border-bottom: none; }
+.online-yes { color: var(--good); }
+.online-yes::before { content: '● '; font-size: 8px; }
+.online-no  { color: var(--muted); }
+.online-no::before  { content: '○ '; font-size: 8px; }
+
+/* ── Events feed ── */
+.events-feed { font-size: 12px; font-family: var(--mono); line-height: 2; max-height: 180px; overflow-y: auto; }
+.events-feed::-webkit-scrollbar { width: 3px; }
+.events-feed::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.evt { display: flex; gap: 8px; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+.evt-time { color: var(--muted); flex-shrink: 0; }
+.evt-bad  { color: var(--bad); }
+.evt-good { color: var(--good); }
+.evt-warn { color: var(--warn); }
+.evt-info { color: var(--muted); }
+
+/* ═══════════════════════════════════════════
+   LOGIN OVERLAY
+═══════════════════════════════════════════ */
+#loginOverlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #060911;
+  display: flex; align-items: center; justify-content: center;
+  animation: fadein .4s ease both;
+}
+.login-box {
+  background: #0B1120;
+  border: 1px solid rgba(100,160,255,.22);
+  border-radius: 18px; padding: 40px 36px; width: 340px;
+  box-shadow: 0 0 60px rgba(59,130,246,.18), 0 0 0 1px rgba(100,160,255,.08);
+}
+.login-logo {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: linear-gradient(135deg, #3B82F6, #7C3AED);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; margin: 0 auto 18px;
+  box-shadow: 0 0 30px rgba(59,130,246,.4);
+}
+.login-box h2 {
+  text-align: center; font-size: 17px; font-weight: 800;
+  color: #D8E8FF; margin-bottom: 5px;
+}
+.login-sub {
+  text-align: center; font-size: 11px; color: #5A7898;
+  font-family: 'IBM Plex Mono', monospace; margin-bottom: 28px;
+}
+.login-field { margin-bottom: 14px; }
+.login-field label {
+  display: block; font-size: 10px; color: #5A7898;
+  font-family: 'IBM Plex Mono', monospace;
+  text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px;
+}
+.login-field input {
+  width: 100%; padding: 11px 13px;
+  background: rgba(0,0,0,.4); border: 1px solid rgba(100,160,255,.2);
+  border-radius: 9px; color: #D8E8FF;
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+  outline: none; box-sizing: border-box;
+  transition: border-color .2s, box-shadow .2s;
+}
+.login-field input:focus {
+  border-color: rgba(59,130,246,.6);
+  box-shadow: 0 0 0 3px rgba(59,130,246,.14);
+}
+.login-btn {
+  width: 100%; padding: 12px;
+  background: linear-gradient(135deg, #3B82F6, #7C3AED);
+  border: none; border-radius: 9px;
+  color: #fff; font-size: 14px; font-weight: 700;
+  cursor: pointer; margin-top: 6px;
+  transition: opacity .2s, transform .1s, box-shadow .2s;
+  box-shadow: 0 4px 18px rgba(59,130,246,.3);
+}
+.login-btn:hover  { opacity: .88; transform: translateY(-1px); box-shadow: 0 6px 22px rgba(59,130,246,.4); }
+.login-btn:active { transform: translateY(0); opacity: 1; }
+.login-error {
+  color: #FF3D6B; font-size: 11px;
+  font-family: 'IBM Plex Mono', monospace;
+  text-align: center; margin-top: 13px; min-height: 16px;
+}
+.login-hint {
+  text-align: center; font-size: 10px; color: rgba(90,120,152,.6);
+  font-family: 'IBM Plex Mono', monospace; margin-top: 20px;
+  border-top: 1px solid rgba(100,160,255,.08); padding-top: 14px;
 }
 
-/* ── System status matrix ── */
-.sys-matrix { padding:12px 14px; display:flex; flex-direction:column; gap:7px; }
-.sys-row {
-  display:flex; align-items:center; gap:8px;
-  padding:7px 10px; background:rgba(0,0,0,.2); border:1px solid var(--border);
-  position:relative; overflow:hidden;
-}
-.sys-row::after {
-  content:''; position:absolute; top:0; left:0; bottom:0; width:2px;
-  background:var(--text3);
-}
-.sys-row.ok::after   { background:var(--green); }
-.sys-row.warn::after { background:var(--amber); }
-.sys-row.err::after  { background:var(--red); animation:blink-fast .8s infinite; }
-.sys-lbl { font-family:var(--mono); font-size:10px; color:var(--text2); flex:1; letter-spacing:.5px; }
-.sys-val { font-family:var(--mono); font-size:10px; color:var(--text); text-align:right; }
-.sys-val.ok   { color:var(--green); }
-.sys-val.warn { color:var(--amber); }
-.sys-val.err  { color:var(--red); }
-
-/* ── Event log ── */
-.evt-log { height:220px; overflow-y:auto; padding:8px 10px; display:flex; flex-direction:column; gap:5px; }
-.evt-log::-webkit-scrollbar { width:3px; }
-.evt-log::-webkit-scrollbar-thumb { background:var(--border2); }
-
-.evt {
-  display:flex; gap:8px; align-items:flex-start;
-  padding:6px 9px; background:rgba(0,0,0,.2); border:1px solid var(--border);
-  font-family:var(--mono); font-size:10px;
-  animation:evt-in .25s ease both;
-}
-@keyframes evt-in { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:none} }
-.evt-ts  { color:var(--text3); flex-shrink:0; }
-.evt-msg { color:var(--text2); flex:1; }
-.evt.evt-good .evt-msg { color:var(--green); }
-.evt.evt-bad  .evt-msg { color:var(--red); }
-.evt.evt-warn .evt-msg { color:var(--amber); }
-.evt.evt-info .evt-msg { color:var(--cyan); }
-
-/* ── Setpoint gauge ── */
-.gauge-wrap { padding:14px 14px 10px; display:flex; flex-direction:column; align-items:center; gap:8px; }
-.gauge-svg-wrap { width:140px; height:80px; }
-.gauge-val {
-  font-family:var(--mono); font-size:26px; font-weight:600; color:var(--cyan);
-  line-height:1; letter-spacing:2px;
-}
-.gauge-lbl { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:2px; text-transform:uppercase; }
-.gauge-range {
-  display:flex; justify-content:space-between; width:140px;
-  font-family:var(--mono); font-size:8px; color:var(--text3);
-}
-
-/* ── Pressure bars ── */
-.press-bars { padding:10px 14px 14px; display:flex; flex-direction:column; gap:8px; }
-.pbar-row { display:flex; align-items:center; gap:8px; }
-.pbar-lbl { font-family:var(--mono); font-size:9px; color:var(--text2); letter-spacing:1px; min-width:52px; }
-.pbar-track { flex:1; height:8px; background:rgba(0,0,0,.4); border:1px solid var(--border); position:relative; overflow:hidden; }
-.pbar-fill  { height:100%; background:linear-gradient(90deg,var(--cyan2),var(--cyan)); transition:width .6s ease; position:relative; }
-.pbar-fill::after { content:''; position:absolute; right:0; top:0; bottom:0; width:2px; background:rgba(255,255,255,.5); }
-.pbar-fill.low  { background:linear-gradient(90deg,#006699,var(--cyan2)); }
-.pbar-fill.high { background:linear-gradient(90deg,var(--amber2),var(--amber)); }
-.pbar-fill.over { background:linear-gradient(90deg,var(--red2),var(--red)); animation:blink-fast .5s infinite; }
-.pbar-val { font-family:var(--mono); font-size:10px; color:var(--text); min-width:42px; text-align:right; }
-
-/* ── Platform info ── */
-.plat-info { padding:10px 14px; display:flex; flex-direction:column; gap:6px; }
-.pi-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--border); }
-.pi-row:last-child { border-bottom:none; }
-.pi-key { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:1px; text-transform:uppercase; }
-.pi-val { font-family:var(--mono); font-size:10px; color:var(--text); }
-
-/* ── Footer ── */
-.scada-footer {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:7px 16px;
-  background:var(--bg2);
-  border-top:1px solid var(--border);
-  font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:1px;
-  flex-shrink:0;
-}
-.footer-sep { opacity:.3; }
-
-/* ── Utility ── */
-.gap2 { gap:2px; }
-.mt6  { margin-top:6px; }
+/* Alsharq Village Branding */
+header { background: linear-gradient(135deg,rgba(1,30,15,.6) 0%,rgba(6,9,17,.0) 100%); border-bottom: 1px solid rgba(0,140,55,.3) !important; }
+.logo-wrap { flex-shrink:0; }
+.brand-logo { height:72px; width:72px; border-radius:13px; object-fit:cover; display:block; box-shadow:0 0 28px rgba(0,180,70,.4),0 0 0 1px rgba(0,160,60,.25); }
+.brand-text { display:flex; flex-direction:column; gap:1px; }
+.brand-tag { font-family:var(--mono); font-size:9.5px; letter-spacing:3px; color:rgba(0,230,100,.75); text-transform:uppercase; font-weight:600; }
+header h1 { font-size:19px; font-weight:800; letter-spacing:-.4px; background:linear-gradient(90deg,#D8E8FF 0%,rgba(0,230,100,.9) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.mqtt-badge { border-color:rgba(0,130,50,.3) !important; background:rgba(1,18,8,.65) !important; }
+.login-subtitle { text-align:center; font-size:12px; color:rgba(0,220,100,.75); font-family:'IBM Plex Mono',monospace; letter-spacing:.8px; margin-bottom:3px; }
+.login-logo img { width:100%; height:100%; object-fit:cover; border-radius:14px; }
 </style>
 </head>
 <body>
 
-<!-- ════════════════════════ LOGIN ════════════════════════ -->
+<!-- ══ LOGIN GATE — credentials never stored in source code ══ -->
 <div id="loginOverlay">
   <div class="login-box">
-    <div class="login-header">
-      <div class="sys-id">⬡ SCADA AUTHENTICATION</div>
-      <h2>Alsharq Village<br>Pump Station</h2>
+    <div class="login-logo"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCACkAMEDASIAAhEBAxEB/8QAHAAAAgMBAQEBAAAAAAAAAAAAAAYEBQcDCAEC/8QASRAAAQMDAgMFBQMHCAkFAAAAAQIDBAAFEQYSByExE0FRYXEUIoGRoSMysTNCUmJygsEVFjZ0kpOy0SQlNTdDVnPC4VNUVaKz/8QAGQEAAgMBAAAAAAAAAAAAAAAAAAMBAgQF/8QALhEAAgIBAwIDCAIDAQAAAAAAAQIAAxEEEiExQQUTURQiIzJhodHwkeFxgbEk/9oADAMBAAIRAxEAPwDAaKK+VecSfaKYrLonUt2Ql2PblMsq6OSFdmk+meZ+VXTvCvUSWd6JVucX+h2ih9SMUhtTSpwWEeumuYZCmIdFW1803fLJ71ytzrTf/qp95v8AtDlVTTlZWGVOYllKnDDEKKsbLYrxel7bZb3pABwVgYQPVR5U1RuFmo3Gtzsi3sKx90uKUfmBilvfVXwzYjK9PbZyq5iJRTPd9BaotqFOKgCU0nmVxl9pj4dfpSwQUqKVAhQOCCMEVZLEcZU5lXrdDhhiFFdYcaTMkJjxI7sh5XRDaCon4Cm23cNNUS0hbzUaED3PO+98k5qLLUr+Y4k10vZ8ozE2inS4cMtTxklTCYkwDuadwr5KApSnwplvkmNOivRnh1Q6gpP/AJorurs+U5hZTZX8wxOFFHl40x2bQ+prohLrNuLDSujklXZg+gPP6VZ7FQZY4lUrZzhRmLlFPb3CvUSGtzcq3ur/AEA4ofUjFLF807e7Ic3K3PMozgOgbkH94cqWmoqc4VhGPp7axllMq6KKs7JYLzelYtlvefSDguY2oH7x5U1mCjJOIpVLHAGZWUU9scK9RONb3JNvZV+gXFK+oGKqbxoTU9sQp1y3mQ0nmVxldpgenX6UldTSxwGEc2luUZKmLVFByCQQQRyIPdRT4iWFFFFKl5XHkM1s/DTRUS2wGLtcmEPXB5IcQlYylhJ6YH6WO+scYGZDQPQuJ/EV6J1Dc7farG65OltRkqYUlsKVzUdvIJHUmsXiNjgKi95v8OrQlnftM91rxKmGY7B0+pLTTZKVSlJ3KWR12g8gPOk9jVupmJJkIvk0uE5O9zck/unlVL1JNFa69NVWu0LMlmqtsbcWmy8PtdDUDptF4ZaTMWk7FJT9m+O8FJ6H6GusrhrZHtRIuCctwcFTsNPJKl92D3J8RWVaOlsQNU22ZKc7Jlp8Fa/0R0zXoVqZDdh+2tSmVxSnd2wWNmPHNcrVq2mszVwDOto2XVV4t5IinrvV8bScZm2WyKyqWpGUNAYbZT3EgdfSstnav1PMf7Z29S0EHIS0vs0j0ArvxLuES56ylyoMhMhjahCXE/dJCQDjyzS5XQ0umRKwSOT6zn6vUu9hAPA9I/6T4l3OHJbYvivbYhIBe2gOt+fL7w+tO+sdHWvVEdEthTcaYoBSJSE5DiT+kO/l0PWsIPSvQHDy6QJ+lrexFltuvx4yEPNhXvoIGOY6/Gsutq8gi2rgzVobfPBqt5H1n57KxaC005IbY2oQAFKABdkLPQE+fyFZbfuIGo7o6oNSzb45PutRvdOPNXU01cbrpAdt0a2My23Jbcje40hWSgbSPe8Dz6VlVM0VCsnmWDJPrF669lfyqzgD0jNZNd6ltbiT7euayDzak++CPI9R861a3yLHr3TQXIihSMlDjavvsL/VV9Qe+sDrSuCN0gRVT4MqW0w++tBZQtWN/Iggd2enKp1unUJ5iDBHpI0OoYv5bnKn1jTo3Qts0845LfUmbKCiW3XE8mkd2B446mlPWXEuc7LdiafUmPHQSkySkKW4fFOeQH1rQ9XXOBbLHKVNltxy4ytDSVH3lqweQHU150HSk6Kv2hjZbzHa6z2dRVVxLyLq3U0aT7Q3fJpWTkhxe9J9QeVabw/1sjUhXabtHZTMKCRhP2b6R1909D5Vi9XWhZsa3aut0yW8GWG3PfWeiQQRk+XOtmp0yOhIHI9Ji02qsSwAng+s09fDWyK1GLgARAxuMIZ2lefH9Hyr9a+1mzpdDdqtcZlUzYCE7cNsJ7uQ6nypvEyIqF7amUwYu3f228bNvjnpisE4hzoty1jPmQnw/HWpIQ4OisJAOPLINc3Sq2psxbkgTp6tl01eauCZzmau1NKkB929zEqByA2vYkegHKmjSHEu4x5Tca/KEqMohPtAThxvzOOSh9azyvivun0rrPpqnXaVE5Cam1G3BjNw4gaOhX+A5cIDbbdySjehxAwHxjOFeJPcaxAggkEEEciD3V6G0JdIFy0/ATEltvOMR20PICveQoJAII691YHeQBeZwAwBJc/xGsfh7v71bdps8RRMLavedqKKK3TnznHt9w9oa/1fM/KJ/wCAvxHlT9x2H+kWbPcy5+KaUv55as/5huH95Vfdbtc7qptVznPy1NghBdVnaD1xSzVY1qu2OM/eOFta1Mi55x9pCooorTM0K02yf7jJ/wD1HP8AEKzKprV3ujVrXam576YKySqOFe4c9eVJvqNgXHYgx9ForJJ7giQqKKKdEQp84Hf0ve/qqvxFIdSrZcp9rkGRbpjsV4p2lbZwceFKvrNlZQd42iwV2Bz2nfU/9Jbn/W3f8Rqur9vuuPvLfeWpx1xRUtSuqiepr8UxRgARbHLEwrvbv9oxf+u3/iFcK+oUpC0rQSlSSCkjuIqSMiQOs0Xjx/ti1f1Zf+IVnNTLrdbldXG3LlOelrbTtQXTkpHgKh0nT1mqsIe0dqLRbYXHeFFFFOiZpsb/AHDOj9df/wCtZlU1N3uibUbUJ74gE5Mfd7nXPT1qFSKajXuz3JMffaLNuOwxCiiinxE0LgT/AEnl/wBV/wC4UoXmBPN5nFMCWQZDhBDCsH3j5VHtdzuNreU9bZj0RxadqlNnBI8Ksv55as/5huH95WbynW1nXHOJp82tqgjZ4zOPsM7/ANhL/uFf5UVafzu1R/8APT/7yiozb6D+T+IYq9T/AAPzFSiiitUzQoooSCpQSkFSj0AGSaIQoq4sumL9d5KWIltfGeZcdQUISPEk05z+FEhFrSuFc0vT0jK21p2tr8knqPj9KRZqaqzhmj69NbYCVWZpRV9a9IahuF2dtrdvcZeZID6nvdQ1noSfwx1pru3CmS1bUOW24iTMSMuNOJ2JWf1D3fGh9VUhALdZKaW5wSF6TNqvrDo/UN7aD8KAUsHo88oNoPpnmfhUvQViTI10xa7zHU2Wdy3GHBgqUkZCT5VsWoU6h7JlOnjbUY5Oe1BXIdwSByrPqtYa2CJjJ7npNGl0YsUu+cDsOsyOZw31XHbK0xY0nH5rL4KvkcUqSo78WQuPKZcYeQcKbcSUqHwNeibErUGwpvjVu3Ae65EWrn6pUPwNVnEXTLGoLK64htIuEdBWw4BzVjmUHxB/Gs9XiLB9tmMeomi3w5Sm6vOfQzBa+V99Rg12gvpizWZK47UlLagotO52Lx3HHdXXM44ku3WG93HHsNqmPg9FJaIT8zypjhcM9SvIDkv2O3t96n3skfAZqdedR68c0/CuwlNxY01wtMMRGMLwOh6HAPdzr5edC6qm2+3PmRNuE2SCZLb73uR+mBzPPzrA178ZYL9/xN60J2Vm+35kS4aV0vaITzlx1WiVKQg7I8NKSVK7hnJ7/SkimfiBbbTZpUG024Nqkx4/+nOoUTvdP4Y8POlmtGnyV3Ek5mfUYDbQAMeks7BYLvfXy1bIa3tv3nD7qE+qjyqHPhyoExyHNYWw+0cLQsYIrR+B15Icl2J1fJQ9oYB8eih+B+dOusNK27U0Ts5CeylIH2MlI95PkfFPlWWzXGq4o44muvQi2gOh5mE2a03G8SxFtsRyQ4eu0e6keJPQCi9WqfZp64NxjqZeTzweYUPEHvFPvCOQ5aNWXLTr7zbm8HCm1ZQpaO8H0J+VaHqWw27UNvMO4NZxzadT99o+IP8ADvot1xqt2sPdhToBbTuU+9POVFWWp7Q5Yr3ItjkhqQWiMONnkQemfA+IqtroKwYZE5zKVJBlhRRRS5aV9FFNPCu2sXPWUdMlIW1HSp8pPRRT0+tWscIpY9oVobHCjvPx/IEWy2xm56l7XtZA3Rbc0ra44P0nFfmJ+tVz1/nYLcEM2xnubiI2HHmv7x+Jpn42xZbeqGproUYzzCUtK7gU5yn155pDpVHxUDtzmOv+E5ReMfyZNg3e6wpqZsW4SW5Cei+0JJ8jnqPI02T+J9+kWpMVlqPFkkYcktjmR+qDySfnSNRV3orcgsvSLS+xAQrdZPt16utvuP8AKESe+iSTlaysq3/tZ6/Gmm7cTb7MtqIsdpmE8Rh6Q1kqV+yD9360j0UPRW5BZekEvsQEK3WdmJktiama1JdRKQvel4KO8K8c05Q+KOpGWwh9qDKIH3ltlJPrtIpHqRboE65Phi3xH5Th/NaQVY9fCiyqtxlwIVXWIcITHxPFm6j71ogn0WsU26A1o9qeW9HctJjdijcp5Dm5GfA5HWlXTXC2Y8pL9+kCK119nZIU4fIq6D4Zpl1debTonT5tdpaaamOIIZZR1TnkXFnr8+tcq9dOx8ulcsZ1qG1CDzLmwo+8x69JbReZyWsdmJDgTjw3HFRKCSSSTknmTUi2QZVynNQYTRdkOnCEZAz8TXZ+Uczi/MeIw2PXmprZAZtsN1h1tA2MpcY3rT4AY61ep01xCu8J+6Sbm9HfdGUxVPltSx6DknyBq30xw4ftjaZzl4cjXdPNpTCQpto+BB+959Kul6hvkF9u1T7GJN1ez7MuO6EsPgdVEnmjHeOflXJtvXd8ADPedeqh9v8A6Ccdph8+JLhS3I05h1iQk++hwEK9fP1rhW13zRM3UcYyL5eMXAD7FLDYDDA/RwfeV65rKdTafuWnpwiXFtAKhubWhWUrHiO/51t0+qS3jPMw6jSvTzjj96zlpq5Ls9/hXJBx2LoK/NJ5KHyrctesyZujJ38nSHWnOy7VJbVgrSOZTnwIrz4a37hrOF00TBU6dym0GO5n9Xl+GKzeIrtK2jtNXhrbg1R7zE9LTzbNRW+ck4DT6Sr9knB+hr0RdGFyrbJjsPrZW6ypLbqDgpJHIg15y1BCNvvU6B07B9aB6Z5fTFeg9KyzO03bZhOVORkE+uMGl+JDOywRnhh+eszzk+hxt9xt7d2qVlK93XcDzzX5pj4mQRA1tcG0jCHVB5I8lDP45pcrqVvvQN6zlWJsYqe0sKKKKrCV9XGjb0qwaijXLaVtJyh5I6lB5HHn31T0UxlDKVPQyEYowYdRPSDjdn1LZRvSzPgPjIPX/wAhQ+dId44TtLWpdnuhaSejUlO4D0UOf0rPbDfrtYny7a5q2Nx99H3kL9UnlTzbOLMhKQm52ht09647mzPwOfxrk+zamg/COROt7VptQPjDBlRI4Y6pbVhtEJ4eKZGPxArinhvq0nHscYeslNaBY+I1pu1wYgMQLgl95W1IKUkDxJIPQVymcT9Ox33GkMzny2op3IbSEqx3gk9KPaNZnbt5/wAf3D2bRY3b+P36RPj8LdSOEds9b2B5ulX4CreDwlOQZ97Hmlhn+Kj/AArvJ4tRAD7LZJCz3F14JH0BqlncVL68CIkODFB7ykuH6nH0q+dc/wBP4/uUxoE9T/P9R3tXDrS8IhS4bs1wd8hwqH9kYFWlwvenNOR+yflw4aUjkwyBu/sp51ic/VGp7w4GHrpMdLhwlln3Qo+ASnrTTpXhhLl7Zd/eVEbVz7Bs5dV+0eifqaVZptvvaiz9/fpG1ancdumr/wB/v5nTU3FJ94KjafjFgK5e0PAFZ/ZT0HxzSK7CvU1xct2FcZC3DuW6plairzJxW7RLbpfS8cKQzAgDH5V5Q3q/eVzNfWtY6ZdeDKL/AAysnAysgfM8qivVLWPg18esmzSmw/Gs59J55UFJUULSUqHVJGCPhQCUqCkkgg5BBwRXonUGnLJqKMDOjNuKIy3IaICx5hQ6/HNZ5c+FFxQ8TbbnGeaJ5B8FCh64yDWurxCp/m4Mx3eHWofd5EqbZxG1JBta4RdakrxhqQ8nc42P+741RR277qG6LfYTNuE4faKWkkqTjvz3eVPFp4TyVOpVdbq0hvPNEZJUo/E8h8jWi6ettqs8VcC0ttNpaUA7tVuXuxn3z1zik2auirJqGSY6vR33YFpwBMgi8R9TRbWuApxp14e6mS6jLqB3jwJ8zVbaNP6k1Y5InR21ylA/aPvu43K8AT1PlWkzuGNll3h2cqXLbadcLio6NoGTzICuoFMlmlWNiQvT1rdYQ5CSMx0HmkH8T4/WqtrK0XNC89+JddHa7AXtx256zzs+06w+4w8hTbraihaVDmkjqK1jgTIK7RcopPJqQlaf3k8/wpmvmjNO3maZk6CfaFffW24UFfrjqa7tsWHR9lddbaagxEe8vn7ziu4ZPNRqmo1q31bADky+n0T6e3eSMCY3xPSlOu7pt73AT67RWq8KnC5oO3E/m70/JZrEr7cHLpeJdydG1Uh0uY8B3D5YrdOG0VcTRFsacGFKbLhB/WJV/Gm68bdOinrx/wAitAd+odh05/7M543JSNWsqHVUROfgTSLTLxNurV21hKeYWFsMgMIUOitvU/PNLVbtMpWlQfSYNUwa5iPWWFFFFWi5X0UUU2UhRRRRCNmiWlRtOakvjY+2jxRHaP6JcOFH5UpDkMU/cH7lb0SJ9hufZ9hcUgJDhwlShkbSe7IPKr2fwmgrfUqFdpEdsnk240F7fLORWE6lKbWFnGek3DTPdUpr5x1/mZLV5pXS121G/iEzsjg4ckuDDaf8z5CtMsfDCxwnUuznX7kscwhY2N/FI6/E1O1PrSxaaj+yR+zkyUDaiLHwEo/aI5JHl1pb68udtAyY1NAEG+84E66f07YNG29cxxxsOIT9tNkYB9E+A8hzpM1bxOkPqXF06gx2uhlOJ99X7I/N9Tz9KTdT6jumopfbXB/KEn7NhHJtv0Hj5nnVTVqdFzvuOTKXa7jZSNqzpLkSJb6n5b7sh1RyVuKKlH4muVfaK6A4nPJzLnTmqL1YF/6vmKDOcqYc95s/Du+GKdo3FtQaAk2IKc7y1Iwk/AiswopFmlqsOWWaKtVbUMK00C88U7vKZU1boTEDcMdoVFxY9M4A+VKlm1HerRMdlwJ7qHHjue3++HD4qB6nzqqoqU09SKVC8Sr6i12DFuRGm4cQdVzGCyq4IYSoYJYaCFH49flSy26628H23XEOg7g4lRCgfHPWvxRV0rRBhRiUe13OWOZfta01W20G032WUjkNxCj8yM1VXK5XC5uh24zZEpY6F1ZVj0HQVFooWtFOQBBrHYYJJnaCuO1MZclsKkMJWC40lW0rHhnupu1JxFu10hqgwmGrZFUnYQ0oqWU9Mbu4elJdFQ9SOQzDOJKXOilVOMz5X2iimRcsKKKKVLyvooopspCirHTlpfvV2agsqCEnKnXVfdabH3lHyAq417pFWnFRpMWSqZbpKR2b5AyFYzg45cxzBpZtQOEJ5MYKnKFwOBFar23aw1PAZDMa8yezSMBLmFgf2gaohgEFWSnPPHXFOt20laIWimNSImXBfbpTsZIQMFWep8OVVtasYDjOZalbDkocYlLc9W6kuLRal3iSps9UIIQD/ZxVHRTFonSsjUz8jbITGjRk7nnNu5XolPeeVWOylc9BKjzLmx1MXqKvUJ0eZPYOO31tAVtL5S1y8yjr8M1BusWFBvTsVqWZsNCwA+1gFaSM5HUZ51IcE4xIKYGcyBRTnrjSVs07aIcxmbNkuS/yaVpQlKeQPPHXrSnbW4709lmUXQ04sIJaI3DJxnnyqK7VsXcvSTZU1bbW6zhRTdxC0tb9LmK0xLlynZKSsFxKUpSAcd3MmlGprsWxdy9JFlbVttbrCinocO5CtLLntyyu7NIDrkEAe4gjIB7wrHPFItRXalmdp6SbKnrxuHWFFN/D3Slv1SiUh6ZMivRgCooCVJUDnpnmKhQYGlplyRb/AG68RnHHeyQ4tltad2cDIBziq+eu4r6dZbyG2hvXpF2ir3WmmZWmLiiLIfakIdRvacQMZGccx3Gpdh0c/Msy77dZqLXakDd2qkFS3B091PryHjUm6sKHzwZHkWbymORFeirwjR4c7PdflI6dthofHb/5qfdtGOIsYv1jnJultwSs7NjrYHXcny76DcoIDcZgKWIJXnEVKKKKbFSwooopUvK+hKVKUEpSVKJwABkk0VItone1JVbhJMhIJSWAd4HljnTCcCVAyY4vt27S+nlWS4OzWLpcm0uzFR2kqU21+a17xGM9TirzQ9wsd9szmi3n50hCm1FhclpKSkDnhJSTzHUVnV1F8cQl26i4qSk4SuSF4BPgVVytbtzbfUm1uS0uqHMRircR+7zrI2n3octz1z9ZrXUbHGF46Y+k6aitEyx3V+3TUELbPuqxyWnuUPI1oupGXV8F7WhDTilYaO0JJPU91Z1dJF5LjaLo9PK0e82JKlZHmN1S403VjzQcjSr262eQU2twp+Yq1lbOEJI4OZFVioXAB5GJHs1hut2nIiRYT4UrqtbaghA8ScchVtpBOp7dClX7T6itDDoZktIRvJGMglPePMcxVW/edQtOKZfut0bWOSkLkLBHqCa5Wxq9oxKtjdxTk/lIwWM/FNXcMwO7GItCqsNuczQdOXmLrG5ptt90gw46sHdLYbUjZgdVHqPnSJq6BBtupJcG2SDIitOAIVndjplOR1weVfm4XjUC98Wfc7l+u066ofMVXMuOMOJdZWptaTlKknBB8qrTSa2JB49O0tbcLFCkc+vea3xTlqg6csizb4koHkRKZKwn3B05jBpBt9833CMgWGyAqeQBtinPUdPe61GU7qa4RcKcu8yOvzccQr+FV6Fy4ErchT0WQjlkEoWn+IqtFARNp5MtdeXfeOBNF48pUJ1oJSQOxWM4780vaIt8aK05qq8suG2wVANICM9u8fugA9QOpqgl3S5TGuyl3CXIbzna68pQ+RNfTdrqY/sxuUwsbdvZl5W3HhjOKmuhkpFeZFl6PcbMRu09qq1WvUr95XcLy+uWo+0ocjthKweh5K5Y7q+8VdMphSUagtjZVbpuFr2Dk2s88+QV19aSeyksttSSy822o/ZOlJAJHge+pS71eVtltd2nqQoYKVSFEEeGM0eQVsDofoYeeGrKOPqI/wDAUK7e7qCSRsQM45dTUbR+pbGie/DulthWqYVqSzcWI6QWzn84EHB86RYl0ucRnsYlxlx2xz2NPKSPkDX1uNdbs6p5uNNnuK+8tLanCfU1V9KGdmY8HEsmqKoiqORn7y/4haf1BAmquFzku3OM7+TnA5SR3A/o/h4U2ynW9X8MGrfZ1oVPhpbLkQHCzsGCAO8HqKQHmtVRIPs7zV6ZibdvZqS4G8eGOmKp21racDjS1trT0UlRBHxFT5JdV5GV6Y/EBeK2bg4Yc5/M7qgT0yPZ1QZQezjsyyrdn0xWnaefTo3QElm7gidMK1tQgMr95ISNw7vE5pIan60WynspV+W2oe6UlwgjyNSol01/F/JPXzHgtlax/wDYGovRrQFJGP8AMKHWolgDn/EViCDggg94oqTdXZj9xffuIWJbi9zu9G1WfMd1Rq1jkTGeJYUUUUuXlfXSM+/GfRIjOraebUFIWg4IIrnRTZSaregOIGg27lHybtbs9q0D94494Y8xzHypW0Y23ZoL2r5iT9gS1b2icds+R1/ZT31B0NqN7TN6EsJU7GcGyQ0k/fT3EeYo1rqAX+5JVHj+yQGAUxo4AG3JypRxyyTWFaXUmofIf0ibmuRgLT84/QZTzZUmbKclS3lvPuqKlrWckk1pPA1axFvaQtQAQkgZ5A4VzrMKcuH2qrXpqLMTJjzZDssAK7MJCUAZ6EnJ60zV1lqSqiL0lgS4Mxig+Sp9xSiVErOSTknnWmcCVrCb0kLUEhtBAzyB586zSWWTJcMdTimiolJcSAr4gEim3h5qm2aYZmGTHmSHZQCSGwkJSBnvJyetGrQvSVUcw0jqlwZjxFKSpSpLqlKKiVqySck865Vdn+ainSta76QpRJAQ0PrmuGpZdtm3FLlpiORIiGUNpbcxuykcySOpPjTlfJxiJZMDOY/cEnFi0XwBagAkEDPQ7TWXqJUtSlEkknJJ5mnLQOq7Xpu3TGJEebIdl8ldmEhKBgjlk8+tUqBpMOAuLvqk5yUhLQz8c0isFLXYjg4miwh6UUHkZlLVxpCyOX27pjEqRGaSXZTgGdjY6/E9BXLUku3zrsp+2RFxImxCG2lY3DaMZOOpq0F8t0LSptVnXco0xx0OyJOEpLuOichWUpFNdnKDaOT9olFQOdx4H3j3aZMbWVpn6alWt23NM87cpTKkhKE8knJH3h3+INZNdIMm2XB+BMbLb7CylY/iPI1Nt1+use4MSF3e47W3Ao/bKX0/VJwfjV5xA1HYNTFuWxCnRZ7adu9QQUuJ7grBzy8aRVW9NmAPdP2P9x9tiXV5J94fcf1JPB/T1vvNxlS7i2l9uGE7GFdFKOeZHeBjpVTq/VF3uFzkMJlOxIbLim2orCi2hABxzAxk1X6Yv1w09chOt607iNrjaxlDifA/51aXm6aVvkpc6Tb7ja5jhy6YqkONLV3narBBqxRhcXYZHb6SodTSEU4Pf6/7kvR0XWjSf5XsktD8drPapXNCm8AZIWknwpPfz27mShR3kkoOUnn3HvFOVk1ZatP2Gfa7bGnTFTArLkjY2EZTt6JJzSSBhIFXpDbmJGPSUuK7FAOT3mscPC65wqu7aZXYnLoS4twpS3yHPPcKVLTa7i++oo1nFSpttTgDM9anFbUk4SOWelS9Oars1s0dKsD7FxcMsK7R1CUDbuGOQJ5/GqBCdKBQ3OX0gdQENA/jSErYM5x1PpmaHsUogznA55xIFznyrpOcnzXO1kO43rxjcQAM/So1WOopNslXELtERyJESyhCUOEFRIHNRI6k1XVtX5RxiYX6nnMsKKKKpJlfRRRTZSFFFFEIUUUUQhRRRRCFFFFEIUUUUQhRRRRCFFFFEIUUUUQhRRRRCFFFFEIUUUUQlhRRRSpef//Z" alt="Alsharq Village" style="width:100%;height:100%;object-fit:cover;border-radius:14px;"/></div>
+    <h2>Alsharq Village</h2><div class="login-subtitle">Pumps Monitoring Platform</div>
+    <p class="login-sub">MQTT credentials required to connect</p>
+    <div class="login-field">
+      <label>Username</label>
+      <input id="loginUser" type="text" placeholder="Enter username" autocomplete="username" />
     </div>
-    <div class="login-body">
-      <div class="login-field">
-        <label>Operator Username</label>
-        <input type="text" id="loginUser" autocomplete="username" placeholder="username"/>
-      </div>
-      <div class="login-field">
-        <label>Password</label>
-        <input type="password" id="loginPass" autocomplete="current-password" placeholder="••••••••"/>
-      </div>
-      <div id="loginError"></div>
-      <button class="login-btn" onclick="doLogin()">▶ AUTHENTICATE &amp; CONNECT</button>
+    <div class="login-field">
+      <label>Password</label>
+      <input id="loginPass" type="password" placeholder="Enter password" autocomplete="current-password" />
     </div>
-    <div class="login-footer">MQTT WSS · TLS SECURED · NO SESSION STORED</div>
+    <button class="login-btn" onclick="doLogin()">Connect to Broker &rarr;</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-hint">Credentials are never stored or sent anywhere except directly to the MQTT broker over TLS.</div>
   </div>
 </div>
 
-<!-- ════════════════════════ MAIN APP ════════════════════════ -->
-<div id="mainApp" style="display:none">
+<!-- ══ MAIN DASHBOARD (hidden until login) ══ -->
+<div class="wrap" id="mainApp" style="display:none">
 
-  <!-- TOP BAR -->
-  <div class="topbar">
-    <div class="topbar-brand">
-      <div class="brand-icon">⬡</div>
+  <!-- Header Alsharq Village -->
+  <header>
+    <div class="header-left">
+      <div class="logo-wrap">
+        <img src="data:image/jpeg;base64,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" alt="Alsharq Village" class="brand-logo"/>
+      </div>
       <div class="brand-text">
-        <div class="site">ALSHARQ VILLAGE</div>
-        <div class="sub">PUMP STATION SCADA · PSS-02</div>
+        <div class="brand-tag">Alsharq Village</div>
+        <h1>Pumps Monitoring Platform</h1>
+        <div class="sub">Domestic Duty/Standby + Irrigation &nbsp;&middot;&nbsp; MQTT Realtime &nbsp;&middot;&nbsp; Raspberry Pi</div>
       </div>
     </div>
-    <div class="topbar-kpis">
-      <div class="tb-kpi">
-        <div class="lbl">ACTIVE PUMPS</div>
-        <div class="val" id="kpiActive">—</div>
-      </div>
-      <div class="tb-kpi">
-        <div class="lbl">FAULTS</div>
-        <div class="val" id="kpiFaults">—</div>
-      </div>
-      <div class="tb-kpi">
-        <div class="lbl">SYS PRESSURE</div>
-        <div class="val" id="kpiSysPressure">— bar</div>
-      </div>
-      <div class="tb-kpi">
-        <div class="lbl">SETPOINT</div>
-        <div class="val" id="kpiSetpoint">— bar</div>
-      </div>
-      <div class="tb-kpi">
-        <div class="lbl">MODE</div>
-        <div class="val" id="kpiMode">—</div>
-      </div>
-      <div class="tb-kpi">
-        <div class="lbl">DUTY PUMP</div>
-        <div class="val" id="kpiDuty">—</div>
-      </div>
-    </div>
-    <div class="topbar-right">
-      <div class="tb-time">
-        <div class="clock" id="tbClock">00:00:00</div>
-        <div class="date"  id="tbDate">—</div>
-      </div>
-      <div class="mqtt-pill">
-        <div class="mqtt-led" id="mqttLed"></div>
-        <div class="mqtt-info">
-          <div class="status" id="mqttStatus">DISCONNECTED</div>
-          <div class="broker" id="mqttBroker">—</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- PAGE -->
-  <div class="page">
-
-    <!-- ══ LEFT PANE ══ -->
-    <div class="left-pane">
-
-      <!-- Pump Cards -->
+    <div class="mqtt-badge">
+      <div id="mqttDot" class="mqtt-dot"></div>
       <div>
-        <div class="sec-head">
-          <div class="title">▸ PUMP UNITS</div>
-          <div class="badge" id="pumpSummaryBadge">3 UNITS · 0 RUNNING</div>
+        <div class="mqtt-label" id="mqttText">MQTT: connecting…</div>
+        <div class="mqtt-url" id="mqttSub">ws://…</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ Main grid ══ -->
+  <div class="main-grid">
+
+    <!-- ████ LEFT : Control + Domestic Pumps ████ -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="title">Control Center</div>
+          <div class="desc">Mode · Duty selection · Setpoint · Weekly swap</div>
         </div>
-        <div class="pumps-grid mt6">
+        <div class="tag stop" id="platformTag">Mode: -- · Duty: --</div>
+      </div>
+      <div class="card-body">
 
-          <!-- DOM A -->
-          <div class="pump-card" id="cardA">
-            <div class="pump-head">
-              <div class="pump-id">
-                <div class="pump-num">A</div>
-                <div>
-                  <div class="pump-name">DOM — A</div>
-                  <div class="pump-type">DOMESTIC DUTY</div>
-                </div>
-              </div>
-              <div class="status-tag stop" id="tagA">STOP</div>
+        <div class="ctrl-row">
+          <span class="ctrl-lbl">Mode</span>
+          <select id="modeSel">
+            <option value="AUTO">AUTO</option>
+            <option value="MANUAL">MANUAL</option>
+          </select>
+          <span class="ctrl-lbl">Duty</span>
+          <select id="dutySel">
+            <option value="DOM_A">DOM_A</option>
+            <option value="DOM_B">DOM_B</option>
+          </select>
+          <button class="btn"           id="applyModeBtn">Apply Mode</button>
+          <button class="btn secondary" id="setDutyBtn">Set Duty</button>
+          <button class="btn ghost"     id="swapBtn">&#x21C4; Swap Now</button>
+        </div>
+
+        <hr class="sep">
+
+        <div class="ctrl-row">
+          <span class="ctrl-lbl">Setpoint (bar)</span>
+          <input id="setpointInp" type="number" step="0.1" value="2.5" min="0" max="16"/>
+          <button class="btn" id="setpointBtn">Set Setpoint</button>
+          <span class="ctrl-lbl">Weekly swap</span>
+          <select id="weeklySel">
+            <option value="true">Enabled</option>
+            <option value="false">Disabled</option>
+          </select>
+          <button class="btn ghost" id="weeklyBtn">Apply</button>
+        </div>
+
+        <hr class="sep">
+
+        <!-- ── Pump pair ── -->
+        <div class="pump-pair">
+
+          <!-- Pump A -->
+          <div class="pump-card">
+            <div class="pump-card-head">
+              <span class="pname">Domestic A</span>
+              <div class="tag stop" id="tagA">--</div>
             </div>
-            <div class="pump-metrics">
-              <div class="metric" id="mAPressWrap">
-                <div class="m-lbl">PRESSURE</div>
-                <div class="m-val" id="aP">—</div>
-                <div class="m-unit">bar</div>
+            <div class="pump-card-body">
+              <div class="kpi-row">
+                <div class="kpi"><div class="lbl">Pressure</div><div class="val" id="aP">--</div><div class="unit">bar</div></div>
+                <div class="kpi"><div class="lbl">Frequency</div><div class="val" id="aHz">--</div><div class="unit">Hz</div></div>
+                <div class="kpi"><div class="lbl">Current</div><div class="val" id="aA">--</div><div class="unit">A</div></div>
+                <div class="kpi" id="kpiATrip"><div class="lbl">Trip</div><div class="val" id="aTrip">--</div><div class="unit">0=OK</div></div>
               </div>
-              <div class="metric">
-                <div class="m-lbl">FREQUENCY</div>
-                <div class="m-val" id="aHz">—</div>
-                <div class="m-unit">Hz</div>
-              </div>
-              <div class="metric">
-                <div class="m-lbl">CURRENT</div>
-                <div class="m-val" id="aA">—</div>
-                <div class="m-unit">A</div>
-              </div>
-              <div class="metric" id="kpiATrip">
-                <div class="m-lbl">TRIP CODE</div>
-                <div class="m-val" id="aTrip">0</div>
-                <div class="m-unit">fault code</div>
-              </div>
-            </div>
-            <div class="online-row">
-              <div class="online-dot" id="hA"></div>
-              <span id="tA">—</span>
-            </div>
-            <div class="pump-chart-wrap">
-              <div class="pump-chart-label">
-                <span>PRESSURE HISTORY</span><span id="chartALast">—</span>
-              </div>
-              <canvas class="pump-chart" id="chartA"></canvas>
+              <div class="chart-wrap"><canvas id="chartA"></canvas></div>
             </div>
           </div>
 
-          <!-- DOM B -->
-          <div class="pump-card" id="cardB">
-            <div class="pump-head">
-              <div class="pump-id">
-                <div class="pump-num">B</div>
-                <div>
-                  <div class="pump-name">DOM — B</div>
-                  <div class="pump-type">DOMESTIC STANDBY</div>
-                </div>
-              </div>
-              <div class="status-tag stop" id="tagB">STOP</div>
+          <!-- Pump B -->
+          <div class="pump-card">
+            <div class="pump-card-head">
+              <span class="pname">Domestic B</span>
+              <div class="tag stop" id="tagB">--</div>
             </div>
-            <div class="pump-metrics">
-              <div class="metric">
-                <div class="m-lbl">PRESSURE</div>
-                <div class="m-val" id="bP">—</div>
-                <div class="m-unit">bar</div>
+            <div class="pump-card-body">
+              <div class="kpi-row">
+                <div class="kpi"><div class="lbl">Pressure</div><div class="val" id="bP">--</div><div class="unit">bar</div></div>
+                <div class="kpi"><div class="lbl">Frequency</div><div class="val" id="bHz">--</div><div class="unit">Hz</div></div>
+                <div class="kpi"><div class="lbl">Current</div><div class="val" id="bA">--</div><div class="unit">A</div></div>
+                <div class="kpi" id="kpiBTrip"><div class="lbl">Trip</div><div class="val" id="bTrip">--</div><div class="unit">0=OK</div></div>
               </div>
-              <div class="metric">
-                <div class="m-lbl">FREQUENCY</div>
-                <div class="m-val" id="bHz">—</div>
-                <div class="m-unit">Hz</div>
-              </div>
-              <div class="metric">
-                <div class="m-lbl">CURRENT</div>
-                <div class="m-val" id="bA">—</div>
-                <div class="m-unit">A</div>
-              </div>
-              <div class="metric" id="kpiBTrip">
-                <div class="m-lbl">TRIP CODE</div>
-                <div class="m-val" id="bTrip">0</div>
-                <div class="m-unit">fault code</div>
-              </div>
-            </div>
-            <div class="online-row">
-              <div class="online-dot" id="hB"></div>
-              <span id="tB">—</span>
-            </div>
-            <div class="pump-chart-wrap">
-              <div class="pump-chart-label">
-                <span>PRESSURE HISTORY</span><span id="chartBLast">—</span>
-              </div>
-              <canvas class="pump-chart" id="chartB"></canvas>
+              <div class="chart-wrap"><canvas id="chartB"></canvas></div>
             </div>
           </div>
 
-          <!-- IRR -->
-          <div class="pump-card" id="cardI">
-            <div class="pump-head">
-              <div class="pump-id">
-                <div class="pump-num">I</div>
-                <div>
-                  <div class="pump-name">IRR</div>
-                  <div class="pump-type">IRRIGATION</div>
-                </div>
-              </div>
-              <div class="status-tag stop" id="tagIRR">STOP</div>
-            </div>
-            <div class="pump-metrics">
-              <div class="metric">
-                <div class="m-lbl">PRESSURE</div>
-                <div class="m-val" id="iP">—</div>
-                <div class="m-unit">bar</div>
-              </div>
-              <div class="metric">
-                <div class="m-lbl">FREQUENCY</div>
-                <div class="m-val" id="iHz">—</div>
-                <div class="m-unit">Hz</div>
-              </div>
-              <div class="metric">
-                <div class="m-lbl">CURRENT</div>
-                <div class="m-val" id="iA">—</div>
-                <div class="m-unit">A</div>
-              </div>
-              <div class="metric" id="kpiITrip">
-                <div class="m-lbl">TRIP CODE</div>
-                <div class="m-val" id="iTrip">0</div>
-                <div class="m-unit">fault code</div>
-              </div>
-            </div>
-            <div class="online-row">
-              <div class="online-dot" id="hI"></div>
-              <span id="tI">—</span>
-            </div>
-            <div class="pump-chart-wrap">
-              <div class="pump-chart-label">
-                <span>PRESSURE HISTORY</span><span id="chartILast">—</span>
-              </div>
-              <canvas class="pump-chart" id="chartI"></canvas>
-            </div>
-          </div>
+        </div><!-- /pump-pair -->
+      </div>
+    </div><!-- /left card -->
 
+    <!-- ████ RIGHT : Irrigation + DTU + Events ████ -->
+    <div class="right-col">
+
+      <!-- Irrigation -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="title">Irrigation Pump</div>
+            <div class="desc">Monitoring only — no changeover</div>
+          </div>
+          <div class="tag stop" id="tagIRR">--</div>
+        </div>
+        <div class="card-body">
+          <div class="kpi-row">
+            <div class="kpi"><div class="lbl">Pressure</div><div class="val" id="iP">--</div><div class="unit">bar</div></div>
+            <div class="kpi"><div class="lbl">Frequency</div><div class="val" id="iHz">--</div><div class="unit">Hz</div></div>
+            <div class="kpi"><div class="lbl">Current</div><div class="val" id="iA">--</div><div class="unit">A</div></div>
+            <div class="kpi" id="kpiITrip"><div class="lbl">Trip</div><div class="val" id="iTrip">--</div><div class="unit">0=OK</div></div>
+          </div>
+          <div class="chart-wrap"><canvas id="chartI"></canvas></div>
         </div>
       </div>
 
-      <!-- Control Panel -->
-      <div>
-        <div class="sec-head">
-          <div class="title">▸ CONTROL COMMANDS</div>
-          <div class="badge">WRITE ACCESS ENABLED</div>
+      <!-- DTU Health -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="title">DTU / Link Health</div>
+            <div class="desc">Based on last telemetry timestamp</div>
+          </div>
         </div>
-        <div class="ctrl-panel">
-
-          <div class="ctrl-group">
-            <div class="ctrl-group-title">⬡ OPERATION MODE</div>
-            <div class="ctrl-row">
-              <span class="ctrl-lbl">MODE</span>
-              <select id="modeSel">
-                <option value="AUTO">AUTO</option>
-                <option value="MANUAL">MANUAL</option>
-                <option value="TEST">TEST</option>
-              </select>
-              <button class="cmd-btn cyan" id="applyModeBtn">APPLY</button>
-            </div>
-            <div class="ctrl-row">
-              <span class="ctrl-lbl">DUTY PUMP</span>
-              <select id="dutySel">
-                <option value="DOM_A">DOM — A</option>
-                <option value="DOM_B">DOM — B</option>
-              </select>
-              <button class="cmd-btn green" id="setDutyBtn">SET DUTY</button>
-              <button class="cmd-btn amber" id="swapBtn">⇄ SWAP NOW</button>
-            </div>
-          </div>
-
-          <div class="ctrl-group">
-            <div class="ctrl-group-title">⬡ PRESSURE SETPOINT</div>
-            <div class="ctrl-row">
-              <span class="ctrl-lbl">SETPOINT</span>
-              <input type="number" id="setpointInp" value="2.5" min="0" max="10" step="0.1"/>
-              <span class="ctrl-lbl" style="min-width:28px; margin-left:-4px">bar</span>
-              <button class="cmd-btn cyan" id="setpointBtn">SEND</button>
-            </div>
-          </div>
-
-          <div class="ctrl-group">
-            <div class="ctrl-group-title">⬡ WEEKLY SWAP SCHEDULE</div>
-            <div class="ctrl-row">
-              <span class="ctrl-lbl">AUTO SWAP</span>
-              <select id="weeklySel">
-                <option value="false">DISABLED</option>
-                <option value="true">ENABLED</option>
-              </select>
-              <button class="cmd-btn purple" id="weeklyBtn">UPDATE</button>
-            </div>
-          </div>
-
+        <div class="card-body">
+          <table>
+            <thead>
+              <tr><th>Pump</th><th>Online</th><th>Last Seen</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>DOM_A</td><td id="hA">--</td><td id="tA" style="font-size:11px">--</td></tr>
+              <tr><td>DOM_B</td><td id="hB">--</td><td id="tB" style="font-size:11px">--</td></tr>
+              <tr><td>IRR</td>  <td id="hI">--</td><td id="tI" style="font-size:11px">--</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-    </div><!-- /left-pane -->
-
-    <!-- ══ RIGHT PANE ══ -->
-    <div class="right-pane">
-
-      <!-- Pressure overview -->
-      <div class="rp-section">
-        <div class="rp-head">
-          <span class="t">PRESSURE OVERVIEW</span>
+      <!-- Events -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="title">Realtime Events</div>
+            <div class="desc">Faults · swaps · state changes</div>
+          </div>
         </div>
-        <div class="gauge-wrap">
-          <svg class="gauge-svg-wrap" viewBox="0 0 140 80" id="gaugeSvg">
-            <!-- Arc track -->
-            <path d="M15,75 A60,60 0 0,1 125,75" fill="none" stroke="rgba(0,200,255,.1)" stroke-width="8" stroke-linecap="round"/>
-            <!-- Arc fill -->
-            <path d="M15,75 A60,60 0 0,1 125,75" fill="none" stroke="url(#gaugeGrad)" stroke-width="8" stroke-linecap="round"
-                  stroke-dasharray="188.5" stroke-dashoffset="188.5" id="gaugeArc" style="transition:stroke-dashoffset .7s ease"/>
-            <defs>
-              <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%"   stop-color="#0099CC"/>
-                <stop offset="100%" stop-color="#00D4FF"/>
-              </linearGradient>
-            </defs>
-            <!-- Tick marks -->
-            <g stroke="rgba(0,200,255,.25)" stroke-width="1">
-              <line x1="15" y1="75" x2="20" y2="75" transform="rotate(-90 70 75)"/>
-              <line x1="15" y1="75" x2="19" y2="75" transform="rotate(-67.5 70 75)"/>
-              <line x1="15" y1="75" x2="20" y2="75" transform="rotate(-45 70 75)"/>
-              <line x1="15" y1="75" x2="19" y2="75" transform="rotate(-22.5 70 75)"/>
-              <line x1="15" y1="75" x2="20" y2="75" transform="rotate(0 70 75)"/>
-              <line x1="15" y1="75" x2="19" y2="75" transform="rotate(22.5 70 75)"/>
-              <line x1="15" y1="75" x2="20" y2="75" transform="rotate(45 70 75)"/>
-              <line x1="15" y1="75" x2="19" y2="75" transform="rotate(67.5 70 75)"/>
-              <line x1="15" y1="75" x2="20" y2="75" transform="rotate(90 70 75)"/>
-            </g>
-            <!-- Needle -->
-            <line x1="70" y1="75" x2="70" y2="22" stroke="#00D4FF" stroke-width="1.5" stroke-linecap="round"
-                  id="gaugeNeedle" style="transform-origin:70px 75px;transition:transform .7s ease"/>
-            <circle cx="70" cy="75" r="4" fill="#0A1220" stroke="#00D4FF" stroke-width="1.5"/>
-          </svg>
-          <div class="gauge-range">
-            <span>0</span><span>5</span><span>10 bar</span>
-          </div>
-          <div class="gauge-val" id="gaugeVal">—.—</div>
-          <div class="gauge-lbl">AVG SYSTEM PRESSURE</div>
-        </div>
-
-        <div class="press-bars" id="pressBars">
-          <div class="pbar-row">
-            <span class="pbar-lbl">DOM-A</span>
-            <div class="pbar-track"><div class="pbar-fill" id="pbarA" style="width:0%"></div></div>
-            <span class="pbar-val" id="pbarAVal">—</span>
-          </div>
-          <div class="pbar-row">
-            <span class="pbar-lbl">DOM-B</span>
-            <div class="pbar-track"><div class="pbar-fill" id="pbarB" style="width:0%"></div></div>
-            <span class="pbar-val" id="pbarBVal">—</span>
-          </div>
-          <div class="pbar-row">
-            <span class="pbar-lbl">IRR</span>
-            <div class="pbar-track"><div class="pbar-fill" id="pbarI" style="width:0%"></div></div>
-            <span class="pbar-val" id="pbarIVal">—</span>
-          </div>
+        <div class="card-body">
+          <div id="events" class="events-feed evt-info">Waiting for telemetry…</div>
         </div>
       </div>
 
-      <!-- System status -->
-      <div class="rp-section">
-        <div class="rp-head">
-          <span class="t">SYSTEM STATUS</span>
-        </div>
-        <div class="sys-matrix">
-          <div class="sys-row" id="sysRowMode">
-            <span class="sys-lbl">OPERATION MODE</span>
-            <span class="sys-val" id="sysMode">—</span>
-          </div>
-          <div class="sys-row" id="sysRowDuty">
-            <span class="sys-lbl">DUTY PUMP</span>
-            <span class="sys-val" id="sysDuty">—</span>
-          </div>
-          <div class="sys-row" id="sysRowSet">
-            <span class="sys-lbl">PRESSURE SETPOINT</span>
-            <span class="sys-val" id="sysSet">— bar</span>
-          </div>
-          <div class="sys-row" id="sysRowWeekly">
-            <span class="sys-lbl">WEEKLY SWAP</span>
-            <span class="sys-val" id="sysWeekly">—</span>
-          </div>
-          <div class="sys-row ok" id="sysRowMqtt">
-            <span class="sys-lbl">MQTT BROKER</span>
-            <span class="sys-val ok" id="sysMqtt">OFFLINE</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Event log -->
-      <div class="rp-section" style="flex:1">
-        <div class="rp-head">
-          <span class="t">EVENT LOG</span>
-          <span class="count" id="evtCount">0</span>
-        </div>
-        <div class="evt-log" id="evtLog"></div>
-      </div>
-
-      <!-- Footer -->
-      <div class="scada-footer">
-        <span>ALSHARQ VILLAGE · PSS-02</span>
-        <span class="footer-sep">|</span>
-        <span>REV 3.1</span>
-        <span class="footer-sep">|</span>
-        <span id="footerUptime">UPTIME: 00:00:00</span>
-      </div>
-
-    </div><!-- /right-pane -->
-  </div><!-- /page -->
-
-</div><!-- /mainApp -->
+    </div><!-- /right-col -->
+  </div><!-- /main-grid -->
+</div><!-- /wrap -->
 
 <script>
-/* ══════════════════════════════════════════════════════
-   CONFIG
-══════════════════════════════════════════════════════ */
-const WS_URL      = "wss://mqtt.maqroo.com:8084/mqtt";
-const TOPIC_TELE  = "alsharq/pss/telemetry";
-const CMD_BASE    = "alsharq/pss/cmd";
-const MAX_PRESSURE= 10;
+/* ══════════════════════════════════════════════════════════════════
+   Minimal MQTT 3.1.1 over WebSocket
+   • Proper multi-byte remaining-length (VarInt) encoder/decoder
+   • PINGREQ keepalive so broker won't drop idle connections
+   • Reconnect on close/error with exponential backoff cap
+   • NO hardcoded credentials — entered by user at login screen
+══════════════════════════════════════════════════════════════════ */
 
-let MQTT_USERNAME = "", MQTT_PASSWORD = "";
-let ws, connected = false, pid = 1, pingTimer, retryDelay = 1500;
-const RING = 60;
-const serA = new Array(RING).fill(null);
-const serB = new Array(RING).fill(null);
-const serI = new Array(RING).fill(null);
-let si = 0;
-const prevFault = { DOM_A:false, DOM_B:false, IRR:false };
-let evtCount = 0, startTime = Date.now();
+const WS_URL = "wss://w219d1f1.ala.us-east-1.emqxsl.com:8084/mqtt";
+document.getElementById("mqttSub").textContent = WS_URL;
 
-/* ══ Clock & uptime ══ */
-function pad(n){return String(n).padStart(2,'0');}
-function tickClock(){
-  const now = new Date();
-  document.getElementById('tbClock').textContent =
-    `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-  document.getElementById('tbDate').textContent =
-    now.toLocaleDateString('en-SA',{weekday:'short',year:'numeric',month:'short',day:'2-digit'}).toUpperCase();
-  const up = Math.floor((Date.now()-startTime)/1000);
-  const h=Math.floor(up/3600), m=Math.floor(up%3600/60), s=up%60;
-  document.getElementById('footerUptime').textContent=`UPTIME: ${pad(h)}:${pad(m)}:${pad(s)}`;
-}
-setInterval(tickClock,1000); tickClock();
+/* ── Credentials — set by doLogin(), never hardcoded ── */
+let MQTT_USERNAME = "";
+let MQTT_PASSWORD = "";
 
-/* ══ MQTT packet helpers ══ */
-function enc(s){const b=new TextEncoder().encode(s);const r=new Uint8Array(2+b.length);r[0]=b.length>>8;r[1]=b.length&0xFF;r.set(b,2);return r;}
-function encB(s){const b=new TextEncoder().encode(s);return b;}
+/* ── Binary helpers ── */
+const enc = new TextEncoder();
+const dec = new TextDecoder();
 
-function pktConnect(cid,usr,pwd){
-  const p=enc("MQTT"),v=new Uint8Array([4]),cf=new Uint8Array([0xC2]),ka=new Uint8Array([0,60]);
-  const cid2=enc(cid),u2=enc(usr),pw2=enc(pwd);
-  const pl=new Uint8Array(p.length+1+1+2+cid2.length+u2.length+pw2.length);
-  let i=0; pl.set(p,i);i+=p.length; pl.set(v,i);i+=1; pl.set(cf,i);i+=1; pl.set(ka,i);i+=2; pl.set(cid2,i);i+=cid2.length; pl.set(u2,i);i+=u2.length; pl.set(pw2,i);
-  return buildPacket(1,pl);
+function encStr(s) {
+  const b = enc.encode(s);
+  const o = new Uint8Array(2 + b.length);
+  o[0] = b.length >> 8;  o[1] = b.length & 0xFF;  o.set(b, 2);
+  return o;
 }
-function pktSubscribe(pid,topic){
-  const h=new Uint8Array([pid>>8,pid&0xFF]);
-  const t=enc(topic); const qos=new Uint8Array([0]);
-  const pl=new Uint8Array(h.length+t.length+1); pl.set(h,0); pl.set(t,h.length); pl.set(qos,h.length+t.length);
-  return buildPacket(8,pl,2);
+function concat(...arrs) {
+  const len = arrs.reduce((s, a) => s + a.length, 0);
+  const o = new Uint8Array(len);
+  let p = 0; arrs.forEach(a => { o.set(a, p); p += a.length; });
+  return o;
 }
-function pktPingreq(){return new Uint8Array([0xC0,0]);}
-function buildPacket(type,payload,flags=0){
-  const hdr=(type<<4)|flags;
-  let len=payload.length; const lb=[];
-  do{let e=len&0x7F; len>>=7; if(len>0)e|=0x80; lb.push(e);}while(len>0);
-  const pkt=new Uint8Array(1+lb.length+payload.length);
-  pkt[0]=hdr; lb.forEach((b,i)=>pkt[1+i]=b); pkt.set(payload,1+lb.length); return pkt;
-}
-function parsePublish(buf){
-  try{
-    const b=new Uint8Array(buf); let i=1,mul=1,rl=0,byt;
-    do{byt=b[i++]; rl+=(byt&0x7F)*mul; mul*=128;}while(byt&0x80);
-    const tl=(b[i]<<8)|b[i+1]; i+=2;
-    const topic=new TextDecoder().decode(b.slice(i,i+tl)); i+=tl;
-    const payload=new TextDecoder().decode(b.slice(i));
-    return {topic,payload};
-  }catch{return null;}
+/** Encode MQTT variable-length integer (remaining-length field) */
+function encVarInt(n) {
+  const out = [];
+  do {
+    let b = n & 0x7F; n >>>= 7;
+    if (n > 0) b |= 0x80;
+    out.push(b);
+  } while (n > 0);
+  return new Uint8Array(out);
 }
 
-/* ══ MQTT send publish ══ */
-function mqttSend(topic,payload){
-  if(!ws||ws.readyState!==WebSocket.OPEN){pushEvent("Not connected","evt-warn");return;}
-  const tEnc=new TextEncoder().encode(topic);
-  const pEnc=new TextEncoder().encode(JSON.stringify(payload));
-  const h=new Uint8Array([tEnc.length>>8,tEnc.length&0xFF]);
-  const pl=new Uint8Array(h.length+tEnc.length+pEnc.length);
-  pl.set(h,0); pl.set(tEnc,h.length); pl.set(pEnc,h.length+tEnc.length);
-  ws.send(buildPacket(3,pl));
-  pushEvent(`CMD → ${topic.split('/').pop()}: ${JSON.stringify(payload)}`,"evt-info");
+/* ── Packet builders ── */
+function pktConnect(clientId, username, password) {
+  const hasUser = !!username;
+  const hasPass = !!password;
+  const flags   = (hasUser ? 0x80 : 0) | (hasPass ? 0x40 : 0) | 0x02;
+  const keepalive = 60;
+
+  const vh = concat(
+    encStr("MQTT"),
+    new Uint8Array([4, flags, keepalive >> 8, keepalive & 0xFF])
+  );
+
+  const parts = [encStr(clientId)];
+  if (hasUser) parts.push(encStr(username));
+  if (hasPass) parts.push(encStr(password));
+  const pl = concat(...parts);
+
+  return concat(new Uint8Array([0x10]), encVarInt(vh.length + pl.length), vh, pl);
+}
+function pktSubscribe(pid, topic) {
+  const vh = new Uint8Array([pid >> 8, pid & 0xFF]);
+  const pl = concat(encStr(topic), new Uint8Array([0]));
+  return concat(new Uint8Array([0x82]), encVarInt(vh.length + pl.length), vh, pl);
+}
+function pktPublish(topic, payloadStr) {
+  const t = encStr(topic);
+  const p = enc.encode(payloadStr);
+  return concat(new Uint8Array([0x30]), encVarInt(t.length + p.length), t, p);
+}
+function pktPingreq() { return new Uint8Array([0xC0, 0x00]); }
+
+/** Decode MQTT VarInt from ArrayBuffer at offset, returns {value, bytesRead} */
+function decVarInt(b, offset) {
+  let value = 0, mult = 1, i = offset;
+  do { value += (b[i] & 0x7F) * mult; mult <<= 7; } while ((b[i++] & 0x80) && i < offset + 5);
+  return { value, bytesRead: i - offset };
 }
 
-/* ══ MQTT status ══ */
-function setMqttStatus(ok,msg,err){
-  const led=document.getElementById('mqttLed');
-  const st=document.getElementById('mqttStatus');
-  const br=document.getElementById('mqttBroker');
-  const sv=document.getElementById('sysMqtt');
-  const sr=document.getElementById('sysRowMqtt');
-  led.className='mqtt-led '+(ok?'on':err?'err':'');
-  st.textContent=ok?'CONNECTED':err?'ERROR':'CONNECTING…';
-  br.textContent=WS_URL.replace('wss://','').split('/')[0];
-  sv.textContent=ok?'ONLINE':'OFFLINE';
-  sv.className='sys-val '+(ok?'ok':'err');
-  sr.className='sys-row '+(ok?'ok':'err');
+/** Try to decode PUBLISH packet from ArrayBuffer. Returns {topic, payload} or null. */
+function parsePublish(buf) {
+  const b = new Uint8Array(buf);
+  if ((b[0] >> 4) !== 3) return null;
+  const { value: rl, bytesRead } = decVarInt(b, 1);
+  let idx = 1 + bytesRead;
+  const tlen = (b[idx] << 8) | b[idx + 1]; idx += 2;
+  const topic   = dec.decode(b.slice(idx, idx + tlen)); idx += tlen;
+  const payload = dec.decode(b.slice(idx, 1 + bytesRead + rl));
+  return { topic, payload };
 }
 
-/* ══ Event log ══ */
-function pushEvent(msg,cls='evt-info'){
-  const log=document.getElementById('evtLog');
-  const now=new Date();
-  const ts=`${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-  const el=document.createElement('div');
-  el.className=`evt ${cls}`;
-  el.innerHTML=`<span class="evt-ts">${ts}</span><span class="evt-msg">${msg}</span>`;
-  log.prepend(el);
-  evtCount++;
-  document.getElementById('evtCount').textContent=evtCount;
-  while(log.children.length>120) log.removeChild(log.lastChild);
+/* ── Connection state ── */
+let ws          = null;
+let connected   = false;
+let pid         = 1;
+let pingTimer   = null;
+let retryDelay  = 1500;
+
+const mqttDot  = document.getElementById("mqttDot");
+const mqttText = document.getElementById("mqttText");
+
+function setMqttStatus(ok, text) {
+  mqttDot.className  = "mqtt-dot" + (ok ? " online" : " error");
+  mqttText.textContent = text;
 }
 
-/* ══ Status tag ══ */
-function setTag(el,p){
-  if(!el)return;
-  if(p.fault){el.className='status-tag fault';el.textContent='FAULT';}
-  else if(p.running){el.className='status-tag run';el.textContent='RUNNING';}
-  else{el.className='status-tag stop';el.textContent='STOP';}
+const TOPIC_TELE = "compound/pumps/tele";
+const CMD_BASE   = "compound/pumps/cmd";
+
+function mqttSend(topic, obj) {
+  if (!connected || !ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(pktPublish(topic, JSON.stringify(obj)));
 }
 
-/* ══ Card state ══ */
-function setCardState(card, p){
-  if(!card)return;
-  if(p.fault) card.className='pump-card fault';
-  else if(p.running) card.className='pump-card running';
-  else card.className='pump-card';
-}
+/* ══════════════════════════════════════════════════════════════════
+   Charts  —  per-pump ring buffers
+══════════════════════════════════════════════════════════════════ */
+const RING  = 180;
+const mkBuf = () => Array(RING).fill(null);
+const serA  = mkBuf(), serB = mkBuf(), serI = mkBuf();
+let   si    = 0;
 
-function setOnline(id,v){
-  const el=document.getElementById(id); if(!el)return;
-  el.className='online-dot '+(v?'on':'off');
-}
+function drawChart(canvas, series) {
+  const wrap = canvas.parentElement;
+  const w    = canvas.width  = wrap.clientWidth;
+  const h    = canvas.height = wrap.clientHeight;
+  const ctx  = canvas.getContext("2d");
+  ctx.clearRect(0, 0, w, h);
 
-function setVal(id,v){
-  const el=document.getElementById(id); if(!el)return;
-  el.textContent=(v===undefined||v===null)?'—':v;
-}
+  ctx.save();
+  ctx.globalAlpha = .15;
+  ctx.strokeStyle = "#6080b0"; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = 8 + (h - 16) * (i / 4);
+    ctx.beginPath(); ctx.moveTo(8, y); ctx.lineTo(w - 8, y); ctx.stroke();
+  }
+  ctx.restore();
 
-function setTripKpi(id,code){
-  const el=document.getElementById(id); if(!el)return;
-  if(code&&code!==0){el.classList.add('val-red');}
-  else{el.classList.remove('val-red');}
-}
+  const vals = series.filter(v => v !== null);
+  if (vals.length < 2) {
+    ctx.fillStyle = "rgba(96,120,152,.45)";
+    ctx.font = `11px ${getComputedStyle(document.body).fontFamily}`;
+    ctx.fillText("Awaiting data…", 14, h / 2 + 4);
+    return;
+  }
 
-/* ══ Mini chart ══ */
-function drawChart(canvas,data){
-  if(!canvas)return;
-  const W=canvas.offsetWidth*devicePixelRatio||280;
-  const H=canvas.offsetHeight*devicePixelRatio||60;
-  canvas.width=W; canvas.height=H;
-  const ctx=canvas.getContext('2d');
-  ctx.clearRect(0,0,W,H);
+  const min  = Math.min(...vals), max = Math.max(...vals);
+  const pad  = (max - min) * 0.18 || 0.5;
+  const lo   = min - pad, hi = max + pad;
 
-  const valid=data.filter(v=>v!==null);
-  if(!valid.length)return;
-  const mn=Math.min(...valid)*.9, mx=Math.max(...valid)*1.1||1;
-  const norm=v=>v===null?null:1-(v-mn)/(mx-mn||1);
+  const pts = [];
+  for (let i = 0; i < RING; i++) {
+    const v = series[(si + i) % RING];
+    if (v === null) continue;
+    pts.push([
+      8 + (w - 16) * (i / (RING - 1)),
+      8 + (h - 16) * (1 - (v - lo) / (hi - lo)),
+    ]);
+  }
 
-  // Grid
-  ctx.strokeStyle='rgba(0,200,255,0.07)'; ctx.lineWidth=1;
-  for(let i=0;i<=4;i++){const y=(H/4)*i; ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();}
-
-  // Area fill
-  const grad=ctx.createLinearGradient(0,0,0,H);
-  grad.addColorStop(0,'rgba(0,212,255,0.18)');
-  grad.addColorStop(1,'rgba(0,212,255,0)');
+  const grd = ctx.createLinearGradient(0, 0, 0, h);
+  grd.addColorStop(0, "rgba(59,130,246,.20)");
+  grd.addColorStop(1, "rgba(59,130,246,0)");
   ctx.beginPath();
-  let first=true,lastX=0,lastY=0;
-  for(let i=0;i<RING;i++){
-    const x=(i/(RING-1))*W, n=norm(data[i]);
-    if(n===null)continue;
-    const y=n*(H-4)+2;
-    if(first){ctx.moveTo(x,H);ctx.lineTo(x,y);first=false;}
-    else ctx.lineTo(x,y);
-    lastX=x; lastY=y;
-  }
-  if(!first){ctx.lineTo(lastX,H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();}
+  pts.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+  ctx.lineTo(pts[pts.length-1][0], h);
+  ctx.lineTo(pts[0][0], h);
+  ctx.closePath();
+  ctx.fillStyle = grd; ctx.fill();
 
-  // Line
-  ctx.beginPath(); first=true;
-  ctx.strokeStyle='rgba(0,212,255,0.8)'; ctx.lineWidth=1.5; ctx.lineJoin='round';
-  for(let i=0;i<RING;i++){
-    const x=(i/(RING-1))*W, n=norm(data[i]);
-    if(n===null)continue;
-    const y=n*(H-4)+2;
-    if(first){ctx.moveTo(x,y);first=false;} else ctx.lineTo(x,y);
-  }
-  ctx.stroke();
+  ctx.beginPath();
+  pts.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+  ctx.lineWidth = 2; ctx.strokeStyle = "#6EA8FE";
+  ctx.lineJoin  = "round"; ctx.stroke();
 
-  // Last value dot
-  const lv=data[(si-1+RING)%RING];
-  if(lv!==null){
-    const li=RING-1, x=(li/(RING-1))*W, n=norm(lv), y=n*(H-4)+2;
-    ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='#00D4FF';ctx.fill();
+  const last = vals[vals.length - 1];
+  ctx.fillStyle = "rgba(216,232,255,.6)";
+  ctx.font = "10px 'IBM Plex Mono',monospace";
+  ctx.fillText(`${last.toFixed(2)} bar`, 12, 18);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   UI helpers
+══════════════════════════════════════════════════════════════════ */
+function fmtTs(ts) {
+  if (!ts) return "--";
+  return new Date(ts * 1000).toLocaleString();
+}
+
+function setTag(el, p) {
+  if (!p) { el.textContent = "--"; el.className = "tag stop"; return; }
+  if (p.fault) {
+    el.textContent = "FAULT";
+    el.className   = "tag fault";
+  } else if (p.running) {
+    el.textContent = "RUNNING";
+    el.className   = "tag run";
+  } else {
+    el.textContent = "STOP";
+    el.className   = "tag stop";
   }
 }
 
-/* ══ Pressure bar ══ */
-function setPbar(barId,valId,p){
-  const bar=document.getElementById(barId);
-  const val=document.getElementById(valId);
-  if(!bar||!val||p===null||p===undefined){if(val)val.textContent='—';return;}
-  const pct=Math.min(100,Math.max(0,(p/MAX_PRESSURE)*100));
-  bar.style.width=pct+'%';
-  bar.className='pbar-fill'+(p>8?' over':p>6?' high':p<1?' low':'');
-  if(val)val.textContent=p.toFixed(2)+' bar';
+function setVal(id, v) {
+  document.getElementById(id).textContent =
+    (v === null || v === undefined) ? "--" : v;
 }
 
-/* ══ Gauge ══ */
-function setGauge(p){
-  const arc=document.getElementById('gaugeArc');
-  const needle=document.getElementById('gaugeNeedle');
-  const gv=document.getElementById('gaugeVal');
-  if(p===null||p===undefined){gv.textContent='—.—';return;}
-  gv.textContent=p.toFixed(2);
-  const pct=Math.min(1,Math.max(0,p/MAX_PRESSURE));
-  const totalDash=188.5;
-  arc.style.strokeDashoffset=totalDash*(1-pct);
-  const angle=-90+pct*180;
-  needle.style.transform=`rotate(${angle}deg)`;
-}
-
-/* ══ Chart last values ══ */
-function updateChartLabels(A,B,I){
-  const lA=A.filter(v=>v!==null).slice(-1)[0];
-  const lB=B.filter(v=>v!==null).slice(-1)[0];
-  const lI=I.filter(v=>v!==null).slice(-1)[0];
-  if(lA!==undefined) document.getElementById('chartALast').textContent=lA.toFixed(2)+' bar';
-  if(lB!==undefined) document.getElementById('chartBLast').textContent=lB.toFixed(2)+' bar';
-  if(lI!==undefined) document.getElementById('chartILast').textContent=lI.toFixed(2)+' bar';
-}
-
-/* ══ Apply telemetry ══ */
-function fmtTs(ts){
-  if(!ts)return '—';
-  const d=new Date(ts);
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} · ONLINE`;
-}
-
-function applyTelemetry(data){
-  const plat=data.platform||{}, pumps=data.pumps||{};
-
-  // Top-bar KPIs
-  const A=pumps.DOM_A||{}, B=pumps.DOM_B||{}, I=pumps.IRR||{};
-  const running=[A,B,I].filter(p=>p.running).length;
-  const faults =[A,B,I].filter(p=>p.fault).length;
-  const pressures=[A.pressure_bar,B.pressure_bar,I.pressure_bar].filter(v=>v!=null);
-  const avgP=pressures.length?pressures.reduce((a,b)=>a+b,0)/pressures.length:null;
-
-  const kpiActive=document.getElementById('kpiActive');
-  const kpiFaults=document.getElementById('kpiFaults');
-  kpiActive.textContent=running+'/3';
-  kpiActive.className='val'+(running>0?' good':'');
-  kpiFaults.textContent=faults;
-  kpiFaults.className='val'+(faults>0?' bad':'good');
-  if(avgP!==null){
-    document.getElementById('kpiSysPressure').textContent=avgP.toFixed(2)+' bar';
-    setGauge(avgP);
+function setOnline(tdId, online) {
+  const el = document.getElementById(tdId);
+  if (online) {
+    el.innerHTML = '<span class="online-yes">YES</span>';
+  } else {
+    el.innerHTML = '<span class="online-no">NO</span>';
   }
-  document.getElementById('kpiSetpoint').textContent=(plat.setpoint_bar??'—')+' bar';
-  document.getElementById('kpiMode').textContent=plat.mode||'—';
-  document.getElementById('kpiDuty').textContent=plat.duty||'—';
+}
 
-  // Pump summary badge
-  document.getElementById('pumpSummaryBadge').textContent=`3 UNITS · ${running} RUNNING${faults?' · '+faults+' FAULT':''}`;
+function setTripKpi(kpiId, code) {
+  document.getElementById(kpiId)
+    .classList.toggle("kpi-fault", !!(code && code !== 0));
+}
 
-  // System status panel
-  document.getElementById('sysMode').textContent=plat.mode||'—';
-  document.getElementById('sysDuty').textContent=plat.duty||'—';
-  document.getElementById('sysSet').textContent=(plat.setpoint_bar??'—')+' bar';
-  document.getElementById('sysWeekly').textContent=plat.weekly_swap?'ENABLED':'DISABLED';
+let eventsInitialized = false;
+function pushEvent(html, cls) {
+  const feed = document.getElementById("events");
+  if (!eventsInitialized) { feed.innerHTML = ""; eventsInitialized = true; }
+  const now = new Date().toLocaleTimeString();
+  const div = document.createElement("div");
+  div.className = "evt";
+  div.innerHTML = `<span class="evt-time">${now}</span><span class="${cls}">${html}</span>`;
+  feed.insertBefore(div, feed.firstChild);
+  while (feed.children.length > 80) feed.removeChild(feed.lastChild);
+}
 
-  // Controls sync
-  document.getElementById('modeSel').value=plat.mode||'AUTO';
-  document.getElementById('dutySel').value=plat.duty||'DOM_A';
-  document.getElementById('setpointInp').value=plat.setpoint_bar??2.5;
-  document.getElementById('weeklySel').value=String(!!plat.weekly_swap);
+/* ══════════════════════════════════════════════════════════════════
+   Telemetry handler
+══════════════════════════════════════════════════════════════════ */
+const prevFault = { DOM_A: false, DOM_B: false, IRR: false };
 
-  // DOM A
-  if(A.pressure_bar!==undefined){
-    setTag(document.getElementById('tagA'),A);
-    setCardState(document.getElementById('cardA'),A);
-    setVal('aP',A.pressure_bar?.toFixed(2));
-    setVal('aHz',A.freq_hz?.toFixed(2));
-    setVal('aA',A.current_a?.toFixed(1));
-    setVal('aTrip',A.trip_code??0);
-    setTripKpi('kpiATrip',A.trip_code);
-    serA[si]=A.pressure_bar??null;
-    setOnline('hA',A.online);
-    document.getElementById('tA').textContent=fmtTs(A.last_seen);
-    setPbar('pbarA','pbarAVal',A.pressure_bar);
-    if(A.fault&&!prevFault.DOM_A) pushEvent('DOM-A FAULT — trip code '+A.trip_code,'evt-bad');
-    if(!A.fault&&prevFault.DOM_A) pushEvent('DOM-A fault cleared','evt-good');
-    prevFault.DOM_A=!!A.fault;
+function applyTelemetry(payload) {
+  const plat  = payload.platform || {};
+  const pumps = payload.pumps    || {};
+
+  document.getElementById("platformTag").textContent =
+    `Mode: ${plat.mode || "--"} · Duty: ${plat.duty || "--"}`;
+  document.getElementById("modeSel").value     = plat.mode        || "AUTO";
+  document.getElementById("dutySel").value     = plat.duty        || "DOM_A";
+  document.getElementById("setpointInp").value = plat.setpoint_bar ?? 2.5;
+  document.getElementById("weeklySel").value   = String(!!plat.weekly_swap);
+
+  const A = pumps.DOM_A, B = pumps.DOM_B, I = pumps.IRR;
+
+  if (A) {
+    setTag(document.getElementById("tagA"), A);
+    setVal("aP",    A.pressure_bar?.toFixed?.(2));
+    setVal("aHz",   A.freq_hz?.toFixed?.(2));
+    setVal("aA",    A.current_a?.toFixed?.(1));
+    setVal("aTrip", A.trip_code ?? 0);
+    setTripKpi("kpiATrip", A.trip_code);
+    serA[si] = A.pressure_bar ?? null;
+    setOnline("hA", A.online);
+    document.getElementById("tA").textContent = fmtTs(A.last_seen);
+    if (A.fault && !prevFault.DOM_A)
+      pushEvent(`DOM_A fault — trip code ${A.trip_code}`, "evt-bad");
+    if (!A.fault && prevFault.DOM_A)
+      pushEvent(`DOM_A fault cleared`, "evt-good");
+    prevFault.DOM_A = !!A.fault;
   }
 
-  // DOM B
-  if(B.pressure_bar!==undefined){
-    setTag(document.getElementById('tagB'),B);
-    setCardState(document.getElementById('cardB'),B);
-    setVal('bP',B.pressure_bar?.toFixed(2));
-    setVal('bHz',B.freq_hz?.toFixed(2));
-    setVal('bA',B.current_a?.toFixed(1));
-    setVal('bTrip',B.trip_code??0);
-    setTripKpi('kpiBTrip',B.trip_code);
-    serB[si]=B.pressure_bar??null;
-    setOnline('hB',B.online);
-    document.getElementById('tB').textContent=fmtTs(B.last_seen);
-    setPbar('pbarB','pbarBVal',B.pressure_bar);
-    if(B.fault&&!prevFault.DOM_B) pushEvent('DOM-B FAULT — trip code '+B.trip_code,'evt-bad');
-    if(!B.fault&&prevFault.DOM_B) pushEvent('DOM-B fault cleared','evt-good');
-    prevFault.DOM_B=!!B.fault;
+  if (B) {
+    setTag(document.getElementById("tagB"), B);
+    setVal("bP",    B.pressure_bar?.toFixed?.(2));
+    setVal("bHz",   B.freq_hz?.toFixed?.(2));
+    setVal("bA",    B.current_a?.toFixed?.(1));
+    setVal("bTrip", B.trip_code ?? 0);
+    setTripKpi("kpiBTrip", B.trip_code);
+    serB[si] = B.pressure_bar ?? null;
+    setOnline("hB", B.online);
+    document.getElementById("tB").textContent = fmtTs(B.last_seen);
+    if (B.fault && !prevFault.DOM_B)
+      pushEvent(`DOM_B fault — trip code ${B.trip_code}`, "evt-bad");
+    if (!B.fault && prevFault.DOM_B)
+      pushEvent(`DOM_B fault cleared`, "evt-good");
+    prevFault.DOM_B = !!B.fault;
   }
 
-  // IRR
-  if(I.pressure_bar!==undefined){
-    setTag(document.getElementById('tagIRR'),I);
-    setCardState(document.getElementById('cardI'),I);
-    setVal('iP',I.pressure_bar?.toFixed(2));
-    setVal('iHz',I.freq_hz?.toFixed(2));
-    setVal('iA',I.current_a?.toFixed(1));
-    setVal('iTrip',I.trip_code??0);
-    setTripKpi('kpiITrip',I.trip_code);
-    serI[si]=I.pressure_bar??null;
-    setOnline('hI',I.online);
-    document.getElementById('tI').textContent=fmtTs(I.last_seen);
-    setPbar('pbarI','pbarIVal',I.pressure_bar);
-    if(I.fault&&!prevFault.IRR) pushEvent('IRR FAULT — trip code '+I.trip_code,'evt-bad');
-    if(!I.fault&&prevFault.IRR) pushEvent('IRR fault cleared','evt-good');
-    prevFault.IRR=!!I.fault;
+  if (I) {
+    setTag(document.getElementById("tagIRR"), I);
+    setVal("iP",    I.pressure_bar?.toFixed?.(2));
+    setVal("iHz",   I.freq_hz?.toFixed?.(2));
+    setVal("iA",    I.current_a?.toFixed?.(1));
+    setVal("iTrip", I.trip_code ?? 0);
+    setTripKpi("kpiITrip", I.trip_code);
+    serI[si] = I.pressure_bar ?? null;
+    setOnline("hI", I.online);
+    document.getElementById("tI").textContent = fmtTs(I.last_seen);
+    if (I.fault && !prevFault.IRR)
+      pushEvent(`IRR fault — trip code ${I.trip_code}`, "evt-bad");
+    if (!I.fault && prevFault.IRR)
+      pushEvent(`IRR fault cleared`, "evt-good");
+    prevFault.IRR = !!I.fault;
   }
 
-  si=(si+1)%RING;
-  updateChartLabels(serA,serB,serI);
-  drawChart(document.getElementById('chartA'),serA);
-  drawChart(document.getElementById('chartB'),serB);
-  drawChart(document.getElementById('chartI'),serI);
+  si = (si + 1) % RING;
+  drawChart(document.getElementById("chartA"), serA);
+  drawChart(document.getElementById("chartB"), serB);
+  drawChart(document.getElementById("chartI"), serI);
 }
 
-/* ══ WebSocket / MQTT ══ */
-function start(){
-  setMqttStatus(false,'MQTT: connecting…');
+/* ══════════════════════════════════════════════════════════════════
+   WebSocket / MQTT — called only AFTER login
+══════════════════════════════════════════════════════════════════ */
+function start() {
+  setMqttStatus(false, "MQTT: connecting…");
   clearInterval(pingTimer);
-  try{ ws=new WebSocket(WS_URL,['mqtt']); }
-  catch(e){ setMqttStatus(false,'MQTT: invalid URL',true); return; }
-  ws.binaryType='arraybuffer';
 
-  ws.onopen=()=>{
-    retryDelay=1500;
-    ws.send(pktConnect('scada-'+Math.random().toString(16).slice(2),MQTT_USERNAME,MQTT_PASSWORD));
+  try { ws = new WebSocket(WS_URL, ["mqtt"]); }
+  catch (e) {
+    setMqttStatus(false, "MQTT: invalid URL");
+    return;
+  }
+  ws.binaryType = "arraybuffer";
+
+  ws.onopen = () => {
+    retryDelay = 1500;
+    ws.send(pktConnect("dash-" + Math.random().toString(16).slice(2), MQTT_USERNAME, MQTT_PASSWORD));
   };
 
-  ws.onmessage=ev=>{
-    const b=new Uint8Array(ev.data);
-    const type=b[0]>>4;
-    if(type===2){
-      const rc=b[3];
-      if(rc!==0){
-        setMqttStatus(false,`MQTT: refused (rc=${rc})`,true);
-        document.getElementById('loginError').textContent=`Authentication refused (rc=${rc}). Please re-enter credentials.`;
-        document.getElementById('loginOverlay').style.display='flex';
-        document.getElementById('mainApp').style.display='none';
-        ws.close(); return;
+  ws.onmessage = ev => {
+    const b    = new Uint8Array(ev.data);
+    const type = b[0] >> 4;
+
+    if (type === 2) {
+      const rc = b[3];
+      if (rc !== 0) {
+        setMqttStatus(false, `MQTT: broker refused (rc=${rc}) — check credentials`);
+        /* Show login again so user can re-enter correct credentials */
+        document.getElementById("loginError").textContent = "Wrong username or password (rc=" + rc + "). Please try again.";
+        document.getElementById("loginOverlay").style.display = "flex";
+        document.getElementById("mainApp").style.display = "none";
+        ws.close();
+        return;
       }
-      connected=true;
-      setMqttStatus(true,'MQTT: connected');
-      ws.send(pktSubscribe(pid++,TOPIC_TELE));
-      pingTimer=setInterval(()=>{
-        if(connected&&ws&&ws.readyState===WebSocket.OPEN) ws.send(pktPingreq());
-      },45000);
-      pushEvent('MQTT broker connected','evt-good');
+      connected = true;
+      setMqttStatus(true, "MQTT: connected");
+      ws.send(pktSubscribe(pid++, TOPIC_TELE));
+      pingTimer = setInterval(() => {
+        if (connected && ws && ws.readyState === WebSocket.OPEN)
+          ws.send(pktPingreq());
+      }, 45_000);
+      pushEvent("MQTT connected", "evt-good");
       return;
     }
-    if(type===13)return;
-    const pub=parsePublish(ev.data);
-    if(pub&&pub.topic===TOPIC_TELE){
-      try{ applyTelemetry(JSON.parse(pub.payload)); }
-      catch(e){ console.warn('Bad telemetry:',e); }
+
+    if (type === 13) return;
+
+    const pub = parsePublish(ev.data);
+    if (pub && pub.topic === TOPIC_TELE) {
+      try { applyTelemetry(JSON.parse(pub.payload)); }
+      catch (e) { console.warn("Bad telemetry JSON:", e); }
     }
   };
 
-  ws.onclose=()=>{
-    connected=false; clearInterval(pingTimer);
-    setMqttStatus(false,`Disconnected (retry ${(retryDelay/1000).toFixed(0)}s)`);
-    setTimeout(start,retryDelay);
-    retryDelay=Math.min(retryDelay*1.5,15000);
+  ws.onclose = () => {
+    connected = false; clearInterval(pingTimer);
+    setMqttStatus(false, `MQTT: disconnected (retry in ${(retryDelay/1000).toFixed(0)}s)`);
+    setTimeout(start, retryDelay);
+    retryDelay = Math.min(retryDelay * 1.5, 15_000);
   };
 
-  ws.onerror=()=>{
-    connected=false; clearInterval(pingTimer);
-    setMqttStatus(false,'MQTT error',true);
-    try{ ws.close(); }catch(_){}
+  ws.onerror = () => {
+    connected = false; clearInterval(pingTimer);
+    setMqttStatus(false, "MQTT: error — retrying…");
+    try { ws.close(); } catch (_) {}
   };
 }
 
-/* ══ Login ══ */
-function doLogin(){
-  const u=document.getElementById('loginUser').value.trim();
-  const p=document.getElementById('loginPass').value;
-  const err=document.getElementById('loginError');
-  if(!u||!p){ err.textContent='Username and password are required.'; return; }
-  err.textContent='';
-  MQTT_USERNAME=u; MQTT_PASSWORD=p;
-  startTime=Date.now();
-  document.getElementById('loginOverlay').style.display='none';
-  document.getElementById('mainApp').style.display='';
-  start();
+/* ══════════════════════════════════════════════════════════════════
+   LOGIN GATE
+   Credentials typed by user → passed to MQTT → never stored
+══════════════════════════════════════════════════════════════════ */
+function doLogin() {
+  var u   = document.getElementById("loginUser").value.trim();
+  var p   = document.getElementById("loginPass").value;
+  var err = document.getElementById("loginError");
+
+  if (!u || !p) {
+    err.textContent = "Username and password are required.";
+    return;
+  }
+  err.textContent = "";
+  MQTT_USERNAME = u;
+  MQTT_PASSWORD = p;
+
+  document.getElementById("loginOverlay").style.display = "none";
+  document.getElementById("mainApp").style.display = "";
+
+  start();   /* begin MQTT connection with the entered credentials */
 }
-document.addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&document.getElementById('loginOverlay').style.display!=='none') doLogin();
+
+/* Allow pressing Enter to submit */
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    var ov = document.getElementById("loginOverlay");
+    if (ov && ov.style.display !== "none") doLogin();
+  }
 });
 
-/* ══ Command handlers ══ */
-document.getElementById('applyModeBtn').onclick=()=>
-  mqttSend(`${CMD_BASE}/mode`,{mode:document.getElementById('modeSel').value});
-document.getElementById('setDutyBtn').onclick=()=>
-  mqttSend(`${CMD_BASE}/duty`,{duty:document.getElementById('dutySel').value});
-document.getElementById('swapBtn').onclick=()=>
-  mqttSend(`${CMD_BASE}/swap`,{now:true});
-document.getElementById('setpointBtn').onclick=()=>{
-  const v=parseFloat(document.getElementById('setpointInp').value);
-  if(!isNaN(v)&&v>=0) mqttSend(`${CMD_BASE}/setpoint`,{setpoint_bar:v});
-};
-document.getElementById('weeklyBtn').onclick=()=>
-  mqttSend(`${CMD_BASE}/weekly_swap`,{enabled:document.getElementById('weeklySel').value==='true'});
+/* ══════════════════════════════════════════════════════════════════
+   Button handlers
+══════════════════════════════════════════════════════════════════ */
+document.getElementById("applyModeBtn").onclick = () =>
+  mqttSend(`${CMD_BASE}/mode`,        { mode: document.getElementById("modeSel").value });
 
-/* ══ Resize → redraw ══ */
+document.getElementById("setDutyBtn").onclick = () =>
+  mqttSend(`${CMD_BASE}/duty`,        { duty: document.getElementById("dutySel").value });
+
+document.getElementById("swapBtn").onclick = () =>
+  mqttSend(`${CMD_BASE}/swap`,        { now: true });
+
+document.getElementById("setpointBtn").onclick = () => {
+  const v = parseFloat(document.getElementById("setpointInp").value);
+  if (!isNaN(v) && v >= 0) mqttSend(`${CMD_BASE}/setpoint`, { setpoint_bar: v });
+};
+
+document.getElementById("weeklyBtn").onclick = () =>
+  mqttSend(`${CMD_BASE}/weekly_swap`, { enabled: document.getElementById("weeklySel").value === "true" });
+
+/* ── Resize → redraw charts ── */
 let rzT;
-window.addEventListener('resize',()=>{
+window.addEventListener("resize", () => {
   clearTimeout(rzT);
-  rzT=setTimeout(()=>{
-    drawChart(document.getElementById('chartA'),serA);
-    drawChart(document.getElementById('chartB'),serB);
-    drawChart(document.getElementById('chartI'),serI);
-  },80);
+  rzT = setTimeout(() => {
+    drawChart(document.getElementById("chartA"), serA);
+    drawChart(document.getElementById("chartB"), serB);
+    drawChart(document.getElementById("chartI"), serI);
+  }, 80);
 });
 </script>
 </body>
