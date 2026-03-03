@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -643,8 +642,37 @@ function pushEvent(html, cls) {
 const prevFault = { DOM_A: false, DOM_B: false, IRR: false };
 
 function applyTelemetry(payload) {
-  const plat  = payload.platform || {};
-  const pumps = payload.pumps    || {};
+  // Supports TWO telemetry formats:
+  // 1) New structured format:
+  //    { platform:{...}, pumps:{ DOM_A:{pressure_bar,...}, DOM_B:{...}, IRR:{...} } }
+  // 2) Simple test format (MQTTX friendly):
+  //    { dom_a:{pressure, freq, current, trip}, dom_b:{...}, irr:{...} }
+  let plat = payload.platform || payload.plat || {};
+  let pumps = payload.pumps || null;
+
+  const toNum = (v) => (v === null || v === undefined || v === "" ? null : Number(v));
+  const mapSimple = (src) => {
+    if (!src) return null;
+    const trip = src.trip_code ?? src.trip ?? 0;
+    return {
+      pressure_bar: toNum(src.pressure_bar ?? src.pressure),
+      freq_hz:      toNum(src.freq_hz ?? src.freq),
+      current_a:    toNum(src.current_a ?? src.current),
+      trip_code:    trip,
+      fault:        !!(src.fault ?? (trip && Number(trip) !== 0)),
+      online:       src.online ?? true,
+      last_seen:    src.last_seen ?? Date.now(),
+    };
+  };
+
+  if (!pumps && (payload.dom_a || payload.dom_b || payload.irr)) {
+    pumps = {
+      DOM_A: mapSimple(payload.dom_a),
+      DOM_B: mapSimple(payload.dom_b),
+      IRR:   mapSimple(payload.irr),
+    };
+  }
+  if (!pumps) pumps = {};
 
   /* ── Platform controls ── */
   document.getElementById("platformTag").textContent =
