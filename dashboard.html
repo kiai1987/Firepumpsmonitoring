@@ -1,520 +1,659 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Alsharq Village | Pumps Platform</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Compound Pumps Platform</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
 <style>
-/* ═══════════════════════════════════════════
-   Design tokens
-═══════════════════════════════════════════ */
+/* Scandinavian / Nordic UI: clean, calm, spacious */
 :root {
-  --bg:      #060911;
-  --surface: #0B1120;
-  --panel:   rgba(0,0,0,.18);
-  --border:  rgba(100,160,255,.11);
-  --border2: rgba(100,160,255,.22);
-  --text:    #D8E8FF;
-  --muted:   #5A7898;
-  --good:    #00F0A0;
-  --bad:     #FF3D6B;
-  --warn:    #FFB830;
-  --accent:  #3B82F6;
-  --accent2: #7C3AED;
-  --mono:    'IBM Plex Mono', monospace;
-  --sans:    'Syne', sans-serif;
-  --r:       14px;
-  --r-sm:    9px;
+  --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+  --r1: 10px; --r2: 14px; --r3: 18px;
+
+  --font: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --surface-2: #f1f3f6;
+  --border: #e5e7eb;
+  --text: #0b1220;
+  --muted: #64748b;
+  --muted-2: #94a3b8;
+
+  --accent: #2563eb;
+  --accent-2: #1d4ed8;
+
+  --good: #16a34a;
+  --warn: #f59e0b;
+  --bad:  #dc2626;
+
+  --shadow: 0 10px 36px rgba(2, 6, 23, 0.10);
+  --shadow-sm: 0 8px 22px rgba(2, 6, 23, 0.08);
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1020;
+    --surface: #0f172a;
+    --surface-2: #111c33;
+    --border: rgba(148, 163, 184, 0.16);
+    --text: #e5e7eb;
+    --muted: #a7b3cc;
+    --muted-2: #7c8aa6;
+    --shadow: 0 22px 70px rgba(0,0,0,0.35);
+    --shadow-sm: 0 12px 32px rgba(0,0,0,0.28);
+  }
+}
 
+* { box-sizing: border-box; }
+html, body { height: 100%; }
 body {
-  font-family: var(--sans);
-  background: var(--bg);
+  margin: 0;
+  font-family: var(--font);
   color: var(--text);
-  min-height: 100vh;
-  background-image:
-    radial-gradient(ellipse 1400px 600px at 10% 0%,  rgba(59,130,246,.10) 0%, transparent 60%),
-    radial-gradient(ellipse 900px  500px at 90% 10%, rgba(124,58,237,.08) 0%, transparent 55%),
-    radial-gradient(ellipse 700px  400px at 50% 100%,rgba(0,245,160,.06)  0%, transparent 50%);
+  background:
+    radial-gradient(1200px 700px at 18% 0%, rgba(37, 99, 235, 0.10), transparent 60%),
+    radial-gradient(900px 600px at 80% 10%, rgba(22, 163, 74, 0.08), transparent 55%),
+    var(--bg);
 }
 
-body::before {
-  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  opacity: .35;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+.app {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: clamp(16px, 2vw, 24px);
 }
 
-.wrap { max-width: 1300px; margin: 0 auto; padding: 28px 20px 48px; position: relative; z-index: 1; }
-
-/* ── Page load animation ── */
-.wrap { animation: fadein .45s ease both; }
-@keyframes fadein { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-
-/* ═══════════════════════════════════════════
-   Header
-═══════════════════════════════════════════ */
-header {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s5);
+  padding: var(--s4) var(--s4) var(--s5);
 }
-.logo-mark {
-  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; box-shadow: 0 0 28px rgba(59,130,246,.35);
-}
-.header-left { display: flex; align-items: center; gap: 14px; }
-h1 { font-size: 18px; font-weight: 800; letter-spacing: -.3px; line-height: 1.2; }
-.sub { color: var(--muted); font-size: 11px; font-family: var(--mono); margin-top: 4px; letter-spacing: .3px; }
 
-/* MQTT badge */
-.mqtt-badge {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 14px; border-radius: 10px;
-  background: var(--surface); border: 1px solid var(--border);
-  flex-shrink: 0;
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
 }
-.mqtt-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #444; transition: background .4s;
+.logo {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r2);
+  background: linear-gradient(135deg, var(--accent), rgba(37,99,235,0.25));
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 800;
 }
-.mqtt-dot.online { background: var(--good); animation: pulse-dot 2s infinite; }
-.mqtt-dot.error  { background: var(--bad); }
-@keyframes pulse-dot {
-  0%  { box-shadow: 0 0 0 0   rgba(0,240,160,.55); }
-  70% { box-shadow: 0 0 0 6px rgba(0,240,160,0); }
-  100%{ box-shadow: 0 0 0 0   rgba(0,240,160,0); }
+.brand h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
 }
-.mqtt-label { font-size: 13px; font-weight: 700; }
-.mqtt-url   { font-family: var(--mono); color: var(--muted); font-size: 10px; margin-top: 2px; }
+.brand .sub {
+  margin-top: var(--s1);
+  font-size: 12.5px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
 
-/* ═══════════════════════════════════════════
-   Layout
-═══════════════════════════════════════════ */
-.main-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 16px; }
-@media (max-width: 1020px) { .main-grid { grid-template-columns: 1fr; } }
+.top-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s2);
+  min-width: 360px;
+}
 
-/* ── Card ── */
+.banner {
+  width: 100%;
+  border-radius: var(--r2);
+  border: 1px solid var(--border);
+  padding: var(--s2) var(--s3);
+  display: none;
+  align-items: center;
+  gap: var(--s2);
+  font-size: 12.5px;
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+.banner-bad { border-color: rgba(220,38,38,0.35); }
+.banner-warn { border-color: rgba(245,158,11,0.35); }
+
+.status-pill {
+  width: 100%;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r3);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+.status-left {
+  display:flex;
+  align-items:center;
+  gap: var(--s2);
+  min-width: 0;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--muted-2);
+}
+.status-text {
+  display:flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.status-text .t1 { font-weight: 700; font-size: 13px; }
+.status-text .t2 {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+  white-space: nowrap;
+}
+
+.grid {
+  display:grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: var(--s5);
+}
+
+@media (max-width: 980px) {
+  .top { flex-direction: column; align-items: stretch; }
+  .top-right { min-width: 0; align-items: stretch; }
+  .grid { grid-template-columns: 1fr; }
+}
+
 .card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r); overflow: hidden; position: relative;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--r3);
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
-.card::before {
-  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(135deg, rgba(255,255,255,.022) 0%, transparent 60%);
+.card-h {
+  padding: var(--s4) var(--s4) var(--s3);
+  display:flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
+  border-bottom: 1px solid var(--border);
 }
-.card-head {
-  padding: 12px 16px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  background: rgba(0,0,0,.18);
+.card-h h2 {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
-.card-head .title { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: rgba(216,232,255,.65); }
-.card-head .desc  { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-top: 3px; letter-spacing: .3px; }
-.card-body { padding: 16px; }
+.card-b { padding: var(--s4); }
 
-/* ── Status tag ── */
-.tag {
-  font-family: var(--mono); font-size: 10px; letter-spacing: .6px; text-transform: uppercase;
-  padding: 4px 10px; border-radius: 6px;
-  background: rgba(0,0,0,.25); border: 1px solid var(--border);
-  white-space: nowrap; transition: border-color .3s, background .3s, color .3s;
-}
-.tag.run   { border-color: rgba(0,240,160,.35); background: rgba(0,240,160,.07); color: var(--good); }
-.tag.stop  { border-color: var(--border); color: var(--muted); }
-.tag.fault { border-color: rgba(255,61,107,.5); background: rgba(255,61,107,.1); color: var(--bad); animation: flicker 1.6s infinite; }
-@keyframes flicker { 0%,100%{opacity:1} 50%{opacity:.7} }
+.controls { display:grid; gap: var(--s4); }
 
-/* ── Divider ── */
-hr.sep { border: none; border-top: 1px solid var(--border); margin: 13px 0; }
-
-/* ── Controls ── */
-.ctrl-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.ctrl-lbl { font-size: 10px; color: var(--muted); font-family: var(--mono); letter-spacing: .5px; text-transform: uppercase; }
-
-select, input[type=number] {
-  font-family: var(--mono); font-size: 12px;
-  background: rgba(0,0,0,.3); border: 1px solid var(--border2);
-  border-radius: var(--r-sm); color: var(--text);
-  padding: 8px 10px; outline: none; appearance: none; -webkit-appearance: none;
-  transition: border-color .2s, box-shadow .2s;
+.row {
+  display:grid;
+  grid-template-columns: 120px 1fr auto;
+  gap: var(--s3);
+  align-items:center;
 }
-select:focus, input:focus {
-  border-color: rgba(59,130,246,.55);
-  box-shadow: 0 0 0 3px rgba(59,130,246,.13);
+@media (max-width: 640px) {
+  .row { grid-template-columns: 1fr; }
 }
-input[type=number] { width: 100px; }
+
+label {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.select, .input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--r2);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  color: var(--text);
+  outline: none;
+}
+.select:focus, .input:focus {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+}
 
 .btn {
-  font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .3px;
-  padding: 8px 14px; border-radius: var(--r-sm);
-  border: 1px solid rgba(255,255,255,.1);
-  background: rgba(59,130,246,.15); color: var(--text);
-  cursor: pointer; position: relative; overflow: hidden;
-  transition: filter .15s, transform .1s, box-shadow .15s;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: var(--r2);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform .08s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
 }
-.btn::after { content:''; position:absolute; inset:0; background:linear-gradient(transparent 40%,rgba(255,255,255,.04)); }
-.btn:hover  { filter: brightness(1.18); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.4); }
-.btn:active { transform: translateY(0); filter: brightness(.94); }
-.btn.secondary { background: rgba(124,58,237,.15); border-color: rgba(124,58,237,.22); }
-.btn.ghost     { background: rgba(255,255,255,.05); }
-.btn.danger    { background: rgba(255,61,107,.14); border-color: rgba(255,61,107,.22); }
+.btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  box-shadow: 0 10px 22px rgba(2,6,23,0.10);
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 92%, #fff), var(--accent-2));
+  border-color: rgba(37,99,235,0.35);
+  color: #fff;
+}
+.btn-ghost { background: transparent; }
 
-/* ── KPI grid ── */
-.kpi-row  { display: flex; gap: 10px; flex-wrap: wrap; }
+.pumps-grid {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s5);
+  margin-top: var(--s5);
+}
+@media (max-width: 860px) {
+  .pumps-grid { grid-template-columns: 1fr; }
+}
+
+.pump-card {
+  position: relative;
+  padding: var(--s4);
+  border-radius: var(--r3);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+}
+
+.pump-title {
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: var(--s2);
+  margin-bottom: var(--s3);
+}
+.pump-title h3 {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+}
+.badge-good { border-color: rgba(22,163,74,0.35); color: color-mix(in srgb, var(--good) 70%, var(--text)); }
+.badge-warn { border-color: rgba(245,158,11,0.35); color: color-mix(in srgb, var(--warn) 70%, var(--text)); }
+.badge-bad  { border-color: rgba(220,38,38,0.35); color: color-mix(in srgb, var(--bad) 70%, var(--text)); }
+
+.kpis {
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s3);
+}
 .kpi {
-  flex: 1 1 118px; padding: 11px 12px;
-  border-radius: 11px; border: 1px solid var(--border);
-  background: rgba(0,0,0,.22); position: relative; overflow: hidden;
-  transition: border-color .3s;
+  padding: var(--s3);
+  border-radius: var(--r2);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-2) 35%, transparent);
 }
-.kpi::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(59,130,246,.22), transparent);
+.kpi .k {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
-.kpi .lbl  { font-size: 10px; color: var(--muted); font-family: var(--mono); letter-spacing: .5px; text-transform: uppercase; }
-.kpi .val  { font-size: 19px; font-weight: 600; font-family: var(--mono); margin-top: 7px; line-height: 1; letter-spacing: -.5px; }
-.kpi .unit { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-top: 4px; }
-.kpi.kpi-fault { border-color: rgba(255,61,107,.35); }
-.kpi.kpi-fault .val { color: var(--bad); }
-
-/* ── Pump pair ── */
-.pump-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
-@media (max-width: 740px) { .pump-pair { grid-template-columns: 1fr; } }
-
-.pump-card { background: rgba(0,0,0,.15); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-.pump-card-head {
-  padding: 10px 13px; display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 1px solid var(--border); background: rgba(0,0,0,.2);
+.kpi .v {
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 22px;
+  letter-spacing: -0.02em;
 }
-.pump-card-head .pname { font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
-.pump-card-body { padding: 12px 13px; }
-
-/* ── Chart ── */
-.chart-wrap { margin-top: 12px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: rgba(0,0,0,.25); height: 150px; position: relative; }
-canvas { display: block; width: 100%; height: 100%; }
-
-/* ── Right column ── */
-.right-col { display: flex; flex-direction: column; gap: 14px; }
-
-/* ── Table ── */
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 9px 10px; font-size: 12px; border-bottom: 1px solid var(--border); }
-th { color: var(--muted); font-family: var(--mono); font-size: 10px; letter-spacing: .5px; text-transform: uppercase; font-weight: 600; text-align: left; }
-td { font-family: var(--mono); }
-tr:last-child td { border-bottom: none; }
-.online-yes { color: var(--good); }
-.online-yes::before { content: '● '; font-size: 8px; }
-.online-no  { color: var(--muted); }
-.online-no::before  { content: '○ '; font-size: 8px; }
-
-/* ── Events feed ── */
-.events-feed { font-size: 12px; font-family: var(--mono); line-height: 2; max-height: 180px; overflow-y: auto; }
-.events-feed::-webkit-scrollbar { width: 3px; }
-.events-feed::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-.evt { display: flex; gap: 8px; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
-.evt-time { color: var(--muted); flex-shrink: 0; }
-.evt-bad  { color: var(--bad); }
-.evt-good { color: var(--good); }
-.evt-warn { color: var(--warn); }
-.evt-info { color: var(--muted); }
-
-/* ═══════════════════════════════════════════
-   LOGIN OVERLAY
-═══════════════════════════════════════════ */
-#loginOverlay {
-  position: fixed; inset: 0; z-index: 9999;
-  background: #060911;
-  display: flex; align-items: center; justify-content: center;
-  animation: fadein .4s ease both;
-}
-.login-box {
-  background: #0B1120;
-  border: 1px solid rgba(100,160,255,.22);
-  border-radius: 18px; padding: 40px 36px; width: 340px;
-  box-shadow: 0 0 60px rgba(59,130,246,.18), 0 0 0 1px rgba(100,160,255,.08);
-}
-.login-logo {
-  width: 52px; height: 52px; border-radius: 14px;
-  background: linear-gradient(135deg, #3B82F6, #7C3AED);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 26px; margin: 0 auto 18px;
-  box-shadow: 0 0 30px rgba(59,130,246,.4);
-}
-.login-box h2 {
-  text-align: center; font-size: 17px; font-weight: 800;
-  color: #D8E8FF; margin-bottom: 5px;
-}
-.login-sub {
-  text-align: center; font-size: 11px; color: #5A7898;
-  font-family: 'IBM Plex Mono', monospace; margin-bottom: 28px;
-}
-.login-field { margin-bottom: 14px; }
-.login-field label {
-  display: block; font-size: 10px; color: #5A7898;
-  font-family: 'IBM Plex Mono', monospace;
-  text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px;
-}
-.login-field input {
-  width: 100%; padding: 11px 13px;
-  background: rgba(0,0,0,.4); border: 1px solid rgba(100,160,255,.2);
-  border-radius: 9px; color: #D8E8FF;
-  font-family: 'IBM Plex Mono', monospace; font-size: 13px;
-  outline: none; box-sizing: border-box;
-  transition: border-color .2s, box-shadow .2s;
-}
-.login-field input:focus {
-  border-color: rgba(59,130,246,.6);
-  box-shadow: 0 0 0 3px rgba(59,130,246,.14);
-}
-.login-btn {
-  width: 100%; padding: 12px;
-  background: linear-gradient(135deg, #3B82F6, #7C3AED);
-  border: none; border-radius: 9px;
-  color: #fff; font-size: 14px; font-weight: 700;
-  cursor: pointer; margin-top: 6px;
-  transition: opacity .2s, transform .1s, box-shadow .2s;
-  box-shadow: 0 4px 18px rgba(59,130,246,.3);
-}
-.login-btn:hover  { opacity: .88; transform: translateY(-1px); box-shadow: 0 6px 22px rgba(59,130,246,.4); }
-.login-btn:active { transform: translateY(0); opacity: 1; }
-.login-error {
-  color: #FF3D6B; font-size: 11px;
-  font-family: 'IBM Plex Mono', monospace;
-  text-align: center; margin-top: 13px; min-height: 16px;
-}
-.login-hint {
-  text-align: center; font-size: 10px; color: rgba(90,120,152,.6);
-  font-family: 'IBM Plex Mono', monospace; margin-top: 20px;
-  border-top: 1px solid rgba(100,160,255,.08); padding-top: 14px;
+.kpi .u {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--muted-2);
 }
 
-/* Alsharq Village Branding */
-header { background: linear-gradient(135deg,rgba(1,30,15,.6) 0%,rgba(6,9,17,.0) 100%); border-bottom: 1px solid rgba(0,140,55,.3) !important; }
-.logo-wrap { flex-shrink:0; }
-.brand-logo { height:72px; width:72px; border-radius:13px; object-fit:cover; display:block; box-shadow:0 0 28px rgba(0,180,70,.4),0 0 0 1px rgba(0,160,60,.25); }
-.brand-text { display:flex; flex-direction:column; gap:1px; }
-.brand-tag { font-family:var(--mono); font-size:9.5px; letter-spacing:3px; color:rgba(0,230,100,.75); text-transform:uppercase; font-weight:600; }
-header h1 { font-size:19px; font-weight:800; letter-spacing:-.4px; background:linear-gradient(90deg,#D8E8FF 0%,rgba(0,230,100,.9) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-.mqtt-badge { border-color:rgba(0,130,50,.3) !important; background:rgba(1,18,8,.65) !important; }
-.login-subtitle { text-align:center; font-size:12px; color:rgba(0,220,100,.75); font-family:'IBM Plex Mono',monospace; letter-spacing:.8px; margin-bottom:3px; }
-.login-logo img { width:100%; height:100%; object-fit:cover; border-radius:14px; }
+.pump-footer {
+  margin-top: var(--s4);
+  border-top: 1px solid var(--border);
+  padding-top: var(--s3);
+}
+.canvas-wrap {
+  width: 100%;
+  height: 110px;
+  border-radius: var(--r2);
+  border: 1px dashed color-mix(in srgb, var(--border) 70%, transparent);
+  background: color-mix(in srgb, var(--surface-2) 25%, transparent);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color: var(--muted-2);
+  font-size: 12px;
+}
+.canvas-wrap canvas {
+  width: 100% !important;
+  height: 110px !important;
+}
+
+.is-stale { filter: saturate(0.78); }
+.is-offline {
+  filter: grayscale(0.12) saturate(0.65);
+}
+.is-offline::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, rgba(220,38,38,0.08));
+  pointer-events:none;
+}
+
+.table {
+  width:100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.table th, .table td {
+  padding: 10px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.table th {
+  font-family: var(--font);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: var(--muted);
+}
+.cell-muted { color: var(--muted); font-family: var(--font); font-size: 12px; }
+
+.events {
+  display:grid;
+  gap: var(--s2);
+}
+.event {
+  display:flex;
+  align-items:flex-start;
+  gap: var(--s3);
+  padding: var(--s3);
+  border-radius: var(--r2);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-2) 28%, transparent);
+}
+.e-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: var(--muted-2);
+}
+.evt-good .e-dot { background: var(--good); }
+.evt-warn .e-dot { background: var(--warn); }
+.evt-bad  .e-dot { background: var(--bad); }
+.e-text .t { font-weight: 700; font-size: 13px; }
+.e-text .m { margin-top: 2px; font-size: 12px; color: var(--muted); font-family: var(--mono); }
+
+.footer {
+  margin-top: var(--s6);
+  padding: var(--s4) var(--s2);
+  color: var(--muted-2);
+  font-size: 12px;
+  display:flex;
+  justify-content: space-between;
+  gap: var(--s3);
+  flex-wrap: wrap;
+}
+kbd {
+  font-family: var(--mono);
+  font-size: 11px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-2) 40%, transparent);
+}
 </style>
 </head>
+
 <body>
-
-<!-- ══ LOGIN GATE — credentials never stored in source code ══ -->
-<div id="loginOverlay">
-  <div class="login-box">
-    <div class="login-logo"><img src="data:image/jpeg;base64,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" alt="Alsharq Village" style="width:100%;height:100%;object-fit:cover;border-radius:14px;"/></div>
-    <h2>Alsharq Village</h2><div class="login-subtitle">Pumps Monitoring Platform</div>
-    <p class="login-sub">MQTT credentials required to connect</p>
-    <div class="login-field">
-      <label>Username</label>
-      <input id="loginUser" type="text" placeholder="Enter username" autocomplete="username" />
-    </div>
-    <div class="login-field">
-      <label>Password</label>
-      <input id="loginPass" type="password" placeholder="Enter password" autocomplete="current-password" />
-    </div>
-    <button class="login-btn" onclick="doLogin()">Connect to Broker &rarr;</button>
-    <div class="login-error" id="loginError"></div>
-    <div class="login-hint">Credentials are never stored or sent anywhere except directly to the MQTT broker over TLS.</div>
-  </div>
-</div>
-
-<!-- ══ MAIN DASHBOARD (hidden until login) ══ -->
-<div class="wrap" id="mainApp" style="display:none">
-
-  <!-- Header Alsharq Village -->
-  <header>
-    <div class="header-left">
-      <div class="logo-wrap">
-        <img src="data:image/jpeg;base64,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" alt="Alsharq Village" class="brand-logo"/>
-      </div>
-      <div class="brand-text">
-        <div class="brand-tag">Alsharq Village</div>
-        <h1>Pumps Monitoring Platform</h1>
-        <div class="sub">Domestic Duty/Standby + Irrigation &nbsp;&middot;&nbsp; MQTT Realtime &nbsp;&middot;&nbsp; Raspberry Pi</div>
-      </div>
-    </div>
-    <div class="mqtt-badge">
-      <div id="mqttDot" class="mqtt-dot"></div>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">CP</div>
       <div>
-        <div class="mqtt-label" id="mqttText">MQTT: connecting…</div>
-        <div class="mqtt-url" id="mqttSub">ws://…</div>
+        <h1>Compound Pumps Platform</h1>
+        <div class="sub">Domestic Duty/Standby + Irrigation · Real‑time via MQTT (EMQX)</div>
+      </div>
+    </div>
+
+    <div class="top-right">
+      <div id="banner" class="banner"></div>
+      <div class="status-pill">
+        <div class="status-left">
+          <span id="mqttDot" class="dot"></span>
+          <div class="status-text">
+            <div id="mqttText" class="t1">MQTT: connecting…</div>
+            <div id="mqttSub" class="t2">—</div>
+          </div>
+        </div>
+        <span id="platformTag" class="pill">Mode: — · Duty: —</span>
       </div>
     </div>
   </header>
 
-  <!-- ══ Main grid ══ -->
-  <div class="main-grid">
-
-    <!-- ████ LEFT : Control + Domestic Pumps ████ -->
-    <div class="card">
-      <div class="card-head">
-        <div>
-          <div class="title">Control Center</div>
-          <div class="desc">Mode · Duty selection · Setpoint · Weekly swap</div>
-        </div>
-        <div class="tag stop" id="platformTag">Mode: -- · Duty: --</div>
+  <main class="grid">
+    <!-- LEFT: Control + Domestic -->
+    <section class="card">
+      <div class="card-h">
+        <h2>Control Center</h2>
+        <span class="pill">Changeover · Setpoint · Weekly swap</span>
       </div>
-      <div class="card-body">
 
-        <div class="ctrl-row">
-          <span class="ctrl-lbl">Mode</span>
-          <select id="modeSel">
-            <option value="AUTO">AUTO</option>
-            <option value="MANUAL">MANUAL</option>
-          </select>
-          <span class="ctrl-lbl">Duty</span>
-          <select id="dutySel">
-            <option value="DOM_A">DOM_A</option>
-            <option value="DOM_B">DOM_B</option>
-          </select>
-          <button class="btn"           id="applyModeBtn">Apply Mode</button>
-          <button class="btn secondary" id="setDutyBtn">Set Duty</button>
-          <button class="btn ghost"     id="swapBtn">&#x21C4; Swap Now</button>
-        </div>
+      <div class="card-b">
+        <div class="controls">
+          <div class="row">
+            <label for="modeSel">Mode</label>
+            <select id="modeSel" class="select">
+              <option value="AUTO">AUTO</option>
+              <option value="MANUAL">MANUAL</option>
+            </select>
+            <button id="applyModeBtn" class="btn btn-primary">Apply</button>
+          </div>
 
-        <hr class="sep">
-
-        <div class="ctrl-row">
-          <span class="ctrl-lbl">Setpoint (bar)</span>
-          <input id="setpointInp" type="number" step="0.1" value="2.5" min="0" max="16"/>
-          <button class="btn" id="setpointBtn">Set Setpoint</button>
-          <span class="ctrl-lbl">Weekly swap</span>
-          <select id="weeklySel">
-            <option value="true">Enabled</option>
-            <option value="false">Disabled</option>
-          </select>
-          <button class="btn ghost" id="weeklyBtn">Apply</button>
-        </div>
-
-        <hr class="sep">
-
-        <!-- ── Pump pair ── -->
-        <div class="pump-pair">
-
-          <!-- Pump A -->
-          <div class="pump-card">
-            <div class="pump-card-head">
-              <span class="pname">Domestic A</span>
-              <div class="tag stop" id="tagA">--</div>
+          <div class="row">
+            <label for="dutySel">Duty</label>
+            <select id="dutySel" class="select">
+              <option value="DOM_A">DOM_A</option>
+              <option value="DOM_B">DOM_B</option>
+            </select>
+            <div style="display:flex; gap: var(--s2);">
+              <button id="setDutyBtn" class="btn">Set duty</button>
+              <button id="swapBtn" class="btn btn-ghost">Swap now</button>
             </div>
-            <div class="pump-card-body">
-              <div class="kpi-row">
-                <div class="kpi"><div class="lbl">Pressure</div><div class="val" id="aP">--</div><div class="unit">bar</div></div>
-                <div class="kpi"><div class="lbl">Frequency</div><div class="val" id="aHz">--</div><div class="unit">Hz</div></div>
-                <div class="kpi"><div class="lbl">Current</div><div class="val" id="aA">--</div><div class="unit">A</div></div>
-                <div class="kpi" id="kpiATrip"><div class="lbl">Trip</div><div class="val" id="aTrip">--</div><div class="unit">0=OK</div></div>
+          </div>
+
+          <div class="row">
+            <label for="setpointInp">Setpoint (bar)</label>
+            <input id="setpointInp" class="input" inputmode="decimal" placeholder="2.5" />
+            <button id="setpointBtn" class="btn">Set</button>
+          </div>
+
+          <div class="row">
+            <label for="weeklySel">Weekly swap</label>
+            <select id="weeklySel" class="select">
+              <option value="1">Enabled</option>
+              <option value="0">Disabled</option>
+            </select>
+            <button id="weeklyBtn" class="btn">Apply</button>
+          </div>
+        </div>
+
+        <div class="pumps-grid">
+          <div id="cardDomA" class="pump-card">
+            <div class="pump-title">
+              <h3>Domestic A</h3>
+              <div style="display:flex; align-items:center; gap: var(--s2);">
+                <span id="tA" class="cell-muted">—</span>
+                <span id="tagA" class="badge">—</span>
               </div>
-              <div class="chart-wrap"><canvas id="chartA"></canvas></div>
             </div>
-          </div>
 
-          <!-- Pump B -->
-          <div class="pump-card">
-            <div class="pump-card-head">
-              <span class="pname">Domestic B</span>
-              <div class="tag stop" id="tagB">--</div>
+            <div class="kpis">
+              <div class="kpi"><div class="k">Pressure</div><div id="aP" class="v">—</div><div class="u">bar</div></div>
+              <div class="kpi"><div class="k">Frequency</div><div id="aHz" class="v">—</div><div class="u">Hz</div></div>
+              <div class="kpi"><div class="k">Current</div><div id="aA" class="v">—</div><div class="u">A</div></div>
+              <div class="kpi"><div class="k">Trip</div><div id="aTrip" class="v">—</div><div class="u">0=OK</div></div>
             </div>
-            <div class="pump-card-body">
-              <div class="kpi-row">
-                <div class="kpi"><div class="lbl">Pressure</div><div class="val" id="bP">--</div><div class="unit">bar</div></div>
-                <div class="kpi"><div class="lbl">Frequency</div><div class="val" id="bHz">--</div><div class="unit">Hz</div></div>
-                <div class="kpi"><div class="lbl">Current</div><div class="val" id="bA">--</div><div class="unit">A</div></div>
-                <div class="kpi" id="kpiBTrip"><div class="lbl">Trip</div><div class="val" id="bTrip">--</div><div class="unit">0=OK</div></div>
+
+            <div class="pump-footer">
+              <div class="canvas-wrap">
+                <canvas id="chartA" width="520" height="110"></canvas>
               </div>
-              <div class="chart-wrap"><canvas id="chartB"></canvas></div>
             </div>
           </div>
 
-        </div><!-- /pump-pair -->
+          <div id="cardDomB" class="pump-card">
+            <div class="pump-title">
+              <h3>Domestic B</h3>
+              <div style="display:flex; align-items:center; gap: var(--s2);">
+                <span id="tB" class="cell-muted">—</span>
+                <span id="tagB" class="badge">—</span>
+              </div>
+            </div>
+
+            <div class="kpis">
+              <div class="kpi"><div class="k">Pressure</div><div id="bP" class="v">—</div><div class="u">bar</div></div>
+              <div class="kpi"><div class="k">Frequency</div><div id="bHz" class="v">—</div><div class="u">Hz</div></div>
+              <div class="kpi"><div class="k">Current</div><div id="bA" class="v">—</div><div class="u">A</div></div>
+              <div class="kpi"><div class="k">Trip</div><div id="bTrip" class="v">—</div><div class="u">0=OK</div></div>
+            </div>
+
+            <div class="pump-footer">
+              <div class="canvas-wrap">
+                <canvas id="chartB" width="520" height="110"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div><!-- /left card -->
+    </section>
 
-    <!-- ████ RIGHT : Irrigation + DTU + Events ████ -->
-    <div class="right-col">
+    <!-- RIGHT: Irrigation + Health + Events -->
+    <section style="display:grid; gap: var(--s5);">
 
-      <!-- Irrigation -->
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <div class="title">Irrigation Pump</div>
-            <div class="desc">Monitoring only — no changeover</div>
-          </div>
-          <div class="tag stop" id="tagIRR">--</div>
-        </div>
-        <div class="card-body">
-          <div class="kpi-row">
-            <div class="kpi"><div class="lbl">Pressure</div><div class="val" id="iP">--</div><div class="unit">bar</div></div>
-            <div class="kpi"><div class="lbl">Frequency</div><div class="val" id="iHz">--</div><div class="unit">Hz</div></div>
-            <div class="kpi"><div class="lbl">Current</div><div class="val" id="iA">--</div><div class="unit">A</div></div>
-            <div class="kpi" id="kpiITrip"><div class="lbl">Trip</div><div class="val" id="iTrip">--</div><div class="unit">0=OK</div></div>
-          </div>
-          <div class="chart-wrap"><canvas id="chartI"></canvas></div>
-        </div>
-      </div>
-
-      <!-- DTU Health -->
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <div class="title">DTU / Link Health</div>
-            <div class="desc">Based on last telemetry timestamp</div>
+      <section id="cardIrr" class="card">
+        <div class="card-h">
+          <h2>Irrigation pump</h2>
+          <div style="display:flex; align-items:center; gap: var(--s2);">
+            <span id="tI" class="cell-muted">—</span>
+            <span id="tagIRR" class="badge">—</span>
           </div>
         </div>
-        <div class="card-body">
-          <table>
+        <div class="card-b">
+          <div class="kpis" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="kpi"><div class="k">Pressure</div><div id="iP" class="v">—</div><div class="u">bar</div></div>
+            <div class="kpi"><div class="k">Frequency</div><div id="iHz" class="v">—</div><div class="u">Hz</div></div>
+            <div class="kpi"><div class="k">Current</div><div id="iA" class="v">—</div><div class="u">A</div></div>
+          </div>
+          <div class="kpis" style="margin-top: var(--s3); grid-template-columns: 1fr;">
+            <div class="kpi"><div class="k">Trip</div><div id="iTrip" class="v">—</div><div class="u">0=OK</div></div>
+          </div>
+
+          <div class="pump-footer">
+            <div class="canvas-wrap">
+              <canvas id="chartI" width="520" height="110"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-h">
+          <h2>DTU / Link health</h2>
+          <span class="pill">Based on last telemetry timestamp</span>
+        </div>
+        <div class="card-b" style="padding-top: var(--s2);">
+          <table class="table">
             <thead>
-              <tr><th>Pump</th><th>Online</th><th>Last Seen</th></tr>
+              <tr><th>Pump</th><th>Online</th><th>Last seen</th></tr>
             </thead>
-            <tbody>
-              <tr><td>DOM_A</td><td id="hA">--</td><td id="tA" style="font-size:11px">--</td></tr>
-              <tr><td>DOM_B</td><td id="hB">--</td><td id="tB" style="font-size:11px">--</td></tr>
-              <tr><td>IRR</td>  <td id="hI">--</td><td id="tI" style="font-size:11px">--</td></tr>
+            <tbody id="healthRows">
+              <tr><td class="cell-muted" colspan="3">Awaiting telemetry…</td></tr>
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
 
-      <!-- Events -->
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <div class="title">Realtime Events</div>
-            <div class="desc">Faults · swaps · state changes</div>
-          </div>
+      <section class="card">
+        <div class="card-h">
+          <h2>Realtime events</h2>
+          <span class="pill">Faults · swaps · state changes</span>
         </div>
-        <div class="card-body">
-          <div id="events" class="events-feed evt-info">Waiting for telemetry…</div>
+        <div class="card-b">
+          <div id="events" class="events"></div>
         </div>
-      </div>
+      </section>
 
-    </div><!-- /right-col -->
-  </div><!-- /main-grid -->
-</div><!-- /wrap -->
+    </section>
+  </main>
+
+  <div class="footer">
+    <div>Publish demo telemetry to <kbd>compound/pumps/tele</kbd> (QoS 0). Dashboard supports both <kbd>pumps.DOM_A</kbd> schema and flat <kbd>dom_a</kbd> schema.</div>
+    <div><span style="font-family:var(--mono);">WS:</span> <span id="wsUrl" style="font-family:var(--mono); color: var(--muted);"></span></div>
+  </div>
+</div>
 
 <script>
+
 /* ══════════════════════════════════════════════════════════════════
    Minimal MQTT 3.1.1 over WebSocket
    • Proper multi-byte remaining-length (VarInt) encoder/decoder
-   • PINGREQ keepalive so broker won't drop idle connections
+   • PINGREQ keepalive so Mosquitto won't drop idle connections
    • Reconnect on close/error with exponential backoff cap
-   • NO hardcoded credentials — entered by user at login screen
 ══════════════════════════════════════════════════════════════════ */
 
 const WS_URL = "wss://w219d1f1.ala.us-east-1.emqxsl.com:8084/mqtt";
 document.getElementById("mqttSub").textContent = WS_URL;
-
-/* ── Credentials — set by doLogin(), never hardcoded ── */
-let MQTT_USERNAME = "";
-let MQTT_PASSWORD = "";
-
+const MQTT_USERNAME = "engineer";
+const MQTT_PASSWORD = "12345678";
 /* ── Binary helpers ── */
 const enc = new TextEncoder();
 const dec = new TextDecoder();
@@ -544,10 +683,11 @@ function encVarInt(n) {
 
 /* ── Packet builders ── */
 function pktConnect(clientId, username, password) {
+  // MQTT 3.1.1 CONNECT with username/password
   const hasUser = !!username;
   const hasPass = !!password;
-  const flags   = (hasUser ? 0x80 : 0) | (hasPass ? 0x40 : 0) | 0x02;
-  const keepalive = 60;
+  const flags   = (hasUser ? 0x80 : 0) | (hasPass ? 0x40 : 0) | 0x02; // CleanSession=1
+  const keepalive = 60; // seconds
 
   const vh = concat(
     encStr("MQTT"),
@@ -608,6 +748,68 @@ function setMqttStatus(ok, text) {
 }
 
 const TOPIC_TELE = "compound/pumps/tele";
+
+
+const STALE_AFTER_SEC = 15;     // show "STALE" badge after 15s without telemetry
+const OFFLINE_AFTER_SEC = 120;  // show "OFFLINE" badge after 2 min without telemetry
+
+const lastSeen = { DOM_A: 0, DOM_B: 0, IRR: 0 };
+
+function ageSec(ts) {
+  if (!ts) return 1e9;
+  return Math.max(0, Math.floor(Date.now()/1000) - ts);
+}
+
+function setBadge(id, text, kind) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text || "";
+  el.className = "badge" + (kind ? (" badge-" + kind) : "");
+}
+
+function setCardState(cardId, badgeId, age) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  if (age >= OFFLINE_AFTER_SEC) {
+    card.classList.add("is-offline");
+    card.classList.remove("is-stale");
+    setBadge(badgeId, "OFFLINE", "bad");
+  } else if (age >= STALE_AFTER_SEC) {
+    card.classList.add("is-stale");
+    card.classList.remove("is-offline");
+    setBadge(badgeId, `STALE ${age}s`, "warn");
+  } else {
+    card.classList.remove("is-stale");
+    card.classList.remove("is-offline");
+    setBadge(badgeId, "LIVE", "good");
+  }
+}
+
+function updateStaleUI() {
+  const aAge = ageSec(lastSeen.DOM_A);
+  const bAge = ageSec(lastSeen.DOM_B);
+  const iAge = ageSec(lastSeen.IRR);
+
+  setCardState("cardDomA", "tagA", aAge);
+  setCardState("cardDomB", "tagB", bAge);
+  setCardState("cardIrr",  "tagIRR", iAge);
+
+  const banner = document.getElementById("banner");
+  if (banner) {
+    if (!connected) {
+      banner.style.display = "flex";
+      banner.className = "banner banner-bad";
+      banner.textContent = "Disconnected — waiting for MQTT WebSocket…";
+    } else if (Math.max(aAge, bAge, iAge) >= STALE_AFTER_SEC) {
+      banner.style.display = "flex";
+      banner.className = "banner banner-warn";
+      banner.textContent = "Connected, but no recent telemetry. Verify publisher topic + EMQX ACL rules.";
+    } else {
+      banner.style.display = "none";
+    }
+  }
+}
+
 const CMD_BASE   = "compound/pumps/cmd";
 
 function mqttSend(topic, obj) {
@@ -630,6 +832,7 @@ function drawChart(canvas, series) {
   const ctx  = canvas.getContext("2d");
   ctx.clearRect(0, 0, w, h);
 
+  /* grid */
   ctx.save();
   ctx.globalAlpha = .15;
   ctx.strokeStyle = "#6080b0"; ctx.lineWidth = 1;
@@ -661,6 +864,7 @@ function drawChart(canvas, series) {
     ]);
   }
 
+  /* gradient fill */
   const grd = ctx.createLinearGradient(0, 0, 0, h);
   grd.addColorStop(0, "rgba(59,130,246,.20)");
   grd.addColorStop(1, "rgba(59,130,246,0)");
@@ -671,11 +875,13 @@ function drawChart(canvas, series) {
   ctx.closePath();
   ctx.fillStyle = grd; ctx.fill();
 
+  /* line */
   ctx.beginPath();
   pts.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
   ctx.lineWidth = 2; ctx.strokeStyle = "#6EA8FE";
   ctx.lineJoin  = "round"; ctx.stroke();
 
+  /* latest value label */
   const last = vals[vals.length - 1];
   ctx.fillStyle = "rgba(216,232,255,.6)";
   ctx.font = "10px 'IBM Plex Mono',monospace";
@@ -737,13 +943,49 @@ function pushEvent(html, cls) {
 
 /* ══════════════════════════════════════════════════════════════════
    Telemetry handler
+   Data contract matches pump_platform.py mqtt_publish_state():
+     { ts, platform: {mode, duty, weekly_swap, setpoint_bar, last_swap_ts},
+       pumps: { DOM_A, DOM_B, IRR: {
+         name, slave, role, online, last_seen,
+         pressure_bar, freq_hz, current_a,
+         running, fault, trip_code, op_status } } }
 ══════════════════════════════════════════════════════════════════ */
 const prevFault = { DOM_A: false, DOM_B: false, IRR: false };
 
 function applyTelemetry(payload) {
-  const plat  = payload.platform || {};
-  const pumps = payload.pumps    || {};
+  // Supports TWO telemetry formats:
+  // 1) New structured format:
+  //    { platform:{...}, pumps:{ DOM_A:{pressure_bar,...}, DOM_B:{...}, IRR:{...} } }
+  // 2) Simple test format (MQTTX friendly):
+  //    { dom_a:{pressure, freq, current, trip}, dom_b:{...}, irr:{...} }
+  let plat = payload.platform || payload.plat || {};
+  let pumps = payload.pumps || null;
 
+  const toNum = (v) => (v === null || v === undefined || v === "" ? null : Number(v));
+  const mapSimple = (src) => {
+    if (!src) return null;
+    const trip = src.trip_code ?? src.trip ?? 0;
+    return {
+      pressure_bar: toNum(src.pressure_bar ?? src.pressure),
+      freq_hz:      toNum(src.freq_hz ?? src.freq),
+      current_a:    toNum(src.current_a ?? src.current),
+      trip_code:    trip,
+      fault:        !!(src.fault ?? (trip && Number(trip) !== 0)),
+      online:       src.online ?? true,
+      last_seen:    src.last_seen ?? Date.now(),
+    };
+  };
+
+  if (!pumps && (payload.dom_a || payload.dom_b || payload.irr)) {
+    pumps = {
+      DOM_A: mapSimple(payload.dom_a),
+      DOM_B: mapSimple(payload.dom_b),
+      IRR:   mapSimple(payload.irr),
+    };
+  }
+  if (!pumps) pumps = {};
+
+  /* ── Platform controls ── */
   document.getElementById("platformTag").textContent =
     `Mode: ${plat.mode || "--"} · Duty: ${plat.duty || "--"}`;
   document.getElementById("modeSel").value     = plat.mode        || "AUTO";
@@ -753,6 +995,7 @@ function applyTelemetry(payload) {
 
   const A = pumps.DOM_A, B = pumps.DOM_B, I = pumps.IRR;
 
+  /* ── Domestic A ── */
   if (A) {
     setTag(document.getElementById("tagA"), A);
     setVal("aP",    A.pressure_bar?.toFixed?.(2));
@@ -770,6 +1013,7 @@ function applyTelemetry(payload) {
     prevFault.DOM_A = !!A.fault;
   }
 
+  /* ── Domestic B ── */
   if (B) {
     setTag(document.getElementById("tagB"), B);
     setVal("bP",    B.pressure_bar?.toFixed?.(2));
@@ -787,6 +1031,7 @@ function applyTelemetry(payload) {
     prevFault.DOM_B = !!B.fault;
   }
 
+  /* ── Irrigation ── */
   if (I) {
     setTag(document.getElementById("tagIRR"), I);
     setVal("iP",    I.pressure_bar?.toFixed?.(2));
@@ -804,6 +1049,7 @@ function applyTelemetry(payload) {
     prevFault.IRR = !!I.fault;
   }
 
+  /* ── Advance ring and redraw ── */
   si = (si + 1) % RING;
   drawChart(document.getElementById("chartA"), serA);
   drawChart(document.getElementById("chartB"), serB);
@@ -811,7 +1057,7 @@ function applyTelemetry(payload) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   WebSocket / MQTT — called only AFTER login
+   WebSocket / MQTT connection with exponential-backoff retry
 ══════════════════════════════════════════════════════════════════ */
 function start() {
   setMqttStatus(false, "MQTT: connecting…");
@@ -825,7 +1071,7 @@ function start() {
   ws.binaryType = "arraybuffer";
 
   ws.onopen = () => {
-    retryDelay = 1500;
+    retryDelay = 1500;   // reset backoff on successful open
     ws.send(pktConnect("dash-" + Math.random().toString(16).slice(2), MQTT_USERNAME, MQTT_PASSWORD));
   };
 
@@ -833,20 +1079,16 @@ function start() {
     const b    = new Uint8Array(ev.data);
     const type = b[0] >> 4;
 
-    if (type === 2) {
-      const rc = b[3];
+    if (type === 2) {           // CONNACK
+      const rc = b[3];          // return code (0 = accepted)
       if (rc !== 0) {
-        setMqttStatus(false, `MQTT: broker refused (rc=${rc}) — check credentials`);
-        /* Show login again so user can re-enter correct credentials */
-        document.getElementById("loginError").textContent = "Wrong username or password (rc=" + rc + "). Please try again.";
-        document.getElementById("loginOverlay").style.display = "flex";
-        document.getElementById("mainApp").style.display = "none";
-        ws.close();
+        setMqttStatus(false, `MQTT: broker refused (rc=${rc})`);
         return;
       }
       connected = true;
       setMqttStatus(true, "MQTT: connected");
       ws.send(pktSubscribe(pid++, TOPIC_TELE));
+      // Keepalive PINGREQ every 45 s (broker keepalive = 60 s)
       pingTimer = setInterval(() => {
         if (connected && ws && ws.readyState === WebSocket.OPEN)
           ws.send(pktPingreq());
@@ -855,7 +1097,7 @@ function start() {
       return;
     }
 
-    if (type === 13) return;
+    if (type === 13) return;    // PINGRESP — ignore
 
     const pub = parsePublish(ev.data);
     if (pub && pub.topic === TOPIC_TELE) {
@@ -868,7 +1110,7 @@ function start() {
     connected = false; clearInterval(pingTimer);
     setMqttStatus(false, `MQTT: disconnected (retry in ${(retryDelay/1000).toFixed(0)}s)`);
     setTimeout(start, retryDelay);
-    retryDelay = Math.min(retryDelay * 1.5, 15_000);
+    retryDelay = Math.min(retryDelay * 1.5, 15_000);   // cap at 15 s
   };
 
   ws.onerror = () => {
@@ -878,39 +1120,12 @@ function start() {
   };
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   LOGIN GATE
-   Credentials typed by user → passed to MQTT → never stored
-══════════════════════════════════════════════════════════════════ */
-function doLogin() {
-  var u   = document.getElementById("loginUser").value.trim();
-  var p   = document.getElementById("loginPass").value;
-  var err = document.getElementById("loginError");
-
-  if (!u || !p) {
-    err.textContent = "Username and password are required.";
-    return;
-  }
-  err.textContent = "";
-  MQTT_USERNAME = u;
-  MQTT_PASSWORD = p;
-
-  document.getElementById("loginOverlay").style.display = "none";
-  document.getElementById("mainApp").style.display = "";
-
-  start();   /* begin MQTT connection with the entered credentials */
-}
-
-/* Allow pressing Enter to submit */
-document.addEventListener("keydown", function(e) {
-  if (e.key === "Enter") {
-    var ov = document.getElementById("loginOverlay");
-    if (ov && ov.style.display !== "none") doLogin();
-  }
-});
+start();
+  setInterval(updateStaleUI, 1000);
+  updateStaleUI();
 
 /* ══════════════════════════════════════════════════════════════════
-   Button handlers
+   Button handlers — publish to compound/pumps/cmd/<action>
 ══════════════════════════════════════════════════════════════════ */
 document.getElementById("applyModeBtn").onclick = () =>
   mqttSend(`${CMD_BASE}/mode`,        { mode: document.getElementById("modeSel").value });
@@ -939,6 +1154,14 @@ window.addEventListener("resize", () => {
     drawChart(document.getElementById("chartI"), serI);
   }, 80);
 });
+
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
