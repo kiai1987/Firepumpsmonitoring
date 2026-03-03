@@ -3,843 +3,1313 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Compound Pumps Platform</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>ALSHARQ VILLAGE — Pump Station SCADA</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════════════════════════
-   Design tokens
-═══════════════════════════════════════════ */
+/* ═══════════════════════ DESIGN SYSTEM ═══════════════════════ */
 :root {
-  --bg:      #060911;
-  --surface: #0B1120;
-  --panel:   rgba(0,0,0,.18);
-  --border:  rgba(100,160,255,.11);
-  --border2: rgba(100,160,255,.22);
-  --text:    #D8E8FF;
-  --muted:   #5A7898;
-  --good:    #00F0A0;
-  --bad:     #FF3D6B;
-  --warn:    #FFB830;
-  --accent:  #3B82F6;
-  --accent2: #7C3AED;
-  --mono:    'IBM Plex Mono', monospace;
-  --sans:    'Syne', sans-serif;
-  --r:       14px;
-  --r-sm:    9px;
+  --bg0:       #04080F;
+  --bg1:       #070D18;
+  --bg2:       #0A1220;
+  --bg3:       #0E1A2E;
+  --border:    rgba(0,200,255,.12);
+  --border2:   rgba(0,200,255,.22);
+  --border3:   rgba(0,200,255,.4);
+  --text:      #C8E8FF;
+  --text2:     #6A9ABF;
+  --text3:     #3A6080;
+  --cyan:      #00D4FF;
+  --cyan2:     #0099CC;
+  --green:     #00FF9D;
+  --green2:    #00CC7A;
+  --red:       #FF3355;
+  --red2:      #CC2244;
+  --amber:     #FFB020;
+  --amber2:    #CC8810;
+  --purple:    #7B4FFF;
+  --mono:      'Share Tech Mono', monospace;
+  --head:      'Rajdhani', sans-serif;
+  --glow-c:    0 0 20px rgba(0,212,255,.25);
+  --glow-g:    0 0 20px rgba(0,255,157,.25);
+  --glow-r:    0 0 20px rgba(255,51,85,.35);
+  --glow-a:    0 0 20px rgba(255,176,32,.25);
 }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+/* ── Scanlines + grid overlay ── */
 body {
-  font-family: var(--sans);
-  background: var(--bg);
+  font-family: var(--head);
+  background: var(--bg0);
   color: var(--text);
   min-height: 100vh;
-  background-image:
-    radial-gradient(ellipse 1400px 600px at 10% 0%,  rgba(59,130,246,.10) 0%, transparent 60%),
-    radial-gradient(ellipse 900px  500px at 90% 10%, rgba(124,58,237,.08) 0%, transparent 55%),
-    radial-gradient(ellipse 700px  400px at 50% 100%,rgba(0,245,160,.06)  0%, transparent 50%);
+  overflow-x: hidden;
+}
+body::before {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.08) 2px, rgba(0,0,0,.08) 4px),
+    radial-gradient(ellipse 120% 60% at 50% 0%, rgba(0,212,255,.06) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 80% at 0% 100%, rgba(123,79,255,.05) 0%, transparent 60%);
+}
+body::after {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='none'/%3E%3Cpath d='M0 0h40M0 0v40' stroke='rgba(0,200,255,0.025)' stroke-width='1'/%3E%3C/svg%3E");
 }
 
-body::before {           /* subtle noise texture */
-  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  opacity: .35;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+/* ═══════════════════════ LOGIN ═══════════════════════ */
+#loginOverlay {
+  position:fixed; inset:0; z-index:9999;
+  display:flex; align-items:center; justify-content:center;
+  background: rgba(4,8,15,.95);
+}
+.login-box {
+  width:380px; padding:0;
+  background: var(--bg2);
+  border:1px solid var(--border3);
+  box-shadow: 0 0 60px rgba(0,212,255,.12), 0 0 120px rgba(0,212,255,.05), inset 0 1px 0 rgba(0,212,255,.15);
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+.login-header {
+  padding:24px 28px 18px;
+  border-bottom:1px solid var(--border);
+  background: linear-gradient(180deg, rgba(0,212,255,.05) 0%, transparent 100%);
+}
+.login-header .sys-id {
+  font-family:var(--mono); font-size:10px; color:var(--cyan); letter-spacing:2px;
+  text-transform:uppercase; margin-bottom:6px;
+}
+.login-header h2 {
+  font-size:20px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  color:#fff;
+}
+.login-body { padding:24px 28px; }
+.login-field { margin-bottom:16px; }
+.login-field label {
+  display:block; font-family:var(--mono); font-size:10px; color:var(--text2);
+  letter-spacing:1.5px; text-transform:uppercase; margin-bottom:7px;
+}
+.login-field input {
+  width:100%; padding:10px 13px;
+  background:rgba(0,0,0,.4); border:1px solid var(--border2);
+  color:var(--text); font-family:var(--mono); font-size:13px;
+  outline:none; transition: border-color .2s, box-shadow .2s;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+.login-field input:focus {
+  border-color:var(--cyan); box-shadow:0 0 12px rgba(0,212,255,.2);
+}
+#loginError {
+  font-family:var(--mono); font-size:11px; color:var(--red);
+  min-height:18px; margin-bottom:14px; letter-spacing:.5px;
+}
+.login-btn {
+  width:100%; padding:13px;
+  background:linear-gradient(135deg, rgba(0,212,255,.15), rgba(0,153,204,.1));
+  border:1px solid var(--border3); color:var(--cyan);
+  font-family:var(--head); font-size:14px; font-weight:700;
+  letter-spacing:3px; text-transform:uppercase;
+  cursor:pointer; transition:all .2s; position:relative;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+.login-btn:hover { background:linear-gradient(135deg,rgba(0,212,255,.25),rgba(0,153,204,.18)); box-shadow:var(--glow-c); }
+.login-footer {
+  padding:14px 28px; border-top:1px solid var(--border);
+  font-family:var(--mono); font-size:10px; color:var(--text3);
+  letter-spacing:1px; text-align:center;
 }
 
-.wrap { max-width: 1300px; margin: 0 auto; padding: 28px 20px 48px; position: relative; z-index: 1; }
+/* ═══════════════════════ MAIN APP ═══════════════════════ */
+#mainApp { position:relative; z-index:1; }
 
-/* ── Page load animation ── */
-.wrap { animation: fadein .45s ease both; }
-@keyframes fadein { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+/* ── TOP BAR ── */
+.topbar {
+  display:flex; align-items:stretch; gap:0;
+  height:56px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border2);
+  box-shadow:0 1px 0 rgba(0,212,255,.08), 0 4px 20px rgba(0,0,0,.4);
+  position:sticky; top:0; z-index:100;
+}
+.topbar-brand {
+  display:flex; align-items:center; gap:14px;
+  padding:0 20px 0 16px;
+  border-right:1px solid var(--border);
+  min-width:240px;
+}
+.brand-icon {
+  width:34px; height:34px; flex-shrink:0;
+  background:linear-gradient(135deg,var(--cyan),var(--cyan2));
+  clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; filter:drop-shadow(0 0 8px rgba(0,212,255,.5));
+}
+.brand-text .site { font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#fff; line-height:1; }
+.brand-text .sub  { font-family:var(--mono); font-size:9px; color:var(--cyan); letter-spacing:1.5px; margin-top:3px; }
 
-/* ═══════════════════════════════════════════
-   Header
-═══════════════════════════════════════════ */
-header {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
+.topbar-kpis {
+  display:flex; flex:1; align-items:center;
+  gap:0; overflow:hidden;
 }
-.logo-mark {
-  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; box-shadow: 0 0 28px rgba(59,130,246,.35);
+.tb-kpi {
+  display:flex; flex-direction:column; justify-content:center;
+  padding:0 18px; border-right:1px solid var(--border);
+  min-width:100px;
 }
-.header-left { display: flex; align-items: center; gap: 14px; }
-h1 { font-size: 18px; font-weight: 800; letter-spacing: -.3px; line-height: 1.2; }
-.sub { color: var(--muted); font-size: 11px; font-family: var(--mono); margin-top: 4px; letter-spacing: .3px; }
+.tb-kpi .lbl { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:1.5px; text-transform:uppercase; }
+.tb-kpi .val { font-family:var(--mono); font-size:16px; font-weight:600; color:var(--cyan); margin-top:2px; letter-spacing:1px; }
+.tb-kpi .val.good  { color:var(--green); }
+.tb-kpi .val.bad   { color:var(--red); }
+.tb-kpi .val.amber { color:var(--amber); }
 
-/* MQTT badge */
-.mqtt-badge {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 14px; border-radius: 10px;
-  background: var(--surface); border: 1px solid var(--border);
-  flex-shrink: 0;
+.topbar-right {
+  display:flex; align-items:center; gap:0;
+  margin-left:auto;
+  border-left:1px solid var(--border);
 }
-.mqtt-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #444; transition: background .4s;
+.tb-time {
+  display:flex; flex-direction:column; justify-content:center; align-items:flex-end;
+  padding:0 18px; border-right:1px solid var(--border);
 }
-.mqtt-dot.online { background: var(--good); animation: pulse-dot 2s infinite; }
-.mqtt-dot.error  { background: var(--bad); }
-@keyframes pulse-dot {
-  0%  { box-shadow: 0 0 0 0   rgba(0,240,160,.55); }
-  70% { box-shadow: 0 0 0 6px rgba(0,240,160,0); }
-  100%{ box-shadow: 0 0 0 0   rgba(0,240,160,0); }
-}
-.mqtt-label { font-size: 13px; font-weight: 700; }
-.mqtt-url   { font-family: var(--mono); color: var(--muted); font-size: 10px; margin-top: 2px; }
+.tb-time .clock { font-family:var(--mono); font-size:16px; color:var(--text); letter-spacing:2px; }
+.tb-time .date  { font-family:var(--mono); font-size:9px;  color:var(--text3); letter-spacing:1px; margin-top:2px; }
 
-/* ═══════════════════════════════════════════
-   Layout
-═══════════════════════════════════════════ */
-.main-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 16px; }
-@media (max-width: 1020px) { .main-grid { grid-template-columns: 1fr; } }
-
-/* ── Card ── */
-.card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r); overflow: hidden; position: relative;
+.mqtt-pill {
+  display:flex; align-items:center; gap:9px;
+  padding:0 18px;
 }
-.card::before {
-  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(135deg, rgba(255,255,255,.022) 0%, transparent 60%);
+.mqtt-led {
+  width:8px; height:8px; border-radius:50%;
+  background:var(--text3); flex-shrink:0; transition:background .3s;
 }
-.card-head {
-  padding: 12px 16px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  background: rgba(0,0,0,.18);
+.mqtt-led.on  { background:var(--green); box-shadow:0 0 8px var(--green2); animation:blink 2s infinite; }
+.mqtt-led.err { background:var(--red);   box-shadow:0 0 8px var(--red2);   animation:blink-fast 0.8s infinite; }
+@keyframes blink      { 0%,100%{opacity:1}50%{opacity:.5} }
+@keyframes blink-fast { 0%,100%{opacity:1}50%{opacity:.2} }
+.mqtt-info .status  { font-family:var(--mono); font-size:11px; color:var(--text); }
+.mqtt-info .broker  { font-family:var(--mono); font-size:9px;  color:var(--text3); letter-spacing:.5px; margin-top:2px; }
+
+/* ── MAIN GRID ── */
+.page { display:grid; grid-template-columns:1fr 320px; gap:0; height:calc(100vh - 56px); overflow:hidden; }
+@media (max-width:1100px) { .page { grid-template-columns:1fr; height:auto; overflow:auto; } }
+
+/* ── LEFT PANE ── */
+.left-pane { overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:14px; }
+.left-pane::-webkit-scrollbar { width:4px; }
+.left-pane::-webkit-scrollbar-track { background:transparent; }
+.left-pane::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+/* ── RIGHT PANE ── */
+.right-pane { border-left:1px solid var(--border); overflow-y:auto; display:flex; flex-direction:column; }
+.right-pane::-webkit-scrollbar { width:4px; }
+.right-pane::-webkit-scrollbar-track { background:transparent; }
+.right-pane::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+/* ═══════════════════════ SECTION HEADER ═══════════════════════ */
+.sec-head {
+  display:flex; align-items:center; gap:10px;
+  padding:8px 12px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-left:2px solid var(--cyan);
+  position:relative;
 }
-.card-head .title { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: rgba(216,232,255,.65); }
-.card-head .desc  { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-top: 3px; letter-spacing: .3px; }
-.card-body { padding: 16px; }
-
-/* ── Status tag ── */
-.tag {
-  font-family: var(--mono); font-size: 10px; letter-spacing: .6px; text-transform: uppercase;
-  padding: 4px 10px; border-radius: 6px;
-  background: rgba(0,0,0,.25); border: 1px solid var(--border);
-  white-space: nowrap; transition: border-color .3s, background .3s, color .3s;
+.sec-head::after {
+  content:''; position:absolute; right:0; top:0; bottom:0; width:30px;
+  background:linear-gradient(90deg, transparent, rgba(0,212,255,.04));
 }
-.tag.run   { border-color: rgba(0,240,160,.35); background: rgba(0,240,160,.07); color: var(--good); }
-.tag.stop  { border-color: var(--border); color: var(--muted); }
-.tag.fault { border-color: rgba(255,61,107,.5); background: rgba(255,61,107,.1); color: var(--bad); animation: flicker 1.6s infinite; }
-@keyframes flicker { 0%,100%{opacity:1} 50%{opacity:.7} }
+.sec-head .title {
+  font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase;
+  color:var(--cyan);
+}
+.sec-head .badge {
+  font-family:var(--mono); font-size:9px; color:var(--text3);
+  background:rgba(0,0,0,.4); border:1px solid var(--border); padding:2px 7px;
+  letter-spacing:1px; margin-left:auto;
+}
 
-/* ── Divider ── */
-hr.sep { border: none; border-top: 1px solid var(--border); margin: 13px 0; }
+/* ═══════════════════════ PUMP CARDS ═══════════════════════ */
+.pumps-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+@media (max-width:900px) { .pumps-grid { grid-template-columns:1fr 1fr; } }
+@media (max-width:580px) { .pumps-grid { grid-template-columns:1fr; } }
 
-/* ── Controls ── */
-.ctrl-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.ctrl-lbl { font-size: 10px; color: var(--muted); font-family: var(--mono); letter-spacing: .5px; text-transform: uppercase; }
+.pump-card {
+  background:var(--bg2);
+  border:1px solid var(--border);
+  position:relative; overflow:hidden;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  transition:border-color .3s;
+}
+.pump-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent 0%, var(--cyan) 50%,transparent 100%);
+  opacity:.3;
+}
+.pump-card.running { border-color:rgba(0,255,157,.3); }
+.pump-card.running::before { background:linear-gradient(90deg,transparent 0%,var(--green) 50%,transparent 100%); opacity:.5; }
+.pump-card.fault   { border-color:rgba(255,51,85,.4); animation:card-alarm 1.5s infinite; }
+.pump-card.fault::before   { background:linear-gradient(90deg,transparent 0%,var(--red) 50%,transparent 100%); opacity:.6; }
+@keyframes card-alarm { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 20px rgba(255,51,85,.25)} }
+
+.pump-head {
+  padding:10px 13px 9px;
+  border-bottom:1px solid var(--border);
+  background:rgba(0,0,0,.25);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.pump-id {
+  display:flex; align-items:center; gap:8px;
+}
+.pump-num {
+  width:24px; height:24px;
+  background:linear-gradient(135deg,rgba(0,212,255,.2),rgba(0,212,255,.05));
+  border:1px solid var(--border2);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono); font-size:11px; color:var(--cyan); font-weight:700;
+  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+}
+.pump-name { font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
+.pump-type { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:1px; margin-top:2px; }
+
+.status-tag {
+  font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:1.5px;
+  text-transform:uppercase; padding:4px 9px;
+  border:1px solid; position:relative;
+  clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);
+}
+.status-tag.run  { color:var(--green); border-color:rgba(0,255,157,.4); background:rgba(0,255,157,.07); }
+.status-tag.stop { color:var(--text3); border-color:var(--border); background:rgba(0,0,0,.2); }
+.status-tag.fault{ color:var(--red);   border-color:rgba(255,51,85,.5); background:rgba(255,51,85,.1); animation:blink-fast .8s infinite; }
+
+.pump-metrics {
+  padding:12px 13px; display:grid; grid-template-columns:1fr 1fr; gap:8px;
+}
+.metric {
+  background:rgba(0,0,0,.2); border:1px solid var(--border); padding:8px 10px;
+  position:relative;
+}
+.metric::before {
+  content:''; position:absolute; top:0; left:0; width:2px; height:100%;
+  background:var(--cyan); opacity:.3;
+}
+.metric.val-green::before { background:var(--green); opacity:.5; }
+.metric.val-red::before   { background:var(--red);   opacity:.6; }
+.metric .m-lbl { font-family:var(--mono); font-size:8px; color:var(--text3); letter-spacing:1.5px; text-transform:uppercase; }
+.metric .m-val { font-family:var(--mono); font-size:17px; color:var(--text); font-weight:600; margin-top:4px; line-height:1; letter-spacing:1px; }
+.metric .m-val.good  { color:var(--green); }
+.metric .m-val.bad   { color:var(--red); }
+.metric .m-unit { font-family:var(--mono); font-size:9px; color:var(--text3); margin-top:3px; }
+
+/* ── Online indicator ── */
+.online-row {
+  padding:6px 13px 9px;
+  display:flex; align-items:center; gap:8px;
+  font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:.8px;
+}
+.online-dot { width:6px; height:6px; border-radius:50%; background:var(--text3); }
+.online-dot.on  { background:var(--green); box-shadow:0 0 6px var(--green2); animation:blink 3s infinite; }
+.online-dot.off { background:var(--red); }
+
+/* ── Mini chart ── */
+.pump-chart-wrap {
+  padding:0 13px 12px;
+}
+.pump-chart-label {
+  font-family:var(--mono); font-size:8px; color:var(--text3); letter-spacing:1px;
+  text-transform:uppercase; margin-bottom:5px;
+  display:flex; justify-content:space-between;
+}
+canvas.pump-chart {
+  width:100%; height:60px; display:block;
+  background:rgba(0,0,0,.3); border:1px solid var(--border);
+  border-left:2px solid rgba(0,212,255,.2);
+}
+
+/* ═══════════════════════ CONTROL PANEL ═══════════════════════ */
+.ctrl-panel { padding:14px; display:flex; flex-direction:column; gap:12px; }
+
+.ctrl-group {
+  background:var(--bg2); border:1px solid var(--border); padding:12px 13px;
+  position:relative;
+}
+.ctrl-group::before {
+  content:''; position:absolute; top:0; left:0; bottom:0; width:2px;
+  background:linear-gradient(180deg,var(--purple),transparent);
+}
+.ctrl-group-title {
+  font-family:var(--mono); font-size:9px; color:var(--purple); letter-spacing:2px;
+  text-transform:uppercase; margin-bottom:12px; padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+}
+.ctrl-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
+.ctrl-row:last-child { margin-bottom:0; }
+.ctrl-lbl { font-family:var(--mono); font-size:9px; color:var(--text2); letter-spacing:1.5px; text-transform:uppercase; flex-shrink:0; min-width:80px; }
 
 select, input[type=number] {
-  font-family: var(--mono); font-size: 12px;
-  background: rgba(0,0,0,.3); border: 1px solid var(--border2);
-  border-radius: var(--r-sm); color: var(--text);
-  padding: 8px 10px; outline: none; appearance: none; -webkit-appearance: none;
-  transition: border-color .2s, box-shadow .2s;
+  font-family:var(--mono); font-size:11px;
+  background:rgba(0,0,0,.5); border:1px solid var(--border2);
+  color:var(--text); padding:7px 10px; outline:none; appearance:none; flex:1;
+  transition:border-color .2s, box-shadow .2s;
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,0 100%);
 }
-select:focus, input:focus {
-  border-color: rgba(59,130,246,.55);
-  box-shadow: 0 0 0 3px rgba(59,130,246,.13);
+select:focus, input:focus { border-color:var(--cyan); box-shadow:0 0 10px rgba(0,212,255,.15); }
+
+.cmd-btn {
+  font-family:var(--head); font-size:11px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; padding:7px 14px; border:1px solid;
+  cursor:pointer; transition:all .15s; white-space:nowrap;
+  clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);
+  flex-shrink:0;
 }
-input[type=number] { width: 100px; }
+.cmd-btn.cyan   { color:var(--cyan);  border-color:rgba(0,212,255,.35); background:rgba(0,212,255,.08); }
+.cmd-btn.green  { color:var(--green); border-color:rgba(0,255,157,.35); background:rgba(0,255,157,.07); }
+.cmd-btn.purple { color:#A07FFF;      border-color:rgba(123,79,255,.4); background:rgba(123,79,255,.1); }
+.cmd-btn.amber  { color:var(--amber); border-color:rgba(255,176,32,.4); background:rgba(255,176,32,.08); }
+.cmd-btn:hover  { filter:brightness(1.2); transform:translateY(-1px); }
+.cmd-btn:active { transform:translateY(0); filter:brightness(.9); }
 
-.btn {
-  font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .3px;
-  padding: 8px 14px; border-radius: var(--r-sm);
-  border: 1px solid rgba(255,255,255,.1);
-  background: rgba(59,130,246,.15); color: var(--text);
-  cursor: pointer; position: relative; overflow: hidden;
-  transition: filter .15s, transform .1s, box-shadow .15s;
+/* ═══════════════════════ RIGHT PANE ═══════════════════════ */
+.rp-section { border-bottom:1px solid var(--border); }
+.rp-head {
+  padding:9px 14px;
+  background:rgba(0,0,0,.3);
+  display:flex; align-items:center; gap:8px;
+  border-bottom:1px solid var(--border);
 }
-.btn::after { content:''; position:absolute; inset:0; background:linear-gradient(transparent 40%,rgba(255,255,255,.04)); }
-.btn:hover  { filter: brightness(1.18); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.4); }
-.btn:active { transform: translateY(0); filter: brightness(.94); }
-.btn.secondary { background: rgba(124,58,237,.15); border-color: rgba(124,58,237,.22); }
-.btn.ghost     { background: rgba(255,255,255,.05); }
-.btn.danger    { background: rgba(255,61,107,.14); border-color: rgba(255,61,107,.22); }
-
-/* ── KPI grid ── */
-.kpi-row  { display: flex; gap: 10px; flex-wrap: wrap; }
-.kpi {
-  flex: 1 1 118px; padding: 11px 12px;
-  border-radius: 11px; border: 1px solid var(--border);
-  background: rgba(0,0,0,.22); position: relative; overflow: hidden;
-  transition: border-color .3s;
+.rp-head .t {
+  font-family:var(--mono); font-size:9px; color:var(--text2);
+  letter-spacing:2px; text-transform:uppercase;
 }
-.kpi::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(59,130,246,.22), transparent);
+.rp-head .count {
+  margin-left:auto; font-family:var(--mono); font-size:9px; color:var(--text3);
+  background:rgba(0,0,0,.4); border:1px solid var(--border); padding:1px 6px;
 }
-.kpi .lbl  { font-size: 10px; color: var(--muted); font-family: var(--mono); letter-spacing: .5px; text-transform: uppercase; }
-.kpi .val  { font-size: 19px; font-weight: 600; font-family: var(--mono); margin-top: 7px; line-height: 1; letter-spacing: -.5px; }
-.kpi .unit { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-top: 4px; }
-.kpi.kpi-fault { border-color: rgba(255,61,107,.35); }
-.kpi.kpi-fault .val { color: var(--bad); }
 
-/* ── Pump pair ── */
-.pump-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
-@media (max-width: 740px) { .pump-pair { grid-template-columns: 1fr; } }
-
-.pump-card { background: rgba(0,0,0,.15); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-.pump-card-head {
-  padding: 10px 13px; display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 1px solid var(--border); background: rgba(0,0,0,.2);
+/* ── System status matrix ── */
+.sys-matrix { padding:12px 14px; display:flex; flex-direction:column; gap:7px; }
+.sys-row {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 10px; background:rgba(0,0,0,.2); border:1px solid var(--border);
+  position:relative; overflow:hidden;
 }
-.pump-card-head .pname { font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
-.pump-card-body { padding: 12px 13px; }
+.sys-row::after {
+  content:''; position:absolute; top:0; left:0; bottom:0; width:2px;
+  background:var(--text3);
+}
+.sys-row.ok::after   { background:var(--green); }
+.sys-row.warn::after { background:var(--amber); }
+.sys-row.err::after  { background:var(--red); animation:blink-fast .8s infinite; }
+.sys-lbl { font-family:var(--mono); font-size:10px; color:var(--text2); flex:1; letter-spacing:.5px; }
+.sys-val { font-family:var(--mono); font-size:10px; color:var(--text); text-align:right; }
+.sys-val.ok   { color:var(--green); }
+.sys-val.warn { color:var(--amber); }
+.sys-val.err  { color:var(--red); }
 
-/* ── Chart ── */
-.chart-wrap { margin-top: 12px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: rgba(0,0,0,.25); height: 150px; position: relative; }
-canvas { display: block; width: 100%; height: 100%; }
+/* ── Event log ── */
+.evt-log { height:220px; overflow-y:auto; padding:8px 10px; display:flex; flex-direction:column; gap:5px; }
+.evt-log::-webkit-scrollbar { width:3px; }
+.evt-log::-webkit-scrollbar-thumb { background:var(--border2); }
 
-/* ── Right column ── */
-.right-col { display: flex; flex-direction: column; gap: 14px; }
+.evt {
+  display:flex; gap:8px; align-items:flex-start;
+  padding:6px 9px; background:rgba(0,0,0,.2); border:1px solid var(--border);
+  font-family:var(--mono); font-size:10px;
+  animation:evt-in .25s ease both;
+}
+@keyframes evt-in { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:none} }
+.evt-ts  { color:var(--text3); flex-shrink:0; }
+.evt-msg { color:var(--text2); flex:1; }
+.evt.evt-good .evt-msg { color:var(--green); }
+.evt.evt-bad  .evt-msg { color:var(--red); }
+.evt.evt-warn .evt-msg { color:var(--amber); }
+.evt.evt-info .evt-msg { color:var(--cyan); }
 
-/* ── Table ── */
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 9px 10px; font-size: 12px; border-bottom: 1px solid var(--border); }
-th { color: var(--muted); font-family: var(--mono); font-size: 10px; letter-spacing: .5px; text-transform: uppercase; font-weight: 600; text-align: left; }
-td { font-family: var(--mono); }
-tr:last-child td { border-bottom: none; }
-.online-yes { color: var(--good); }
-.online-yes::before { content: '● '; font-size: 8px; }
-.online-no  { color: var(--muted); }
-.online-no::before  { content: '○ '; font-size: 8px; }
+/* ── Setpoint gauge ── */
+.gauge-wrap { padding:14px 14px 10px; display:flex; flex-direction:column; align-items:center; gap:8px; }
+.gauge-svg-wrap { width:140px; height:80px; }
+.gauge-val {
+  font-family:var(--mono); font-size:26px; font-weight:600; color:var(--cyan);
+  line-height:1; letter-spacing:2px;
+}
+.gauge-lbl { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:2px; text-transform:uppercase; }
+.gauge-range {
+  display:flex; justify-content:space-between; width:140px;
+  font-family:var(--mono); font-size:8px; color:var(--text3);
+}
 
-/* ── Events feed ── */
-.events-feed { font-size: 12px; font-family: var(--mono); line-height: 2; max-height: 180px; overflow-y: auto; }
-.events-feed::-webkit-scrollbar { width: 3px; }
-.events-feed::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-.evt { display: flex; gap: 8px; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
-.evt-time { color: var(--muted); flex-shrink: 0; }
-.evt-bad  { color: var(--bad); }
-.evt-good { color: var(--good); }
-.evt-warn { color: var(--warn); }
-.evt-info { color: var(--muted); }
+/* ── Pressure bars ── */
+.press-bars { padding:10px 14px 14px; display:flex; flex-direction:column; gap:8px; }
+.pbar-row { display:flex; align-items:center; gap:8px; }
+.pbar-lbl { font-family:var(--mono); font-size:9px; color:var(--text2); letter-spacing:1px; min-width:52px; }
+.pbar-track { flex:1; height:8px; background:rgba(0,0,0,.4); border:1px solid var(--border); position:relative; overflow:hidden; }
+.pbar-fill  { height:100%; background:linear-gradient(90deg,var(--cyan2),var(--cyan)); transition:width .6s ease; position:relative; }
+.pbar-fill::after { content:''; position:absolute; right:0; top:0; bottom:0; width:2px; background:rgba(255,255,255,.5); }
+.pbar-fill.low  { background:linear-gradient(90deg,#006699,var(--cyan2)); }
+.pbar-fill.high { background:linear-gradient(90deg,var(--amber2),var(--amber)); }
+.pbar-fill.over { background:linear-gradient(90deg,var(--red2),var(--red)); animation:blink-fast .5s infinite; }
+.pbar-val { font-family:var(--mono); font-size:10px; color:var(--text); min-width:42px; text-align:right; }
+
+/* ── Platform info ── */
+.plat-info { padding:10px 14px; display:flex; flex-direction:column; gap:6px; }
+.pi-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--border); }
+.pi-row:last-child { border-bottom:none; }
+.pi-key { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:1px; text-transform:uppercase; }
+.pi-val { font-family:var(--mono); font-size:10px; color:var(--text); }
+
+/* ── Footer ── */
+.scada-footer {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:7px 16px;
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+  font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:1px;
+  flex-shrink:0;
+}
+.footer-sep { opacity:.3; }
+
+/* ── Utility ── */
+.gap2 { gap:2px; }
+.mt6  { margin-top:6px; }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <!-- ══ Header ══ -->
-  <header>
-    <div class="header-left">
-      <div class="logo-mark">⟳</div>
-      <div>
-        <h1>Compound Pumps Platform</h1>
-        <div class="sub">Domestic Duty/Standby + Irrigation &nbsp;·&nbsp; MQTT Realtime &nbsp;·&nbsp; Raspberry Pi</div>
+<!-- ════════════════════════ LOGIN ════════════════════════ -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="login-header">
+      <div class="sys-id">⬡ SCADA AUTHENTICATION</div>
+      <h2>Alsharq Village<br>Pump Station</h2>
+    </div>
+    <div class="login-body">
+      <div class="login-field">
+        <label>Operator Username</label>
+        <input type="text" id="loginUser" autocomplete="username" placeholder="username"/>
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <input type="password" id="loginPass" autocomplete="current-password" placeholder="••••••••"/>
+      </div>
+      <div id="loginError"></div>
+      <button class="login-btn" onclick="doLogin()">▶ AUTHENTICATE &amp; CONNECT</button>
+    </div>
+    <div class="login-footer">MQTT WSS · TLS SECURED · NO SESSION STORED</div>
+  </div>
+</div>
+
+<!-- ════════════════════════ MAIN APP ════════════════════════ -->
+<div id="mainApp" style="display:none">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-icon">⬡</div>
+      <div class="brand-text">
+        <div class="site">ALSHARQ VILLAGE</div>
+        <div class="sub">PUMP STATION SCADA · PSS-02</div>
       </div>
     </div>
-    <div class="mqtt-badge">
-      <div id="mqttDot" class="mqtt-dot"></div>
-      <div>
-        <div class="mqtt-label" id="mqttText">MQTT: connecting…</div>
-        <div class="mqtt-url"   id="mqttSub">ws://…</div>
+    <div class="topbar-kpis">
+      <div class="tb-kpi">
+        <div class="lbl">ACTIVE PUMPS</div>
+        <div class="val" id="kpiActive">—</div>
+      </div>
+      <div class="tb-kpi">
+        <div class="lbl">FAULTS</div>
+        <div class="val" id="kpiFaults">—</div>
+      </div>
+      <div class="tb-kpi">
+        <div class="lbl">SYS PRESSURE</div>
+        <div class="val" id="kpiSysPressure">— bar</div>
+      </div>
+      <div class="tb-kpi">
+        <div class="lbl">SETPOINT</div>
+        <div class="val" id="kpiSetpoint">— bar</div>
+      </div>
+      <div class="tb-kpi">
+        <div class="lbl">MODE</div>
+        <div class="val" id="kpiMode">—</div>
+      </div>
+      <div class="tb-kpi">
+        <div class="lbl">DUTY PUMP</div>
+        <div class="val" id="kpiDuty">—</div>
       </div>
     </div>
-  </header>
-
-  <!-- ══ Main grid ══ -->
-  <div class="main-grid">
-
-    <!-- ████ LEFT : Control + Domestic Pumps ████ -->
-    <div class="card">
-      <div class="card-head">
-        <div>
-          <div class="title">Control Center</div>
-          <div class="desc">Mode · Duty selection · Setpoint · Weekly swap</div>
-        </div>
-        <div class="tag stop" id="platformTag">Mode: -- · Duty: --</div>
+    <div class="topbar-right">
+      <div class="tb-time">
+        <div class="clock" id="tbClock">00:00:00</div>
+        <div class="date"  id="tbDate">—</div>
       </div>
-      <div class="card-body">
-
-        <div class="ctrl-row">
-          <span class="ctrl-lbl">Mode</span>
-          <select id="modeSel">
-            <option value="AUTO">AUTO</option>
-            <option value="MANUAL">MANUAL</option>
-          </select>
-          <span class="ctrl-lbl">Duty</span>
-          <select id="dutySel">
-            <option value="DOM_A">DOM_A</option>
-            <option value="DOM_B">DOM_B</option>
-          </select>
-          <button class="btn"           id="applyModeBtn">Apply Mode</button>
-          <button class="btn secondary" id="setDutyBtn">Set Duty</button>
-          <button class="btn ghost"     id="swapBtn">⇄ Swap Now</button>
+      <div class="mqtt-pill">
+        <div class="mqtt-led" id="mqttLed"></div>
+        <div class="mqtt-info">
+          <div class="status" id="mqttStatus">DISCONNECTED</div>
+          <div class="broker" id="mqttBroker">—</div>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <hr class="sep">
+  <!-- PAGE -->
+  <div class="page">
 
-        <div class="ctrl-row">
-          <span class="ctrl-lbl">Setpoint (bar)</span>
-          <input id="setpointInp" type="number" step="0.1" value="2.5" min="0" max="16"/>
-          <button class="btn" id="setpointBtn">Set Setpoint</button>
-          <span class="ctrl-lbl">Weekly swap</span>
-          <select id="weeklySel">
-            <option value="true">Enabled</option>
-            <option value="false">Disabled</option>
-          </select>
-          <button class="btn ghost" id="weeklyBtn">Apply</button>
+    <!-- ══ LEFT PANE ══ -->
+    <div class="left-pane">
+
+      <!-- Pump Cards -->
+      <div>
+        <div class="sec-head">
+          <div class="title">▸ PUMP UNITS</div>
+          <div class="badge" id="pumpSummaryBadge">3 UNITS · 0 RUNNING</div>
         </div>
+        <div class="pumps-grid mt6">
 
-        <hr class="sep">
-
-        <!-- ── Pump pair ── -->
-        <div class="pump-pair">
-
-          <!-- Pump A -->
-          <div class="pump-card">
-            <div class="pump-card-head">
-              <span class="pname">Domestic A</span>
-              <div class="tag stop" id="tagA">--</div>
-            </div>
-            <div class="pump-card-body">
-              <div class="kpi-row">
-                <div class="kpi"><div class="lbl">Pressure</div><div class="val" id="aP">--</div><div class="unit">bar</div></div>
-                <div class="kpi"><div class="lbl">Frequency</div><div class="val" id="aHz">--</div><div class="unit">Hz</div></div>
-                <div class="kpi"><div class="lbl">Current</div><div class="val" id="aA">--</div><div class="unit">A</div></div>
-                <div class="kpi" id="kpiATrip"><div class="lbl">Trip</div><div class="val" id="aTrip">--</div><div class="unit">0=OK</div></div>
+          <!-- DOM A -->
+          <div class="pump-card" id="cardA">
+            <div class="pump-head">
+              <div class="pump-id">
+                <div class="pump-num">A</div>
+                <div>
+                  <div class="pump-name">DOM — A</div>
+                  <div class="pump-type">DOMESTIC DUTY</div>
+                </div>
               </div>
-              <div class="chart-wrap"><canvas id="chartA"></canvas></div>
+              <div class="status-tag stop" id="tagA">STOP</div>
             </div>
-          </div>
-
-          <!-- Pump B -->
-          <div class="pump-card">
-            <div class="pump-card-head">
-              <span class="pname">Domestic B</span>
-              <div class="tag stop" id="tagB">--</div>
-            </div>
-            <div class="pump-card-body">
-              <div class="kpi-row">
-                <div class="kpi"><div class="lbl">Pressure</div><div class="val" id="bP">--</div><div class="unit">bar</div></div>
-                <div class="kpi"><div class="lbl">Frequency</div><div class="val" id="bHz">--</div><div class="unit">Hz</div></div>
-                <div class="kpi"><div class="lbl">Current</div><div class="val" id="bA">--</div><div class="unit">A</div></div>
-                <div class="kpi" id="kpiBTrip"><div class="lbl">Trip</div><div class="val" id="bTrip">--</div><div class="unit">0=OK</div></div>
+            <div class="pump-metrics">
+              <div class="metric" id="mAPressWrap">
+                <div class="m-lbl">PRESSURE</div>
+                <div class="m-val" id="aP">—</div>
+                <div class="m-unit">bar</div>
               </div>
-              <div class="chart-wrap"><canvas id="chartB"></canvas></div>
+              <div class="metric">
+                <div class="m-lbl">FREQUENCY</div>
+                <div class="m-val" id="aHz">—</div>
+                <div class="m-unit">Hz</div>
+              </div>
+              <div class="metric">
+                <div class="m-lbl">CURRENT</div>
+                <div class="m-val" id="aA">—</div>
+                <div class="m-unit">A</div>
+              </div>
+              <div class="metric" id="kpiATrip">
+                <div class="m-lbl">TRIP CODE</div>
+                <div class="m-val" id="aTrip">0</div>
+                <div class="m-unit">fault code</div>
+              </div>
+            </div>
+            <div class="online-row">
+              <div class="online-dot" id="hA"></div>
+              <span id="tA">—</span>
+            </div>
+            <div class="pump-chart-wrap">
+              <div class="pump-chart-label">
+                <span>PRESSURE HISTORY</span><span id="chartALast">—</span>
+              </div>
+              <canvas class="pump-chart" id="chartA"></canvas>
             </div>
           </div>
 
-        </div><!-- /pump-pair -->
-      </div>
-    </div><!-- /left card -->
-
-    <!-- ████ RIGHT : Irrigation + DTU + Events ████ -->
-    <div class="right-col">
-
-      <!-- Irrigation -->
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <div class="title">Irrigation Pump</div>
-            <div class="desc">Monitoring only — no changeover</div>
+          <!-- DOM B -->
+          <div class="pump-card" id="cardB">
+            <div class="pump-head">
+              <div class="pump-id">
+                <div class="pump-num">B</div>
+                <div>
+                  <div class="pump-name">DOM — B</div>
+                  <div class="pump-type">DOMESTIC STANDBY</div>
+                </div>
+              </div>
+              <div class="status-tag stop" id="tagB">STOP</div>
+            </div>
+            <div class="pump-metrics">
+              <div class="metric">
+                <div class="m-lbl">PRESSURE</div>
+                <div class="m-val" id="bP">—</div>
+                <div class="m-unit">bar</div>
+              </div>
+              <div class="metric">
+                <div class="m-lbl">FREQUENCY</div>
+                <div class="m-val" id="bHz">—</div>
+                <div class="m-unit">Hz</div>
+              </div>
+              <div class="metric">
+                <div class="m-lbl">CURRENT</div>
+                <div class="m-val" id="bA">—</div>
+                <div class="m-unit">A</div>
+              </div>
+              <div class="metric" id="kpiBTrip">
+                <div class="m-lbl">TRIP CODE</div>
+                <div class="m-val" id="bTrip">0</div>
+                <div class="m-unit">fault code</div>
+              </div>
+            </div>
+            <div class="online-row">
+              <div class="online-dot" id="hB"></div>
+              <span id="tB">—</span>
+            </div>
+            <div class="pump-chart-wrap">
+              <div class="pump-chart-label">
+                <span>PRESSURE HISTORY</span><span id="chartBLast">—</span>
+              </div>
+              <canvas class="pump-chart" id="chartB"></canvas>
+            </div>
           </div>
-          <div class="tag stop" id="tagIRR">--</div>
-        </div>
-        <div class="card-body">
-          <div class="kpi-row">
-            <div class="kpi"><div class="lbl">Pressure</div><div class="val" id="iP">--</div><div class="unit">bar</div></div>
-            <div class="kpi"><div class="lbl">Frequency</div><div class="val" id="iHz">--</div><div class="unit">Hz</div></div>
-            <div class="kpi"><div class="lbl">Current</div><div class="val" id="iA">--</div><div class="unit">A</div></div>
-            <div class="kpi" id="kpiITrip"><div class="lbl">Trip</div><div class="val" id="iTrip">--</div><div class="unit">0=OK</div></div>
+
+          <!-- IRR -->
+          <div class="pump-card" id="cardI">
+            <div class="pump-head">
+              <div class="pump-id">
+                <div class="pump-num">I</div>
+                <div>
+                  <div class="pump-name">IRR</div>
+                  <div class="pump-type">IRRIGATION</div>
+                </div>
+              </div>
+              <div class="status-tag stop" id="tagIRR">STOP</div>
+            </div>
+            <div class="pump-metrics">
+              <div class="metric">
+                <div class="m-lbl">PRESSURE</div>
+                <div class="m-val" id="iP">—</div>
+                <div class="m-unit">bar</div>
+              </div>
+              <div class="metric">
+                <div class="m-lbl">FREQUENCY</div>
+                <div class="m-val" id="iHz">—</div>
+                <div class="m-unit">Hz</div>
+              </div>
+              <div class="metric">
+                <div class="m-lbl">CURRENT</div>
+                <div class="m-val" id="iA">—</div>
+                <div class="m-unit">A</div>
+              </div>
+              <div class="metric" id="kpiITrip">
+                <div class="m-lbl">TRIP CODE</div>
+                <div class="m-val" id="iTrip">0</div>
+                <div class="m-unit">fault code</div>
+              </div>
+            </div>
+            <div class="online-row">
+              <div class="online-dot" id="hI"></div>
+              <span id="tI">—</span>
+            </div>
+            <div class="pump-chart-wrap">
+              <div class="pump-chart-label">
+                <span>PRESSURE HISTORY</span><span id="chartILast">—</span>
+              </div>
+              <canvas class="pump-chart" id="chartI"></canvas>
+            </div>
           </div>
-          <div class="chart-wrap"><canvas id="chartI"></canvas></div>
+
         </div>
       </div>
 
-      <!-- DTU Health -->
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <div class="title">DTU / Link Health</div>
-            <div class="desc">Based on last telemetry timestamp</div>
-          </div>
+      <!-- Control Panel -->
+      <div>
+        <div class="sec-head">
+          <div class="title">▸ CONTROL COMMANDS</div>
+          <div class="badge">WRITE ACCESS ENABLED</div>
         </div>
-        <div class="card-body">
-          <table>
-            <thead>
-              <tr><th>Pump</th><th>Online</th><th>Last Seen</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>DOM_A</td><td id="hA">--</td><td id="tA" style="font-size:11px">--</td></tr>
-              <tr><td>DOM_B</td><td id="hB">--</td><td id="tB" style="font-size:11px">--</td></tr>
-              <tr><td>IRR</td>  <td id="hI">--</td><td id="tI" style="font-size:11px">--</td></tr>
-            </tbody>
-          </table>
+        <div class="ctrl-panel">
+
+          <div class="ctrl-group">
+            <div class="ctrl-group-title">⬡ OPERATION MODE</div>
+            <div class="ctrl-row">
+              <span class="ctrl-lbl">MODE</span>
+              <select id="modeSel">
+                <option value="AUTO">AUTO</option>
+                <option value="MANUAL">MANUAL</option>
+                <option value="TEST">TEST</option>
+              </select>
+              <button class="cmd-btn cyan" id="applyModeBtn">APPLY</button>
+            </div>
+            <div class="ctrl-row">
+              <span class="ctrl-lbl">DUTY PUMP</span>
+              <select id="dutySel">
+                <option value="DOM_A">DOM — A</option>
+                <option value="DOM_B">DOM — B</option>
+              </select>
+              <button class="cmd-btn green" id="setDutyBtn">SET DUTY</button>
+              <button class="cmd-btn amber" id="swapBtn">⇄ SWAP NOW</button>
+            </div>
+          </div>
+
+          <div class="ctrl-group">
+            <div class="ctrl-group-title">⬡ PRESSURE SETPOINT</div>
+            <div class="ctrl-row">
+              <span class="ctrl-lbl">SETPOINT</span>
+              <input type="number" id="setpointInp" value="2.5" min="0" max="10" step="0.1"/>
+              <span class="ctrl-lbl" style="min-width:28px; margin-left:-4px">bar</span>
+              <button class="cmd-btn cyan" id="setpointBtn">SEND</button>
+            </div>
+          </div>
+
+          <div class="ctrl-group">
+            <div class="ctrl-group-title">⬡ WEEKLY SWAP SCHEDULE</div>
+            <div class="ctrl-row">
+              <span class="ctrl-lbl">AUTO SWAP</span>
+              <select id="weeklySel">
+                <option value="false">DISABLED</option>
+                <option value="true">ENABLED</option>
+              </select>
+              <button class="cmd-btn purple" id="weeklyBtn">UPDATE</button>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      <!-- Events -->
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <div class="title">Realtime Events</div>
-            <div class="desc">Faults · swaps · state changes</div>
-          </div>
+    </div><!-- /left-pane -->
+
+    <!-- ══ RIGHT PANE ══ -->
+    <div class="right-pane">
+
+      <!-- Pressure overview -->
+      <div class="rp-section">
+        <div class="rp-head">
+          <span class="t">PRESSURE OVERVIEW</span>
         </div>
-        <div class="card-body">
-          <div id="events" class="events-feed evt-info">Waiting for telemetry…</div>
+        <div class="gauge-wrap">
+          <svg class="gauge-svg-wrap" viewBox="0 0 140 80" id="gaugeSvg">
+            <!-- Arc track -->
+            <path d="M15,75 A60,60 0 0,1 125,75" fill="none" stroke="rgba(0,200,255,.1)" stroke-width="8" stroke-linecap="round"/>
+            <!-- Arc fill -->
+            <path d="M15,75 A60,60 0 0,1 125,75" fill="none" stroke="url(#gaugeGrad)" stroke-width="8" stroke-linecap="round"
+                  stroke-dasharray="188.5" stroke-dashoffset="188.5" id="gaugeArc" style="transition:stroke-dashoffset .7s ease"/>
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%"   stop-color="#0099CC"/>
+                <stop offset="100%" stop-color="#00D4FF"/>
+              </linearGradient>
+            </defs>
+            <!-- Tick marks -->
+            <g stroke="rgba(0,200,255,.25)" stroke-width="1">
+              <line x1="15" y1="75" x2="20" y2="75" transform="rotate(-90 70 75)"/>
+              <line x1="15" y1="75" x2="19" y2="75" transform="rotate(-67.5 70 75)"/>
+              <line x1="15" y1="75" x2="20" y2="75" transform="rotate(-45 70 75)"/>
+              <line x1="15" y1="75" x2="19" y2="75" transform="rotate(-22.5 70 75)"/>
+              <line x1="15" y1="75" x2="20" y2="75" transform="rotate(0 70 75)"/>
+              <line x1="15" y1="75" x2="19" y2="75" transform="rotate(22.5 70 75)"/>
+              <line x1="15" y1="75" x2="20" y2="75" transform="rotate(45 70 75)"/>
+              <line x1="15" y1="75" x2="19" y2="75" transform="rotate(67.5 70 75)"/>
+              <line x1="15" y1="75" x2="20" y2="75" transform="rotate(90 70 75)"/>
+            </g>
+            <!-- Needle -->
+            <line x1="70" y1="75" x2="70" y2="22" stroke="#00D4FF" stroke-width="1.5" stroke-linecap="round"
+                  id="gaugeNeedle" style="transform-origin:70px 75px;transition:transform .7s ease"/>
+            <circle cx="70" cy="75" r="4" fill="#0A1220" stroke="#00D4FF" stroke-width="1.5"/>
+          </svg>
+          <div class="gauge-range">
+            <span>0</span><span>5</span><span>10 bar</span>
+          </div>
+          <div class="gauge-val" id="gaugeVal">—.—</div>
+          <div class="gauge-lbl">AVG SYSTEM PRESSURE</div>
+        </div>
+
+        <div class="press-bars" id="pressBars">
+          <div class="pbar-row">
+            <span class="pbar-lbl">DOM-A</span>
+            <div class="pbar-track"><div class="pbar-fill" id="pbarA" style="width:0%"></div></div>
+            <span class="pbar-val" id="pbarAVal">—</span>
+          </div>
+          <div class="pbar-row">
+            <span class="pbar-lbl">DOM-B</span>
+            <div class="pbar-track"><div class="pbar-fill" id="pbarB" style="width:0%"></div></div>
+            <span class="pbar-val" id="pbarBVal">—</span>
+          </div>
+          <div class="pbar-row">
+            <span class="pbar-lbl">IRR</span>
+            <div class="pbar-track"><div class="pbar-fill" id="pbarI" style="width:0%"></div></div>
+            <span class="pbar-val" id="pbarIVal">—</span>
+          </div>
         </div>
       </div>
 
-    </div><!-- /right-col -->
-  </div><!-- /main-grid -->
-</div><!-- /wrap -->
+      <!-- System status -->
+      <div class="rp-section">
+        <div class="rp-head">
+          <span class="t">SYSTEM STATUS</span>
+        </div>
+        <div class="sys-matrix">
+          <div class="sys-row" id="sysRowMode">
+            <span class="sys-lbl">OPERATION MODE</span>
+            <span class="sys-val" id="sysMode">—</span>
+          </div>
+          <div class="sys-row" id="sysRowDuty">
+            <span class="sys-lbl">DUTY PUMP</span>
+            <span class="sys-val" id="sysDuty">—</span>
+          </div>
+          <div class="sys-row" id="sysRowSet">
+            <span class="sys-lbl">PRESSURE SETPOINT</span>
+            <span class="sys-val" id="sysSet">— bar</span>
+          </div>
+          <div class="sys-row" id="sysRowWeekly">
+            <span class="sys-lbl">WEEKLY SWAP</span>
+            <span class="sys-val" id="sysWeekly">—</span>
+          </div>
+          <div class="sys-row ok" id="sysRowMqtt">
+            <span class="sys-lbl">MQTT BROKER</span>
+            <span class="sys-val ok" id="sysMqtt">OFFLINE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event log -->
+      <div class="rp-section" style="flex:1">
+        <div class="rp-head">
+          <span class="t">EVENT LOG</span>
+          <span class="count" id="evtCount">0</span>
+        </div>
+        <div class="evt-log" id="evtLog"></div>
+      </div>
+
+      <!-- Footer -->
+      <div class="scada-footer">
+        <span>ALSHARQ VILLAGE · PSS-02</span>
+        <span class="footer-sep">|</span>
+        <span>REV 3.1</span>
+        <span class="footer-sep">|</span>
+        <span id="footerUptime">UPTIME: 00:00:00</span>
+      </div>
+
+    </div><!-- /right-pane -->
+  </div><!-- /page -->
+
+</div><!-- /mainApp -->
 
 <script>
-/* ══════════════════════════════════════════════════════════════════
-   Minimal MQTT 3.1.1 over WebSocket
-   • Proper multi-byte remaining-length (VarInt) encoder/decoder
-   • PINGREQ keepalive so Mosquitto won't drop idle connections
-   • Reconnect on close/error with exponential backoff cap
-══════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════════════════ */
+const WS_URL      = "wss://mqtt.maqroo.com:8084/mqtt";
+const TOPIC_TELE  = "alsharq/pss/telemetry";
+const CMD_BASE    = "alsharq/pss/cmd";
+const MAX_PRESSURE= 10;
 
-const WS_URL = "wss://w219d1f1.ala.us-east-1.emqxsl.com:8084/mqtt";
-document.getElementById("mqttSub").textContent = WS_URL;
-const MQTT_USERNAME = "engineer";
-const MQTT_PASSWORD = "12345678";
-/* ── Binary helpers ── */
-const enc = new TextEncoder();
-const dec = new TextDecoder();
+let MQTT_USERNAME = "", MQTT_PASSWORD = "";
+let ws, connected = false, pid = 1, pingTimer, retryDelay = 1500;
+const RING = 60;
+const serA = new Array(RING).fill(null);
+const serB = new Array(RING).fill(null);
+const serI = new Array(RING).fill(null);
+let si = 0;
+const prevFault = { DOM_A:false, DOM_B:false, IRR:false };
+let evtCount = 0, startTime = Date.now();
 
-function encStr(s) {
-  const b = enc.encode(s);
-  const o = new Uint8Array(2 + b.length);
-  o[0] = b.length >> 8;  o[1] = b.length & 0xFF;  o.set(b, 2);
-  return o;
+/* ══ Clock & uptime ══ */
+function pad(n){return String(n).padStart(2,'0');}
+function tickClock(){
+  const now = new Date();
+  document.getElementById('tbClock').textContent =
+    `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  document.getElementById('tbDate').textContent =
+    now.toLocaleDateString('en-SA',{weekday:'short',year:'numeric',month:'short',day:'2-digit'}).toUpperCase();
+  const up = Math.floor((Date.now()-startTime)/1000);
+  const h=Math.floor(up/3600), m=Math.floor(up%3600/60), s=up%60;
+  document.getElementById('footerUptime').textContent=`UPTIME: ${pad(h)}:${pad(m)}:${pad(s)}`;
 }
-function concat(...arrs) {
-  const len = arrs.reduce((s, a) => s + a.length, 0);
-  const o = new Uint8Array(len);
-  let p = 0; arrs.forEach(a => { o.set(a, p); p += a.length; });
-  return o;
-}
-/** Encode MQTT variable-length integer (remaining-length field) */
-function encVarInt(n) {
-  const out = [];
-  do {
-    let b = n & 0x7F; n >>>= 7;
-    if (n > 0) b |= 0x80;
-    out.push(b);
-  } while (n > 0);
-  return new Uint8Array(out);
-}
+setInterval(tickClock,1000); tickClock();
 
-/* ── Packet builders ── */
-function pktConnect(clientId, username, password) {
-  // MQTT 3.1.1 CONNECT with username/password
-  const hasUser = !!username;
-  const hasPass = !!password;
-  const flags   = (hasUser ? 0x80 : 0) | (hasPass ? 0x40 : 0) | 0x02; // CleanSession=1
-  const keepalive = 60; // seconds
+/* ══ MQTT packet helpers ══ */
+function enc(s){const b=new TextEncoder().encode(s);const r=new Uint8Array(2+b.length);r[0]=b.length>>8;r[1]=b.length&0xFF;r.set(b,2);return r;}
+function encB(s){const b=new TextEncoder().encode(s);return b;}
 
-  const vh = concat(
-    encStr("MQTT"),
-    new Uint8Array([4, flags, keepalive >> 8, keepalive & 0xFF])
-  );
-
-  const parts = [encStr(clientId)];
-  if (hasUser) parts.push(encStr(username));
-  if (hasPass) parts.push(encStr(password));
-  const pl = concat(...parts);
-
-  return concat(new Uint8Array([0x10]), encVarInt(vh.length + pl.length), vh, pl);
+function pktConnect(cid,usr,pwd){
+  const p=enc("MQTT"),v=new Uint8Array([4]),cf=new Uint8Array([0xC2]),ka=new Uint8Array([0,60]);
+  const cid2=enc(cid),u2=enc(usr),pw2=enc(pwd);
+  const pl=new Uint8Array(p.length+1+1+2+cid2.length+u2.length+pw2.length);
+  let i=0; pl.set(p,i);i+=p.length; pl.set(v,i);i+=1; pl.set(cf,i);i+=1; pl.set(ka,i);i+=2; pl.set(cid2,i);i+=cid2.length; pl.set(u2,i);i+=u2.length; pl.set(pw2,i);
+  return buildPacket(1,pl);
 }
-function pktSubscribe(pid, topic) {
-  const vh = new Uint8Array([pid >> 8, pid & 0xFF]);
-  const pl = concat(encStr(topic), new Uint8Array([0]));
-  return concat(new Uint8Array([0x82]), encVarInt(vh.length + pl.length), vh, pl);
+function pktSubscribe(pid,topic){
+  const h=new Uint8Array([pid>>8,pid&0xFF]);
+  const t=enc(topic); const qos=new Uint8Array([0]);
+  const pl=new Uint8Array(h.length+t.length+1); pl.set(h,0); pl.set(t,h.length); pl.set(qos,h.length+t.length);
+  return buildPacket(8,pl,2);
 }
-function pktPublish(topic, payloadStr) {
-  const t = encStr(topic);
-  const p = enc.encode(payloadStr);
-  return concat(new Uint8Array([0x30]), encVarInt(t.length + p.length), t, p);
+function pktPingreq(){return new Uint8Array([0xC0,0]);}
+function buildPacket(type,payload,flags=0){
+  const hdr=(type<<4)|flags;
+  let len=payload.length; const lb=[];
+  do{let e=len&0x7F; len>>=7; if(len>0)e|=0x80; lb.push(e);}while(len>0);
+  const pkt=new Uint8Array(1+lb.length+payload.length);
+  pkt[0]=hdr; lb.forEach((b,i)=>pkt[1+i]=b); pkt.set(payload,1+lb.length); return pkt;
 }
-function pktPingreq() { return new Uint8Array([0xC0, 0x00]); }
-
-/** Decode MQTT VarInt from ArrayBuffer at offset, returns {value, bytesRead} */
-function decVarInt(b, offset) {
-  let value = 0, mult = 1, i = offset;
-  do { value += (b[i] & 0x7F) * mult; mult <<= 7; } while ((b[i++] & 0x80) && i < offset + 5);
-  return { value, bytesRead: i - offset };
+function parsePublish(buf){
+  try{
+    const b=new Uint8Array(buf); let i=1,mul=1,rl=0,byt;
+    do{byt=b[i++]; rl+=(byt&0x7F)*mul; mul*=128;}while(byt&0x80);
+    const tl=(b[i]<<8)|b[i+1]; i+=2;
+    const topic=new TextDecoder().decode(b.slice(i,i+tl)); i+=tl;
+    const payload=new TextDecoder().decode(b.slice(i));
+    return {topic,payload};
+  }catch{return null;}
 }
 
-/** Try to decode PUBLISH packet from ArrayBuffer. Returns {topic, payload} or null. */
-function parsePublish(buf) {
-  const b = new Uint8Array(buf);
-  if ((b[0] >> 4) !== 3) return null;
-  const { value: rl, bytesRead } = decVarInt(b, 1);
-  let idx = 1 + bytesRead;
-  const tlen = (b[idx] << 8) | b[idx + 1]; idx += 2;
-  const topic   = dec.decode(b.slice(idx, idx + tlen)); idx += tlen;
-  const payload = dec.decode(b.slice(idx, 1 + bytesRead + rl));
-  return { topic, payload };
+/* ══ MQTT send publish ══ */
+function mqttSend(topic,payload){
+  if(!ws||ws.readyState!==WebSocket.OPEN){pushEvent("Not connected","evt-warn");return;}
+  const tEnc=new TextEncoder().encode(topic);
+  const pEnc=new TextEncoder().encode(JSON.stringify(payload));
+  const h=new Uint8Array([tEnc.length>>8,tEnc.length&0xFF]);
+  const pl=new Uint8Array(h.length+tEnc.length+pEnc.length);
+  pl.set(h,0); pl.set(tEnc,h.length); pl.set(pEnc,h.length+tEnc.length);
+  ws.send(buildPacket(3,pl));
+  pushEvent(`CMD → ${topic.split('/').pop()}: ${JSON.stringify(payload)}`,"evt-info");
 }
 
-/* ── Connection state ── */
-let ws          = null;
-let connected   = false;
-let pid         = 1;
-let pingTimer   = null;
-let retryDelay  = 1500;
-
-const mqttDot  = document.getElementById("mqttDot");
-const mqttText = document.getElementById("mqttText");
-
-function setMqttStatus(ok, text) {
-  mqttDot.className  = "mqtt-dot" + (ok ? " online" : " error");
-  mqttText.textContent = text;
+/* ══ MQTT status ══ */
+function setMqttStatus(ok,msg,err){
+  const led=document.getElementById('mqttLed');
+  const st=document.getElementById('mqttStatus');
+  const br=document.getElementById('mqttBroker');
+  const sv=document.getElementById('sysMqtt');
+  const sr=document.getElementById('sysRowMqtt');
+  led.className='mqtt-led '+(ok?'on':err?'err':'');
+  st.textContent=ok?'CONNECTED':err?'ERROR':'CONNECTING…';
+  br.textContent=WS_URL.replace('wss://','').split('/')[0];
+  sv.textContent=ok?'ONLINE':'OFFLINE';
+  sv.className='sys-val '+(ok?'ok':'err');
+  sr.className='sys-row '+(ok?'ok':'err');
 }
 
-const TOPIC_TELE = "compound/pumps/tele";
-const CMD_BASE   = "compound/pumps/cmd";
-
-function mqttSend(topic, obj) {
-  if (!connected || !ws || ws.readyState !== WebSocket.OPEN) return;
-  ws.send(pktPublish(topic, JSON.stringify(obj)));
+/* ══ Event log ══ */
+function pushEvent(msg,cls='evt-info'){
+  const log=document.getElementById('evtLog');
+  const now=new Date();
+  const ts=`${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  const el=document.createElement('div');
+  el.className=`evt ${cls}`;
+  el.innerHTML=`<span class="evt-ts">${ts}</span><span class="evt-msg">${msg}</span>`;
+  log.prepend(el);
+  evtCount++;
+  document.getElementById('evtCount').textContent=evtCount;
+  while(log.children.length>120) log.removeChild(log.lastChild);
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   Charts  —  per-pump ring buffers
-══════════════════════════════════════════════════════════════════ */
-const RING  = 180;
-const mkBuf = () => Array(RING).fill(null);
-const serA  = mkBuf(), serB = mkBuf(), serI = mkBuf();
-let   si    = 0;
+/* ══ Status tag ══ */
+function setTag(el,p){
+  if(!el)return;
+  if(p.fault){el.className='status-tag fault';el.textContent='FAULT';}
+  else if(p.running){el.className='status-tag run';el.textContent='RUNNING';}
+  else{el.className='status-tag stop';el.textContent='STOP';}
+}
 
-function drawChart(canvas, series) {
-  const wrap = canvas.parentElement;
-  const w    = canvas.width  = wrap.clientWidth;
-  const h    = canvas.height = wrap.clientHeight;
-  const ctx  = canvas.getContext("2d");
-  ctx.clearRect(0, 0, w, h);
+/* ══ Card state ══ */
+function setCardState(card, p){
+  if(!card)return;
+  if(p.fault) card.className='pump-card fault';
+  else if(p.running) card.className='pump-card running';
+  else card.className='pump-card';
+}
 
-  /* grid */
-  ctx.save();
-  ctx.globalAlpha = .15;
-  ctx.strokeStyle = "#6080b0"; ctx.lineWidth = 1;
-  for (let i = 0; i <= 4; i++) {
-    const y = 8 + (h - 16) * (i / 4);
-    ctx.beginPath(); ctx.moveTo(8, y); ctx.lineTo(w - 8, y); ctx.stroke();
-  }
-  ctx.restore();
+function setOnline(id,v){
+  const el=document.getElementById(id); if(!el)return;
+  el.className='online-dot '+(v?'on':'off');
+}
 
-  const vals = series.filter(v => v !== null);
-  if (vals.length < 2) {
-    ctx.fillStyle = "rgba(96,120,152,.45)";
-    ctx.font = `11px ${getComputedStyle(document.body).fontFamily}`;
-    ctx.fillText("Awaiting data…", 14, h / 2 + 4);
-    return;
-  }
+function setVal(id,v){
+  const el=document.getElementById(id); if(!el)return;
+  el.textContent=(v===undefined||v===null)?'—':v;
+}
 
-  const min  = Math.min(...vals), max = Math.max(...vals);
-  const pad  = (max - min) * 0.18 || 0.5;
-  const lo   = min - pad, hi = max + pad;
+function setTripKpi(id,code){
+  const el=document.getElementById(id); if(!el)return;
+  if(code&&code!==0){el.classList.add('val-red');}
+  else{el.classList.remove('val-red');}
+}
 
-  const pts = [];
-  for (let i = 0; i < RING; i++) {
-    const v = series[(si + i) % RING];
-    if (v === null) continue;
-    pts.push([
-      8 + (w - 16) * (i / (RING - 1)),
-      8 + (h - 16) * (1 - (v - lo) / (hi - lo)),
-    ]);
-  }
+/* ══ Mini chart ══ */
+function drawChart(canvas,data){
+  if(!canvas)return;
+  const W=canvas.offsetWidth*devicePixelRatio||280;
+  const H=canvas.offsetHeight*devicePixelRatio||60;
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
 
-  /* gradient fill */
-  const grd = ctx.createLinearGradient(0, 0, 0, h);
-  grd.addColorStop(0, "rgba(59,130,246,.20)");
-  grd.addColorStop(1, "rgba(59,130,246,0)");
+  const valid=data.filter(v=>v!==null);
+  if(!valid.length)return;
+  const mn=Math.min(...valid)*.9, mx=Math.max(...valid)*1.1||1;
+  const norm=v=>v===null?null:1-(v-mn)/(mx-mn||1);
+
+  // Grid
+  ctx.strokeStyle='rgba(0,200,255,0.07)'; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=(H/4)*i; ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();}
+
+  // Area fill
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(0,212,255,0.18)');
+  grad.addColorStop(1,'rgba(0,212,255,0)');
   ctx.beginPath();
-  pts.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
-  ctx.lineTo(pts[pts.length-1][0], h);
-  ctx.lineTo(pts[0][0], h);
-  ctx.closePath();
-  ctx.fillStyle = grd; ctx.fill();
+  let first=true,lastX=0,lastY=0;
+  for(let i=0;i<RING;i++){
+    const x=(i/(RING-1))*W, n=norm(data[i]);
+    if(n===null)continue;
+    const y=n*(H-4)+2;
+    if(first){ctx.moveTo(x,H);ctx.lineTo(x,y);first=false;}
+    else ctx.lineTo(x,y);
+    lastX=x; lastY=y;
+  }
+  if(!first){ctx.lineTo(lastX,H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();}
 
-  /* line */
-  ctx.beginPath();
-  pts.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
-  ctx.lineWidth = 2; ctx.strokeStyle = "#6EA8FE";
-  ctx.lineJoin  = "round"; ctx.stroke();
+  // Line
+  ctx.beginPath(); first=true;
+  ctx.strokeStyle='rgba(0,212,255,0.8)'; ctx.lineWidth=1.5; ctx.lineJoin='round';
+  for(let i=0;i<RING;i++){
+    const x=(i/(RING-1))*W, n=norm(data[i]);
+    if(n===null)continue;
+    const y=n*(H-4)+2;
+    if(first){ctx.moveTo(x,y);first=false;} else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
 
-  /* latest value label */
-  const last = vals[vals.length - 1];
-  ctx.fillStyle = "rgba(216,232,255,.6)";
-  ctx.font = "10px 'IBM Plex Mono',monospace";
-  ctx.fillText(`${last.toFixed(2)} bar`, 12, 18);
-}
-
-/* ══════════════════════════════════════════════════════════════════
-   UI helpers
-══════════════════════════════════════════════════════════════════ */
-function fmtTs(ts) {
-  if (!ts) return "--";
-  return new Date(ts * 1000).toLocaleString();
-}
-
-function setTag(el, p) {
-  if (!p) { el.textContent = "--"; el.className = "tag stop"; return; }
-  if (p.fault) {
-    el.textContent = "FAULT";
-    el.className   = "tag fault";
-  } else if (p.running) {
-    el.textContent = "RUNNING";
-    el.className   = "tag run";
-  } else {
-    el.textContent = "STOP";
-    el.className   = "tag stop";
+  // Last value dot
+  const lv=data[(si-1+RING)%RING];
+  if(lv!==null){
+    const li=RING-1, x=(li/(RING-1))*W, n=norm(lv), y=n*(H-4)+2;
+    ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='#00D4FF';ctx.fill();
   }
 }
 
-function setVal(id, v) {
-  document.getElementById(id).textContent =
-    (v === null || v === undefined) ? "--" : v;
+/* ══ Pressure bar ══ */
+function setPbar(barId,valId,p){
+  const bar=document.getElementById(barId);
+  const val=document.getElementById(valId);
+  if(!bar||!val||p===null||p===undefined){if(val)val.textContent='—';return;}
+  const pct=Math.min(100,Math.max(0,(p/MAX_PRESSURE)*100));
+  bar.style.width=pct+'%';
+  bar.className='pbar-fill'+(p>8?' over':p>6?' high':p<1?' low':'');
+  if(val)val.textContent=p.toFixed(2)+' bar';
 }
 
-function setOnline(tdId, online) {
-  const el = document.getElementById(tdId);
-  if (online) {
-    el.innerHTML = '<span class="online-yes">YES</span>';
-  } else {
-    el.innerHTML = '<span class="online-no">NO</span>';
-  }
+/* ══ Gauge ══ */
+function setGauge(p){
+  const arc=document.getElementById('gaugeArc');
+  const needle=document.getElementById('gaugeNeedle');
+  const gv=document.getElementById('gaugeVal');
+  if(p===null||p===undefined){gv.textContent='—.—';return;}
+  gv.textContent=p.toFixed(2);
+  const pct=Math.min(1,Math.max(0,p/MAX_PRESSURE));
+  const totalDash=188.5;
+  arc.style.strokeDashoffset=totalDash*(1-pct);
+  const angle=-90+pct*180;
+  needle.style.transform=`rotate(${angle}deg)`;
 }
 
-function setTripKpi(kpiId, code) {
-  document.getElementById(kpiId)
-    .classList.toggle("kpi-fault", !!(code && code !== 0));
+/* ══ Chart last values ══ */
+function updateChartLabels(A,B,I){
+  const lA=A.filter(v=>v!==null).slice(-1)[0];
+  const lB=B.filter(v=>v!==null).slice(-1)[0];
+  const lI=I.filter(v=>v!==null).slice(-1)[0];
+  if(lA!==undefined) document.getElementById('chartALast').textContent=lA.toFixed(2)+' bar';
+  if(lB!==undefined) document.getElementById('chartBLast').textContent=lB.toFixed(2)+' bar';
+  if(lI!==undefined) document.getElementById('chartILast').textContent=lI.toFixed(2)+' bar';
 }
 
-let eventsInitialized = false;
-function pushEvent(html, cls) {
-  const feed = document.getElementById("events");
-  if (!eventsInitialized) { feed.innerHTML = ""; eventsInitialized = true; }
-  const now = new Date().toLocaleTimeString();
-  const div = document.createElement("div");
-  div.className = "evt";
-  div.innerHTML = `<span class="evt-time">${now}</span><span class="${cls}">${html}</span>`;
-  feed.insertBefore(div, feed.firstChild);
-  while (feed.children.length > 80) feed.removeChild(feed.lastChild);
+/* ══ Apply telemetry ══ */
+function fmtTs(ts){
+  if(!ts)return '—';
+  const d=new Date(ts);
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} · ONLINE`;
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   Telemetry handler
-   Data contract matches pump_platform.py mqtt_publish_state():
-     { ts, platform: {mode, duty, weekly_swap, setpoint_bar, last_swap_ts},
-       pumps: { DOM_A, DOM_B, IRR: {
-         name, slave, role, online, last_seen,
-         pressure_bar, freq_hz, current_a,
-         running, fault, trip_code, op_status } } }
-══════════════════════════════════════════════════════════════════ */
-const prevFault = { DOM_A: false, DOM_B: false, IRR: false };
+function applyTelemetry(data){
+  const plat=data.platform||{}, pumps=data.pumps||{};
 
-function applyTelemetry(payload) {
-  // Supports TWO telemetry formats:
-  // 1) New structured format:
-  //    { platform:{...}, pumps:{ DOM_A:{pressure_bar,...}, DOM_B:{...}, IRR:{...} } }
-  // 2) Simple test format (MQTTX friendly):
-  //    { dom_a:{pressure, freq, current, trip}, dom_b:{...}, irr:{...} }
-  let plat = payload.platform || payload.plat || {};
-  let pumps = payload.pumps || null;
+  // Top-bar KPIs
+  const A=pumps.DOM_A||{}, B=pumps.DOM_B||{}, I=pumps.IRR||{};
+  const running=[A,B,I].filter(p=>p.running).length;
+  const faults =[A,B,I].filter(p=>p.fault).length;
+  const pressures=[A.pressure_bar,B.pressure_bar,I.pressure_bar].filter(v=>v!=null);
+  const avgP=pressures.length?pressures.reduce((a,b)=>a+b,0)/pressures.length:null;
 
-  const toNum = (v) => (v === null || v === undefined || v === "" ? null : Number(v));
-  const mapSimple = (src) => {
-    if (!src) return null;
-    const trip = src.trip_code ?? src.trip ?? 0;
-    return {
-      pressure_bar: toNum(src.pressure_bar ?? src.pressure),
-      freq_hz:      toNum(src.freq_hz ?? src.freq),
-      current_a:    toNum(src.current_a ?? src.current),
-      trip_code:    trip,
-      fault:        !!(src.fault ?? (trip && Number(trip) !== 0)),
-      online:       src.online ?? true,
-      last_seen:    src.last_seen ?? Date.now(),
-    };
-  };
-
-  if (!pumps && (payload.dom_a || payload.dom_b || payload.irr)) {
-    pumps = {
-      DOM_A: mapSimple(payload.dom_a),
-      DOM_B: mapSimple(payload.dom_b),
-      IRR:   mapSimple(payload.irr),
-    };
+  const kpiActive=document.getElementById('kpiActive');
+  const kpiFaults=document.getElementById('kpiFaults');
+  kpiActive.textContent=running+'/3';
+  kpiActive.className='val'+(running>0?' good':'');
+  kpiFaults.textContent=faults;
+  kpiFaults.className='val'+(faults>0?' bad':'good');
+  if(avgP!==null){
+    document.getElementById('kpiSysPressure').textContent=avgP.toFixed(2)+' bar';
+    setGauge(avgP);
   }
-  if (!pumps) pumps = {};
+  document.getElementById('kpiSetpoint').textContent=(plat.setpoint_bar??'—')+' bar';
+  document.getElementById('kpiMode').textContent=plat.mode||'—';
+  document.getElementById('kpiDuty').textContent=plat.duty||'—';
 
-  /* ── Platform controls ── */
-  document.getElementById("platformTag").textContent =
-    `Mode: ${plat.mode || "--"} · Duty: ${plat.duty || "--"}`;
-  document.getElementById("modeSel").value     = plat.mode        || "AUTO";
-  document.getElementById("dutySel").value     = plat.duty        || "DOM_A";
-  document.getElementById("setpointInp").value = plat.setpoint_bar ?? 2.5;
-  document.getElementById("weeklySel").value   = String(!!plat.weekly_swap);
+  // Pump summary badge
+  document.getElementById('pumpSummaryBadge').textContent=`3 UNITS · ${running} RUNNING${faults?' · '+faults+' FAULT':''}`;
 
-  const A = pumps.DOM_A, B = pumps.DOM_B, I = pumps.IRR;
+  // System status panel
+  document.getElementById('sysMode').textContent=plat.mode||'—';
+  document.getElementById('sysDuty').textContent=plat.duty||'—';
+  document.getElementById('sysSet').textContent=(plat.setpoint_bar??'—')+' bar';
+  document.getElementById('sysWeekly').textContent=plat.weekly_swap?'ENABLED':'DISABLED';
 
-  /* ── Domestic A ── */
-  if (A) {
-    setTag(document.getElementById("tagA"), A);
-    setVal("aP",    A.pressure_bar?.toFixed?.(2));
-    setVal("aHz",   A.freq_hz?.toFixed?.(2));
-    setVal("aA",    A.current_a?.toFixed?.(1));
-    setVal("aTrip", A.trip_code ?? 0);
-    setTripKpi("kpiATrip", A.trip_code);
-    serA[si] = A.pressure_bar ?? null;
-    setOnline("hA", A.online);
-    document.getElementById("tA").textContent = fmtTs(A.last_seen);
-    if (A.fault && !prevFault.DOM_A)
-      pushEvent(`DOM_A fault — trip code ${A.trip_code}`, "evt-bad");
-    if (!A.fault && prevFault.DOM_A)
-      pushEvent(`DOM_A fault cleared`, "evt-good");
-    prevFault.DOM_A = !!A.fault;
+  // Controls sync
+  document.getElementById('modeSel').value=plat.mode||'AUTO';
+  document.getElementById('dutySel').value=plat.duty||'DOM_A';
+  document.getElementById('setpointInp').value=plat.setpoint_bar??2.5;
+  document.getElementById('weeklySel').value=String(!!plat.weekly_swap);
+
+  // DOM A
+  if(A.pressure_bar!==undefined){
+    setTag(document.getElementById('tagA'),A);
+    setCardState(document.getElementById('cardA'),A);
+    setVal('aP',A.pressure_bar?.toFixed(2));
+    setVal('aHz',A.freq_hz?.toFixed(2));
+    setVal('aA',A.current_a?.toFixed(1));
+    setVal('aTrip',A.trip_code??0);
+    setTripKpi('kpiATrip',A.trip_code);
+    serA[si]=A.pressure_bar??null;
+    setOnline('hA',A.online);
+    document.getElementById('tA').textContent=fmtTs(A.last_seen);
+    setPbar('pbarA','pbarAVal',A.pressure_bar);
+    if(A.fault&&!prevFault.DOM_A) pushEvent('DOM-A FAULT — trip code '+A.trip_code,'evt-bad');
+    if(!A.fault&&prevFault.DOM_A) pushEvent('DOM-A fault cleared','evt-good');
+    prevFault.DOM_A=!!A.fault;
   }
 
-  /* ── Domestic B ── */
-  if (B) {
-    setTag(document.getElementById("tagB"), B);
-    setVal("bP",    B.pressure_bar?.toFixed?.(2));
-    setVal("bHz",   B.freq_hz?.toFixed?.(2));
-    setVal("bA",    B.current_a?.toFixed?.(1));
-    setVal("bTrip", B.trip_code ?? 0);
-    setTripKpi("kpiBTrip", B.trip_code);
-    serB[si] = B.pressure_bar ?? null;
-    setOnline("hB", B.online);
-    document.getElementById("tB").textContent = fmtTs(B.last_seen);
-    if (B.fault && !prevFault.DOM_B)
-      pushEvent(`DOM_B fault — trip code ${B.trip_code}`, "evt-bad");
-    if (!B.fault && prevFault.DOM_B)
-      pushEvent(`DOM_B fault cleared`, "evt-good");
-    prevFault.DOM_B = !!B.fault;
+  // DOM B
+  if(B.pressure_bar!==undefined){
+    setTag(document.getElementById('tagB'),B);
+    setCardState(document.getElementById('cardB'),B);
+    setVal('bP',B.pressure_bar?.toFixed(2));
+    setVal('bHz',B.freq_hz?.toFixed(2));
+    setVal('bA',B.current_a?.toFixed(1));
+    setVal('bTrip',B.trip_code??0);
+    setTripKpi('kpiBTrip',B.trip_code);
+    serB[si]=B.pressure_bar??null;
+    setOnline('hB',B.online);
+    document.getElementById('tB').textContent=fmtTs(B.last_seen);
+    setPbar('pbarB','pbarBVal',B.pressure_bar);
+    if(B.fault&&!prevFault.DOM_B) pushEvent('DOM-B FAULT — trip code '+B.trip_code,'evt-bad');
+    if(!B.fault&&prevFault.DOM_B) pushEvent('DOM-B fault cleared','evt-good');
+    prevFault.DOM_B=!!B.fault;
   }
 
-  /* ── Irrigation ── */
-  if (I) {
-    setTag(document.getElementById("tagIRR"), I);
-    setVal("iP",    I.pressure_bar?.toFixed?.(2));
-    setVal("iHz",   I.freq_hz?.toFixed?.(2));
-    setVal("iA",    I.current_a?.toFixed?.(1));
-    setVal("iTrip", I.trip_code ?? 0);
-    setTripKpi("kpiITrip", I.trip_code);
-    serI[si] = I.pressure_bar ?? null;
-    setOnline("hI", I.online);
-    document.getElementById("tI").textContent = fmtTs(I.last_seen);
-    if (I.fault && !prevFault.IRR)
-      pushEvent(`IRR fault — trip code ${I.trip_code}`, "evt-bad");
-    if (!I.fault && prevFault.IRR)
-      pushEvent(`IRR fault cleared`, "evt-good");
-    prevFault.IRR = !!I.fault;
+  // IRR
+  if(I.pressure_bar!==undefined){
+    setTag(document.getElementById('tagIRR'),I);
+    setCardState(document.getElementById('cardI'),I);
+    setVal('iP',I.pressure_bar?.toFixed(2));
+    setVal('iHz',I.freq_hz?.toFixed(2));
+    setVal('iA',I.current_a?.toFixed(1));
+    setVal('iTrip',I.trip_code??0);
+    setTripKpi('kpiITrip',I.trip_code);
+    serI[si]=I.pressure_bar??null;
+    setOnline('hI',I.online);
+    document.getElementById('tI').textContent=fmtTs(I.last_seen);
+    setPbar('pbarI','pbarIVal',I.pressure_bar);
+    if(I.fault&&!prevFault.IRR) pushEvent('IRR FAULT — trip code '+I.trip_code,'evt-bad');
+    if(!I.fault&&prevFault.IRR) pushEvent('IRR fault cleared','evt-good');
+    prevFault.IRR=!!I.fault;
   }
 
-  /* ── Advance ring and redraw ── */
-  si = (si + 1) % RING;
-  drawChart(document.getElementById("chartA"), serA);
-  drawChart(document.getElementById("chartB"), serB);
-  drawChart(document.getElementById("chartI"), serI);
+  si=(si+1)%RING;
+  updateChartLabels(serA,serB,serI);
+  drawChart(document.getElementById('chartA'),serA);
+  drawChart(document.getElementById('chartB'),serB);
+  drawChart(document.getElementById('chartI'),serI);
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   WebSocket / MQTT connection with exponential-backoff retry
-══════════════════════════════════════════════════════════════════ */
-function start() {
-  setMqttStatus(false, "MQTT: connecting…");
+/* ══ WebSocket / MQTT ══ */
+function start(){
+  setMqttStatus(false,'MQTT: connecting…');
   clearInterval(pingTimer);
+  try{ ws=new WebSocket(WS_URL,['mqtt']); }
+  catch(e){ setMqttStatus(false,'MQTT: invalid URL',true); return; }
+  ws.binaryType='arraybuffer';
 
-  try { ws = new WebSocket(WS_URL, ["mqtt"]); }
-  catch (e) {
-    setMqttStatus(false, "MQTT: invalid URL");
-    return;
-  }
-  ws.binaryType = "arraybuffer";
-
-  ws.onopen = () => {
-    retryDelay = 1500;   // reset backoff on successful open
-    ws.send(pktConnect("dash-" + Math.random().toString(16).slice(2), MQTT_USERNAME, MQTT_PASSWORD));
+  ws.onopen=()=>{
+    retryDelay=1500;
+    ws.send(pktConnect('scada-'+Math.random().toString(16).slice(2),MQTT_USERNAME,MQTT_PASSWORD));
   };
 
-  ws.onmessage = ev => {
-    const b    = new Uint8Array(ev.data);
-    const type = b[0] >> 4;
-
-    if (type === 2) {           // CONNACK
-      const rc = b[3];          // return code (0 = accepted)
-      if (rc !== 0) {
-        setMqttStatus(false, `MQTT: broker refused (rc=${rc})`);
-        return;
+  ws.onmessage=ev=>{
+    const b=new Uint8Array(ev.data);
+    const type=b[0]>>4;
+    if(type===2){
+      const rc=b[3];
+      if(rc!==0){
+        setMqttStatus(false,`MQTT: refused (rc=${rc})`,true);
+        document.getElementById('loginError').textContent=`Authentication refused (rc=${rc}). Please re-enter credentials.`;
+        document.getElementById('loginOverlay').style.display='flex';
+        document.getElementById('mainApp').style.display='none';
+        ws.close(); return;
       }
-      connected = true;
-      setMqttStatus(true, "MQTT: connected");
-      ws.send(pktSubscribe(pid++, TOPIC_TELE));
-      // Keepalive PINGREQ every 45 s (broker keepalive = 60 s)
-      pingTimer = setInterval(() => {
-        if (connected && ws && ws.readyState === WebSocket.OPEN)
-          ws.send(pktPingreq());
-      }, 45_000);
-      pushEvent("MQTT connected", "evt-good");
+      connected=true;
+      setMqttStatus(true,'MQTT: connected');
+      ws.send(pktSubscribe(pid++,TOPIC_TELE));
+      pingTimer=setInterval(()=>{
+        if(connected&&ws&&ws.readyState===WebSocket.OPEN) ws.send(pktPingreq());
+      },45000);
+      pushEvent('MQTT broker connected','evt-good');
       return;
     }
-
-    if (type === 13) return;    // PINGRESP — ignore
-
-    const pub = parsePublish(ev.data);
-    if (pub && pub.topic === TOPIC_TELE) {
-      try { applyTelemetry(JSON.parse(pub.payload)); }
-      catch (e) { console.warn("Bad telemetry JSON:", e); }
+    if(type===13)return;
+    const pub=parsePublish(ev.data);
+    if(pub&&pub.topic===TOPIC_TELE){
+      try{ applyTelemetry(JSON.parse(pub.payload)); }
+      catch(e){ console.warn('Bad telemetry:',e); }
     }
   };
 
-  ws.onclose = () => {
-    connected = false; clearInterval(pingTimer);
-    setMqttStatus(false, `MQTT: disconnected (retry in ${(retryDelay/1000).toFixed(0)}s)`);
-    setTimeout(start, retryDelay);
-    retryDelay = Math.min(retryDelay * 1.5, 15_000);   // cap at 15 s
+  ws.onclose=()=>{
+    connected=false; clearInterval(pingTimer);
+    setMqttStatus(false,`Disconnected (retry ${(retryDelay/1000).toFixed(0)}s)`);
+    setTimeout(start,retryDelay);
+    retryDelay=Math.min(retryDelay*1.5,15000);
   };
 
-  ws.onerror = () => {
-    connected = false; clearInterval(pingTimer);
-    setMqttStatus(false, "MQTT: error — retrying…");
-    try { ws.close(); } catch (_) {}
+  ws.onerror=()=>{
+    connected=false; clearInterval(pingTimer);
+    setMqttStatus(false,'MQTT error',true);
+    try{ ws.close(); }catch(_){}
   };
 }
 
-start();
+/* ══ Login ══ */
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  const err=document.getElementById('loginError');
+  if(!u||!p){ err.textContent='Username and password are required.'; return; }
+  err.textContent='';
+  MQTT_USERNAME=u; MQTT_PASSWORD=p;
+  startTime=Date.now();
+  document.getElementById('loginOverlay').style.display='none';
+  document.getElementById('mainApp').style.display='';
+  start();
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.getElementById('loginOverlay').style.display!=='none') doLogin();
+});
 
-/* ══════════════════════════════════════════════════════════════════
-   Button handlers — publish to compound/pumps/cmd/<action>
-══════════════════════════════════════════════════════════════════ */
-document.getElementById("applyModeBtn").onclick = () =>
-  mqttSend(`${CMD_BASE}/mode`,        { mode: document.getElementById("modeSel").value });
-
-document.getElementById("setDutyBtn").onclick = () =>
-  mqttSend(`${CMD_BASE}/duty`,        { duty: document.getElementById("dutySel").value });
-
-document.getElementById("swapBtn").onclick = () =>
-  mqttSend(`${CMD_BASE}/swap`,        { now: true });
-
-document.getElementById("setpointBtn").onclick = () => {
-  const v = parseFloat(document.getElementById("setpointInp").value);
-  if (!isNaN(v) && v >= 0) mqttSend(`${CMD_BASE}/setpoint`, { setpoint_bar: v });
+/* ══ Command handlers ══ */
+document.getElementById('applyModeBtn').onclick=()=>
+  mqttSend(`${CMD_BASE}/mode`,{mode:document.getElementById('modeSel').value});
+document.getElementById('setDutyBtn').onclick=()=>
+  mqttSend(`${CMD_BASE}/duty`,{duty:document.getElementById('dutySel').value});
+document.getElementById('swapBtn').onclick=()=>
+  mqttSend(`${CMD_BASE}/swap`,{now:true});
+document.getElementById('setpointBtn').onclick=()=>{
+  const v=parseFloat(document.getElementById('setpointInp').value);
+  if(!isNaN(v)&&v>=0) mqttSend(`${CMD_BASE}/setpoint`,{setpoint_bar:v});
 };
+document.getElementById('weeklyBtn').onclick=()=>
+  mqttSend(`${CMD_BASE}/weekly_swap`,{enabled:document.getElementById('weeklySel').value==='true'});
 
-document.getElementById("weeklyBtn").onclick = () =>
-  mqttSend(`${CMD_BASE}/weekly_swap`, { enabled: document.getElementById("weeklySel").value === "true" });
-
-/* ── Resize → redraw charts ── */
+/* ══ Resize → redraw ══ */
 let rzT;
-window.addEventListener("resize", () => {
+window.addEventListener('resize',()=>{
   clearTimeout(rzT);
-  rzT = setTimeout(() => {
-    drawChart(document.getElementById("chartA"), serA);
-    drawChart(document.getElementById("chartB"), serB);
-    drawChart(document.getElementById("chartI"), serI);
-  }, 80);
+  rzT=setTimeout(()=>{
+    drawChart(document.getElementById('chartA'),serA);
+    drawChart(document.getElementById('chartB'),serB);
+    drawChart(document.getElementById('chartI'),serI);
+  },80);
 });
 </script>
 </body>
