@@ -723,7 +723,7 @@ function start() {
   setMqttStatus(false, "MQTT: connecting…");
   clearInterval(pingTimer);
 
-  try { ws = new WebSocket(WS_URL); }
+  try { ws = new WebSocket(WS_URL, ["mqtt"]); }
   catch (e) {
     setMqttStatus(false, "MQTT: invalid URL");
     return;
