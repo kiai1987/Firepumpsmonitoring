@@ -4,6 +4,28 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Alsharq Village — Pumps Platform</title>
+<meta name="theme-color" content="#0d1117"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Pumps Platform"/>
+<link id="pwaManifest" rel="manifest" href="#">
+<script>
+// Inject PWA manifest dynamically (works on GitHub Pages)
+const manifest = {
+  name: "Alsharq Village Pumps Platform",
+  short_name: "Pumps",
+  description: "MQTT Pump Station Monitoring Dashboard",
+  start_url: "./",
+  display: "standalone",
+  background_color: "#0d1117",
+  theme_color: "#0d1117",
+  orientation: "any",
+  icons: [{src:"https://raw.githubusercontent.com/kiai1987/Firepumpsmonitoring/main/icon.png",sizes:"192x192",type:"image/png"},{src:"https://raw.githubusercontent.com/kiai1987/Firepumpsmonitoring/main/icon.png",sizes:"512x512",type:"image/png"}]
+};
+const blob = new Blob([JSON.stringify(manifest)],{type:'application/json'});
+document.getElementById('pwaManifest').href = URL.createObjectURL(blob);
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ═══ TOKENS ═══════════════════════════════ */
@@ -332,6 +354,101 @@ tr:hover td{background:var(--bg2)}
   padding:4px 10px;border-radius:20px;
   background:var(--bg2);border:1px solid var(--border);
 }
+
+/* ── Active Alarms Panel ── */
+.alarm-panel{
+  background:var(--bg1);border:1px solid var(--border);
+  border-radius:var(--r2);overflow:hidden;margin-bottom:16px;
+}
+.alarm-panel.has-alarms{
+  border-color:rgba(248,81,73,.5);
+  box-shadow:0 0 24px rgba(248,81,73,.1);
+}
+.alarm-row{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;border-bottom:1px solid var(--border);
+  font-family:var(--mono);font-size:12px;
+  animation:slide-in .25s ease;
+}
+@keyframes slide-in{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.alarm-row:last-child{border-bottom:none}
+.alarm-sev{
+  font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:700;
+  padding:2px 8px;border-radius:3px;flex-shrink:0;
+}
+.alarm-sev.critical{background:var(--redBg);border:1px solid rgba(248,81,73,.4);color:var(--red)}
+.alarm-sev.warning{background:var(--amberBg);border:1px solid rgba(227,179,65,.3);color:var(--amber)}
+.alarm-sev.info{background:var(--blueBg);border:1px solid rgba(88,166,255,.3);color:var(--blue)}
+.alarm-msg{flex:1;color:var(--text)}
+.alarm-ts{color:var(--dim);font-size:10px;flex-shrink:0}
+.ack-btn{
+  font-family:var(--mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;
+  padding:3px 10px;border-radius:3px;cursor:pointer;font-weight:600;flex-shrink:0;
+  background:var(--amberBg);border:1px solid rgba(227,179,65,.3);color:var(--amber);
+  transition:background .15s;
+}
+.ack-btn:hover{background:rgba(227,179,65,.2)}
+.alarm-acked{
+  opacity:.45;font-style:italic;
+}
+.alarm-acked .ack-btn{display:none}
+.alarm-empty{
+  padding:14px;text-align:center;
+  font-family:var(--mono);font-size:11px;color:var(--dim);
+}
+
+/* ── Event log toolbar ── */
+.evt-toolbar{
+  display:flex;align-items:center;gap:8px;padding:8px 14px;
+  border-bottom:1px solid var(--border);background:var(--bg2);
+  flex-wrap:wrap;
+}
+.evt-filter-btn{
+  font-family:var(--mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;
+  padding:3px 8px;border-radius:3px;cursor:pointer;
+  background:var(--bg3);border:1px solid var(--border);color:var(--muted);
+  transition:all .15s;
+}
+.evt-filter-btn.active{background:var(--blueBg);border-color:rgba(88,166,255,.4);color:var(--blue)}
+.evt-filter-btn.f-bad.active{background:var(--redBg);border-color:rgba(248,81,73,.4);color:var(--red)}
+.evt-filter-btn.f-good.active{background:var(--greenBg);border-color:rgba(46,160,67,.4);color:var(--green2)}
+.evt-filter-btn.f-warn.active{background:var(--amberBg);border-color:rgba(227,179,65,.3);color:var(--amber)}
+.export-btn,.clr-btn{
+  font-family:var(--mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;
+  padding:3px 10px;border-radius:3px;cursor:pointer;font-weight:600;
+  transition:all .15s;margin-left:auto;
+}
+.export-btn{background:var(--greenBg);border:1px solid rgba(46,160,67,.3);color:var(--green2)}
+.export-btn:hover{background:rgba(46,160,67,.2)}
+.clr-btn{background:var(--bg3);border:1px solid var(--border);color:var(--dim);margin-left:4px}
+.clr-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* ── Audio toggle in nav ── */
+.audio-btn{
+  font-family:var(--mono);font-size:11px;letter-spacing:.5px;
+  padding:5px 10px;border-radius:20px;cursor:pointer;
+  background:var(--bg2);border:1px solid var(--border);color:var(--muted);
+  transition:all .2s;
+}
+.audio-btn.armed{border-color:rgba(46,160,67,.4);background:var(--greenBg);color:var(--green2)}
+.audio-btn.silenced{border-color:rgba(227,179,65,.3);background:var(--amberBg);color:var(--amber)}
+
+/* ── Install PWA btn ── */
+.install-btn{
+  font-family:var(--mono);font-size:11px;letter-spacing:.5px;
+  padding:5px 11px;border-radius:20px;cursor:pointer;
+  background:var(--blueBg);border:1px solid rgba(88,166,255,.35);color:var(--blue);
+  display:none;transition:all .2s;
+}
+.install-btn:hover{background:rgba(88,166,255,.18)}
+
+/* ── Storage indicator ── */
+.storage-bar{
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:10px;color:var(--dim);
+  padding:0 14px 8px;
+}
+.storage-used{color:var(--muted)}
 </style>
 </head>
 <body>
@@ -373,6 +490,8 @@ tr:hover td{background:var(--bg2)}
       </div>
     </div>
     <div class="nav-right">
+      <button class="install-btn" id="installBtn" onclick="installPWA()">⬇ Install App</button>
+      <button class="audio-btn silenced" id="audioBtn" onclick="toggleAudio()" title="Toggle fault alarm sound">🔇 Alarm Off</button>
       <div class="mqtt-pill" id="mqttPill">
         <span class="mqtt-dot" id="mqttDot"></span>
         <span id="mqttText">Connecting…</span>
@@ -444,6 +563,20 @@ tr:hover td{background:var(--bg2)}
     </div>
 
     <!-- PUMP CARDS -->
+    <div class="section-label">Active Alarms</div>
+    <div class="alarm-panel" id="alarmPanel">
+      <div class="panel-head" style="background:var(--bg2);border-bottom:1px solid var(--border)">
+        <span class="panel-title" style="color:var(--red)">⚠ Active Alarms</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--dim)" id="alarmCount">No active alarms</span>
+          <button class="ack-btn" style="margin-left:4px" onclick="ackAllAlarms()">Ack All</button>
+        </div>
+      </div>
+      <div id="alarmList">
+        <div class="alarm-empty" id="alarmEmpty">✓ No active alarms — all systems normal</div>
+      </div>
+    </div>
+
     <div class="section-label">Pump Units</div>
     <div class="pump-grid">
 
@@ -616,10 +749,23 @@ tr:hover td{background:var(--bg2)}
           <span class="panel-title">Event Log</span>
           <span style="font-family:var(--mono);font-size:10px;color:var(--dim)" id="evtCount">0 events</span>
         </div>
+        <div class="evt-toolbar">
+          <button class="evt-filter-btn active" id="fAll"   onclick="setFilter('all')">All</button>
+          <button class="evt-filter-btn f-bad"  id="fFault" onclick="setFilter('bad')">Faults</button>
+          <button class="evt-filter-btn f-good" id="fGood"  onclick="setFilter('good')">Cleared</button>
+          <button class="evt-filter-btn f-warn" id="fWarn"  onclick="setFilter('warn')">Warnings</button>
+          <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+          <button class="clr-btn"    onclick="clearLog()">✕ Clear</button>
+        </div>
         <div class="panel-body">
           <div id="events" class="events-feed">
             <div class="evt"><span class="evt-dot evt-dot-info"></span><span class="evt-info">Waiting for telemetry…</span></div>
           </div>
+        </div>
+        <div class="storage-bar">
+          <span>💾 Stored:</span>
+          <span class="storage-used" id="storageUsed">0 events</span>
+          <span>· localStorage · persists across refresh</span>
         </div>
       </div>
 
@@ -668,7 +814,19 @@ function setMQTT(ok,msg){
 }
 
 const TOPIC_TELE="compound/pumps/tele", CMD_BASE="compound/pumps/cmd";
-function mqttSend(t,o){ if(!connected||!ws||ws.readyState!==1)return; ws.send(pktPub(t,JSON.stringify(o))); }
+function mqttSend(t,o){
+  if(!connected||!ws||ws.readyState!==1){
+    pushEvt("CMD not sent (not connected)","warn");
+    return;
+  }
+  try{
+    ws.send(pktPub(t,JSON.stringify(o)));
+    pushEvt("CMD → "+t,"info");
+  }catch(e){
+    console.warn(e);
+    pushEvt("CMD send failed","bad");
+  }
+}
 
 function start(){
   setMQTT(false,"Connecting…");
@@ -694,7 +852,7 @@ function start(){
     }
     if(type===13)return;
     const pub=parsePub(ev.data);
-    if(pub&&pub.topic===TOPIC_TELE){ try{applyTele(JSON.parse(pub.payload));}catch(e){console.warn(e);} }
+    if(pub&&pub.topic===TOPIC_TELE){ try{ const d=JSON.parse(pub.payload); applyTele(d); if(window.applyTele_patched) applyTele_patched(d); }catch(e){console.warn(e);} }
   };
   ws.onclose=()=>{ connected=false; clearInterval(pingTimer); setMQTT(false,"Disconnected — retry "+Math.round(retryDelay/1000)+"s"); setTimeout(start,retryDelay); retryDelay=Math.min(retryDelay*1.5,15000); };
   ws.onerror=()=>{ connected=false; clearInterval(pingTimer); setMQTT(false,"Connection error"); try{ws.close();}catch(_){} };
@@ -768,23 +926,120 @@ function setDtuOnline(tdId,online){
   if(online){ el.innerHTML='<span class="cell-online-yes">Online</span>'; }
   else{ el.innerHTML='<span class="cell-online-no">Offline</span>'; }
 }
-function pushEvt(msg,type){
-  const feed=document.getElementById("events");
+/* ── localStorage event store ── */
+const LS_KEY = "alsharq_events_v1";
+const MAX_STORED = 2000;
+let evtFilter = "all";
+
+function loadStoredEvents(){
+  try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }
+  catch(e){ return []; }
+}
+function saveEvents(arr){
+  try{
+    // Keep newest MAX_STORED entries
+    const trimmed = arr.slice(-MAX_STORED);
+    localStorage.setItem(LS_KEY, JSON.stringify(trimmed));
+    document.getElementById("storageUsed").textContent = trimmed.length+" events";
+  }catch(e){}
+}
+function updateStorageCount(){
+  const arr = loadStoredEvents();
+  document.getElementById("storageUsed").textContent = arr.length+" events";
+}
+
+function renderEvents(arr, filter){
+  const feed = document.getElementById("events");
+  feed.innerHTML = "";
+  const filtered = filter==="all" ? arr : arr.filter(e=>e.type===filter);
+  if(filtered.length===0){
+    feed.innerHTML='<div class="evt"><span class="evt-info" style="color:var(--dim)">No events match filter.</span></div>';
+    return;
+  }
+  // Show newest first (arr is oldest-first)
+  [...filtered].reverse().forEach(e=>{
+    const d = document.createElement("div"); d.className="evt";
+    d.innerHTML=`<span class="evt-dot evt-dot-${e.type}"></span><span class="evt-ts">${e.ts}</span><span class="evt-${e.type}">${e.msg}</span>`;
+    feed.appendChild(d);
+  });
+}
+
+function setFilter(f){
+  evtFilter = f;
+  ["fAll","fFault","fGood","fWarn"].forEach(id=>{
+    document.getElementById(id).classList.remove("active");
+  });
+  const map={"all":"fAll","bad":"fFault","good":"fGood","warn":"fWarn","info":"fAll"};
+  if(map[f]) document.getElementById(map[f]).classList.add("active");
+  renderEvents(loadStoredEvents(), f);
+}
+
+function exportCSV(){
+  const arr = loadStoredEvents();
+  if(arr.length===0){ alert("No events to export."); return; }
+  const header = "Date,Time,Type,Message\n";
+  const rows = arr.map(e=>`${e.date||""},${e.ts||""},"${e.type}","${e.msg.replace(/"/g,"'")}"`).join("\n");
+  const blob = new Blob([header+rows],{type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "alsharq_events_"+new Date().toISOString().slice(0,10)+".csv";
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+function clearLog(){
+  if(!confirm("Clear ALL stored events? This cannot be undone.")) return;
+  localStorage.removeItem(LS_KEY);
+  evtCount=0; evtsInit=false;
+  document.getElementById("evtCount").textContent="0 events";
+  document.getElementById("storageUsed").textContent="0 events";
+  renderEvents([], evtFilter);
+}
+
+function pushEvt(msg, type){
+  const feed = document.getElementById("events");
   if(!evtsInit){ feed.innerHTML=""; evtsInit=true; }
+
+  const now = new Date();
+  const ts  = now.toLocaleTimeString();
+  const date= now.toLocaleDateString();
+  const evt = {ts, date, type, msg};
+
+  // Save to localStorage
+  const arr = loadStoredEvents();
+  arr.push(evt);
+  saveEvents(arr);
+
+  // Update counter
   evtCount++;
-  document.getElementById("evtCount").textContent=evtCount+" events";
-  const now=new Date().toLocaleTimeString();
-  const d=document.createElement("div"); d.className="evt";
-  d.innerHTML=`<span class="evt-dot evt-dot-${type}"></span><span class="evt-ts">${now}</span><span class="evt-${type}">${msg}</span>`;
-  feed.insertBefore(d,feed.firstChild);
-  while(feed.children.length>80)feed.removeChild(feed.lastChild);
+  document.getElementById("evtCount").textContent = evtCount+" events";
+
+  // Render in feed if passes filter
+  if(evtFilter==="all" || evtFilter===type){
+    const d = document.createElement("div"); d.className="evt";
+    d.innerHTML=`<span class="evt-dot evt-dot-${type}"></span><span class="evt-ts">${ts}</span><span class="evt-${type}">${msg}</span>`;
+    feed.insertBefore(d, feed.firstChild);
+    while(feed.children.length>200) feed.removeChild(feed.lastChild);
+  }
 }
 
 /* ════════════════════════════════════════════════════
    TELEMETRY HANDLER
 ════════════════════════════════════════════════════ */
 function applyTele(pl){
-  const plat=pl.platform||{},pumps=pl.pumps||{};
+  // Accept both formats:
+  // 1) Python gateway: {ts, platform:{...}, pumps:{DOM_A:{...},DOM_B:{...},IRR:{...}}}
+  // 2) Simple test payloads: {dom_a:{...}, dom_b:{...}, irr:{...}} or {DOM_A:{...},...}
+  const plat = pl.platform || {};
+  let pumps = pl.pumps || {};
+  if(!pl.pumps){
+    // allow flat keys
+    pumps = pumps || {};
+    if(pl.DOM_A || pl.DOM_B || pl.IRR){
+      pumps = {DOM_A: pl.DOM_A || pl.dom_a, DOM_B: pl.DOM_B || pl.dom_b, IRR: pl.IRR || pl.irr};
+    }else if(pl.dom_a || pl.dom_b || pl.irr){
+      pumps = {DOM_A: pl.dom_a, DOM_B: pl.dom_b, IRR: pl.irr};
+    }
+  }
   document.getElementById("platformTag").textContent="Mode: "+(plat.mode||"--")+" · Duty: "+(plat.duty||"--");
   if(plat.mode)document.getElementById("modeSel").value=plat.mode;
   if(plat.duty)document.getElementById("dutySel").value=plat.duty;
@@ -897,6 +1152,224 @@ document.getElementById("setpointBtn").onclick=()=>{ const v=parseFloat(document
 document.getElementById("weeklyBtn").onclick=()=>mqttSend(CMD_BASE+"/weekly_swap",{enabled:document.getElementById("weeklySel").value==="true"});
 
 let rz; window.addEventListener("resize",()=>{ clearTimeout(rz); rz=setTimeout(()=>{ drawSpark(document.getElementById("chartA"),serA,"rgb(88,166,255)"); drawSpark(document.getElementById("chartB"),serB,"rgb(63,185,80)"); drawSpark(document.getElementById("chartI"),serI,"rgb(118,227,234)"); },80); });
+
+
+/* ════════════════════════════════════════════════════
+   AUDIO ALARM  (Web Audio API — no file needed)
+════════════════════════════════════════════════════ */
+let audioCtx = null, audioArmed = false, alarmInterval = null;
+
+function getAudioCtx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function beep(freq, dur, vol){
+  try{
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain= ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    osc.type = "square";
+    gain.gain.setValueAtTime(vol||0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+
+function playFaultAlarm(){
+  beep(880, 0.15, 0.3);
+  setTimeout(()=>beep(660, 0.15, 0.3), 180);
+  setTimeout(()=>beep(880, 0.15, 0.3), 360);
+}
+
+function toggleAudio(){
+  // First click unlocks AudioContext (browser policy)
+  getAudioCtx();
+  audioArmed = !audioArmed;
+  const btn = document.getElementById("audioBtn");
+  if(audioArmed){
+    btn.textContent="🔔 Alarm On"; btn.className="audio-btn armed";
+    beep(660, 0.1, 0.15); // confirmation beep
+  } else {
+    btn.textContent="🔇 Alarm Off"; btn.className="audio-btn silenced";
+    clearInterval(alarmInterval); alarmInterval=null;
+  }
+}
+
+function triggerAlarm(){
+  if(!audioArmed) return;
+  playFaultAlarm();
+  // Repeat every 8s while fault active
+  if(!alarmInterval){
+    alarmInterval = setInterval(()=>{
+      if(activeAlarmCount()>0 && audioArmed) playFaultAlarm();
+      else{ clearInterval(alarmInterval); alarmInterval=null; }
+    }, 8000);
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   ACTIVE ALARMS MANAGEMENT
+════════════════════════════════════════════════════ */
+const activeAlarms = {}; // key = pump id, value = {msg, ts, acked}
+
+function activeAlarmCount(){
+  return Object.values(activeAlarms).filter(a=>!a.acked).length;
+}
+
+function setAlarm(pumpId, msg, active){
+  const panel = document.getElementById("alarmPanel");
+  if(active){
+    if(!activeAlarms[pumpId]){
+      activeAlarms[pumpId] = {msg, ts: new Date().toLocaleTimeString(), acked:false};
+      triggerAlarm();
+    }
+  } else {
+    delete activeAlarms[pumpId];
+  }
+  renderAlarms();
+  // Style panel border
+  const count = activeAlarmCount();
+  panel.className = count>0 ? "alarm-panel has-alarms" : "alarm-panel";
+  document.getElementById("alarmCount").textContent = count>0 ? count+" unacknowledged" : "No active alarms";
+}
+
+function renderAlarms(){
+  const list = document.getElementById("alarmList");
+  const empty= document.getElementById("alarmEmpty");
+  const keys = Object.keys(activeAlarms);
+  if(keys.length===0){
+    list.innerHTML="";
+    list.appendChild(empty);
+    empty.style.display="block";
+    return;
+  }
+  empty.style.display="none";
+  list.innerHTML="";
+  keys.forEach(k=>{
+    const a = activeAlarms[k];
+    const row = document.createElement("div");
+    row.className = "alarm-row" + (a.acked?" alarm-acked":"");
+    row.id = "alarm_"+k;
+    row.innerHTML = `
+      <span class="alarm-sev critical">FAULT</span>
+      <span class="alarm-msg">${a.msg}</span>
+      <span class="alarm-ts">${a.ts}</span>
+      <button class="ack-btn" onclick="ackAlarm('${k}')">ACK</button>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function ackAlarm(pumpId){
+  if(activeAlarms[pumpId]){
+    activeAlarms[pumpId].acked = true;
+    clearInterval(alarmInterval); alarmInterval=null;
+    renderAlarms();
+    pushEvt("Alarm acknowledged: "+pumpId, "warn");
+    const count = activeAlarmCount();
+    document.getElementById("alarmCount").textContent = count>0 ? count+" unacknowledged" : "All acknowledged";
+  }
+}
+
+function ackAllAlarms(){
+  Object.keys(activeAlarms).forEach(k=>{ activeAlarms[k].acked=true; });
+  clearInterval(alarmInterval); alarmInterval=null;
+  renderAlarms();
+  pushEvt("All alarms acknowledged by operator","warn");
+  document.getElementById("alarmCount").textContent="All acknowledged";
+  document.getElementById("alarmPanel").className="alarm-panel";
+}
+
+/* ════════════════════════════════════════════════════
+   PATCH applyTele fault detection → setAlarm
+════════════════════════════════════════════════════ */
+const _origApplyTele = applyTele;
+window.applyTele_patched = function(pl){
+  _origApplyTele(pl);
+  const pumps = pl.pumps||{};
+  ["DOM_A","DOM_B","IRR"].forEach(k=>{
+    const p = pumps[k];
+    if(p) setAlarm(k, k+" FAULT — trip code "+(p.trip_code||0), !!p.fault);
+  });
+};
+
+/* ════════════════════════════════════════════════════
+   PWA INSTALL PROMPT
+════════════════════════════════════════════════════ */
+let deferredInstall = null;
+window.addEventListener("beforeinstallprompt", e=>{
+  e.preventDefault();
+  deferredInstall = e;
+  document.getElementById("installBtn").style.display="block";
+});
+window.addEventListener("appinstalled", ()=>{
+  document.getElementById("installBtn").style.display="none";
+  deferredInstall=null;
+  pushEvt("App installed to device home screen","good");
+});
+function installPWA(){
+  if(!deferredInstall) return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(r=>{
+    if(r.outcome==="accepted") pushEvt("PWA install accepted","good");
+    deferredInstall=null;
+  });
+}
+
+/* ════════════════════════════════════════════════════
+   BACKGROUND KEEPALIVE  (Web Worker)
+════════════════════════════════════════════════════ */
+const workerCode = `
+  let t=null;
+  self.onmessage=function(e){
+    if(e.data==='start'){if(t)return;t=setInterval(function(){self.postMessage('tick');},20000);}
+    else if(e.data==='stop'){clearInterval(t);t=null;}
+  };
+`;
+const keepaliveWorker = new Worker(URL.createObjectURL(new Blob([workerCode],{type:'application/javascript'})));
+keepaliveWorker.onmessage = function(){
+  if(connected && ws && ws.readyState===1){ ws.send(pktPing()); }
+  else if(!connected && MQTT_USERNAME){ start(); }
+};
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible" && !connected && MQTT_USERNAME) start();
+});
+
+/* ════════════════════════════════════════════════════
+   INIT ON PAGE LOAD  — restore events from localStorage
+════════════════════════════════════════════════════ */
+(function initFromStorage(){
+  const arr = loadStoredEvents();
+  if(arr.length>0){
+    evtsInit=true;
+    evtCount=arr.length;
+    document.getElementById("storageUsed").textContent=arr.length+" events";
+    document.getElementById("evtCount").textContent=arr.length+" stored events";
+    renderEvents(arr, evtFilter);
+  }
+})();
+
+/* ════════════════════════════════════════════════════
+   PATCH doLogin / doLogout to start/stop worker
+════════════════════════════════════════════════════ */
+const _origDoLogin = doLogin;
+window.doLogin = function(){
+  _origDoLogin();
+  setTimeout(()=>{ if(MQTT_USERNAME) keepaliveWorker.postMessage('start'); }, 500);
+  // Activate alarm patch
+  const origStart = start;
+};
+const _origDoLogout = doLogout;
+window.doLogout = function(){
+  keepaliveWorker.postMessage('stop');
+  clearInterval(alarmInterval); alarmInterval=null;
+  _origDoLogout();
+};
+
 </script>
 </body>
 </html>
