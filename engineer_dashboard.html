@@ -1,1075 +1,1886 @@
-<!-- ✅ READY-TO-PASTE UPGRADED DASHBOARD (NO EXTRA HARDWARE)
-     What’s improved vs your version:
-     1) NO forced page reload (removed).
-     2) Robust MQTT reconnect with exponential backoff + jitter.
-     3) Clear separation: mqttConnected vs dataFresh (stale banner).
-     4) Fast recovery on return from minimize/lock (visibilitychange + focus).
-     5) Failover primary/secondary without thrashing.
-     6) Optional “sticky alarms” latch (keeps alarms until Reset).
-     7) PWA support hooks (manifest + service worker registration) — add files below.
-     
-     ⚠️ Important truth:
-     Browser can still be suspended in background/lock. This code recovers instantly when resumed.
--->
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Fire Pump Monitoring Dashboard</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Alsharq Village — SCADA Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#0d1117;--bg1:#161b22;--bg2:#1c2333;--bg3:#21262d;
+  --border:#30363d;--border2:#444c56;
+  --text:#e6edf3;--muted:#8b949e;--dim:#484f58;
+  --green:#2ea043;--green2:#3fb950;--greenBg:rgba(46,160,67,.12);
+  --red:#f85149;--redBg:rgba(248,81,73,.12);
+  --amber:#e3b341;--amberBg:rgba(227,179,65,.1);
+  --blue:#58a6ff;--blueBg:rgba(88,166,255,.1);
+  --cyan:#76e3ea;--cyanBg:rgba(118,227,234,.1);
+  --purple:#bc8cff;--purpleBg:rgba(188,140,255,.1);
+  --gold:#d4a843;
+  --mono:'JetBrains Mono',monospace;
+  --display:'Barlow Condensed',sans-serif;
+  --sidebar:220px;--topbar:52px;
+  --r:6px;--r2:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--display);background:var(--bg0);color:var(--text);min-height:100vh;font-size:14px;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg1)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-  <!-- PWA: add these two files in your repo root (same folder as dashboard.html):
-       1) manifest.json
-       2) sw.js
-       (Templates provided after this HTML)
-  -->
-  <link rel="manifest" href="manifest.json">
+/* ═══ TOP BAR ═══ */
+.topbar{
+  position:fixed;top:0;left:0;right:0;height:var(--topbar);z-index:200;
+  background:var(--bg1);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;gap:12px;
+  box-shadow:0 1px 8px rgba(0,0,0,.4);
+}
+.topbar-brand{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.topbar-logo{height:32px;width:32px;border-radius:6px;object-fit:cover;border:1px solid rgba(212,168,67,.3)}
+.topbar-text .t-org{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.topbar-text .t-name{font-size:14px;font-weight:800;color:var(--text);letter-spacing:.2px}
+.topbar-sep{width:1px;height:28px;background:var(--border);flex-shrink:0}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap}
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+/* MQTT pill */
+.mqtt-pill{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:16px;background:var(--bg2);border:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--muted);transition:all .3s}
+.mqtt-pill.online{border-color:rgba(46,160,67,.4);background:var(--greenBg);color:var(--green2)}
+.mqtt-pill.error{border-color:rgba(248,81,73,.4);background:var(--redBg);color:var(--red)}
+.mqtt-dot{width:6px;height:6px;border-radius:50%;background:var(--dim);flex-shrink:0;transition:background .3s}
+.mqtt-dot.online{background:var(--green2);box-shadow:0 0 5px var(--green2);animation:blink 2s infinite}
+.mqtt-dot.error{background:var(--red)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
 
-  <style>
-    :root{
-      --bg1:#053c31;
-      --bg2:#0a6b54;
+.nav-user-pill{font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:16px;background:var(--bg2);border:1px solid var(--border);color:var(--muted)}
+.logout-btn{font-family:var(--mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;padding:4px 10px;border-radius:16px;cursor:pointer;font-weight:600;background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:var(--red);transition:all .2s}
+.logout-btn:hover{background:rgba(248,81,73,.2)}
 
-      --panel: rgba(16,18,24,.72);
-      --card: rgba(255,255,255,.06);
-      --stroke: rgba(255,255,255,.10);
+/* ═══ SIDEBAR ═══ */
+.sidebar{
+  position:fixed;top:var(--topbar);left:0;bottom:0;width:var(--sidebar);
+  background:var(--bg1);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:100;
+  overflow-y:auto;
+}
+.sidebar-section{padding:12px 12px 4px;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 14px;margin:2px 8px;border-radius:var(--r);
+  cursor:pointer;transition:background .15s,color .15s;
+  font-size:13px;font-weight:600;color:var(--muted);
+  border:1px solid transparent;
+  text-decoration:none;
+}
+.nav-item:hover{background:var(--bg2);color:var(--text)}
+.nav-item.active{background:var(--bg2);color:var(--text);border-color:var(--border)}
+.nav-item .nav-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center}
+.nav-item .nav-badge{margin-left:auto;font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:3px}
+.nav-item.active .nav-badge-pump{background:var(--blueBg);border:1px solid rgba(88,166,255,.3);color:var(--blue)}
+.nav-item.active .nav-badge-light{background:var(--amberBg);border:1px solid rgba(227,179,65,.3);color:var(--amber)}
+.nav-item.active .nav-badge-tank{background:var(--cyanBg);border:1px solid rgba(118,227,234,.3);color:var(--cyan)}
+.sidebar-bottom{margin-top:auto;padding:12px;border-top:1px solid var(--border)}
+.db-stat-mini{font-family:var(--mono);font-size:9px;color:var(--dim);padding:2px 0}
 
-      --text:#eef2ff;
-      --muted: rgba(238,242,255,.70);
+/* ═══ MAIN CONTENT ═══ */
+.main{margin-left:var(--sidebar);margin-top:var(--topbar);padding:16px 20px 32px;min-height:calc(100vh - var(--topbar))}
+.page{display:none}.page.active{display:block}
 
-      --brand:#4aa3ff;
-      --ok:#34c759;
-      --danger:#ff3b30;
-      --warn:#ffcc00;
+/* ═══ COMMON COMPONENTS ═══ */
+.section-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-weight:500;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.panel{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.panel-head{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.panel-title{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
 
-      --radius:18px;
-      --shadow: 0 18px 40px rgba(0,0,0,.35);
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.kpi-row{grid-template-columns:1fr}}
+.kpi-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px;display:flex;align-items:center;gap:12px;transition:border-color .3s}
+.kpi-icon{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.kpi-icon.green{background:var(--greenBg);border:1px solid rgba(46,160,67,.25)}
+.kpi-icon.red{background:var(--redBg);border:1px solid rgba(248,81,73,.25)}
+.kpi-icon.amber{background:var(--amberBg);border:1px solid rgba(227,179,65,.25)}
+.kpi-icon.blue{background:var(--blueBg);border:1px solid rgba(88,166,255,.25)}
+.kpi-icon.cyan{background:var(--cyanBg);border:1px solid rgba(118,227,234,.25)}
+.kpi-val{font-size:24px;font-weight:800;line-height:1;letter-spacing:-.5px;font-family:var(--display)}
+.kpi-lbl{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.kpi-sub{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:1px}
 
-      --gap:14px;
-      --pad:16px;
+/* status badge */
+.status-badge{font-family:var(--mono);font-size:9px;letter-spacing:.8px;text-transform:uppercase;padding:2px 8px;border-radius:3px;font-weight:600}
+.badge-run{background:var(--greenBg);border:1px solid rgba(46,160,67,.4);color:var(--green2)}
+.badge-stop{background:var(--bg3);border:1px solid var(--border);color:var(--dim)}
+.badge-fault{background:var(--redBg);border:1px solid rgba(248,81,73,.4);color:var(--red);animation:flicker 1.4s infinite}
+@keyframes flicker{0%,100%{opacity:1}50%{opacity:.6}}
 
-      --glow: 0 0 18px rgba(74,163,255,.22);
-    }
+/* ═══════════════════════════════════════
+   PAGE 1 — PUMPS
+═══════════════════════════════════════ */
+.pump-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+@media(max-width:1100px){.pump-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.pump-grid{grid-template-columns:1fr}}
 
-    *{ box-sizing: border-box; }
-    html, body{ height: 100%; }
+.pump-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;transition:border-color .3s,box-shadow .3s}
+.pump-card.running{border-color:rgba(46,160,67,.45);box-shadow:0 0 18px rgba(46,160,67,.08)}
+.pump-card.fault{border-color:rgba(248,81,73,.5);box-shadow:0 0 18px rgba(248,81,73,.12);animation:pfault 2s infinite}
+@keyframes pfault{0%,100%{box-shadow:0 0 18px rgba(248,81,73,.12)}50%{box-shadow:0 0 28px rgba(248,81,73,.25)}}
+.pump-head{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.pump-name{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.pump-role{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-top:1px}
+.pump-body{padding:10px 12px}
+.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:8px}
+.metric{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:7px 9px;transition:border-color .3s}
+.metric.alert{border-color:rgba(248,81,73,.4);background:var(--redBg)}
+.m-lbl{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+.m-val{font-family:var(--mono);font-size:18px;font-weight:600;line-height:1.1;letter-spacing:-.5px;margin-top:2px}
+.m-unit{font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:1px}
+.spark-wrap{height:52px;border-radius:var(--r);overflow:hidden;border:1px solid var(--border);background:var(--bg2);position:relative;margin-bottom:8px}
+canvas{display:block;width:100%!important;height:100%!important}
+.online-pill{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--muted)}
+.online-dot{width:5px;height:5px;border-radius:50%;background:var(--dim);flex-shrink:0}
+.online-dot.on{background:var(--green2);box-shadow:0 0 4px var(--green2)}
 
-    body{
-      margin:0;
-      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color: var(--text);
-      display:none; /* shown after auth */
-      min-height: 100dvh;
-      padding: env(safe-area-inset-top) env(safe-area-inset-right)
-               env(safe-area-inset-bottom) env(safe-area-inset-left);
-      background:
-        radial-gradient(1200px 600px at 20% 10%, rgba(74,163,255,.18), transparent 55%),
-        radial-gradient(900px 500px at 85% 25%, rgba(52,199,89,.14), transparent 55%),
-        linear-gradient(160deg, var(--bg1), var(--bg2));
-    }
+/* VFD Controls */
+.vfd-controls{display:flex;gap:5px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.vfd-btn{
+  flex:1;font-family:var(--display);font-size:11px;font-weight:700;
+  letter-spacing:.5px;text-transform:uppercase;padding:5px 4px;
+  border-radius:var(--r);border:1px solid;cursor:pointer;
+  transition:all .15s;text-align:center;
+}
+.vfd-btn:active{transform:scale(.97)}
+.vfd-run{background:var(--greenBg);border-color:rgba(46,160,67,.4);color:var(--green2)}
+.vfd-run:hover{background:rgba(46,160,67,.22);border-color:var(--green2)}
+.vfd-stop{background:var(--redBg);border-color:rgba(248,81,73,.35);color:var(--red)}
+.vfd-stop:hover{background:rgba(248,81,73,.22);border-color:var(--red)}
+.vfd-reset{background:var(--amberBg);border-color:rgba(227,179,65,.3);color:var(--amber)}
+.vfd-reset:hover{background:rgba(227,179,65,.18);border-color:var(--amber)}
+.vfd-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
 
-    .page{
-      width: min(1180px, 100%);
-      margin: 0 auto;
-      padding: 14px;
-    }
+/* toolbar */
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:9px 12px;margin-bottom:14px}
+.tb-sep{width:1px;height:22px;background:var(--border);flex-shrink:0}
+.tb-label{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+select,input[type=number]{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);padding:4px 7px;outline:none;appearance:none;transition:border-color .2s;min-width:80px}
+select:focus,input:focus{border-color:var(--blue)}
+input[type=number]{width:72px}
+.btn{font-family:var(--display);font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:4px 10px;border-radius:var(--r);border:1px solid var(--border2);background:var(--bg3);color:var(--text);cursor:pointer;white-space:nowrap;transition:all .15s}
+.btn:hover{background:var(--bg2);border-color:var(--blue);color:var(--blue)}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--greenBg);border-color:rgba(46,160,67,.4);color:var(--green2)}
+.btn-primary:hover{background:rgba(46,160,67,.2);border-color:var(--green2)}
+.btn-warn{background:var(--amberBg);border-color:rgba(227,179,65,.3);color:var(--amber)}
+.plat-status{margin-left:auto;font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:4px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);white-space:nowrap}
 
-    .topbar{
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: var(--panel);
-      border: 1px solid var(--stroke);
-      box-shadow: var(--shadow);
-      border-radius: var(--radius);
-      padding: 12px 14px;
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
-      gap: 12px;
-      backdrop-filter: blur(14px);
-    }
+/* bottom grid */
+.bottom-grid{display:grid;grid-template-columns:1fr 320px;gap:12px}
+@media(max-width:900px){.bottom-grid{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse}
+th,td{padding:7px 12px;font-family:var(--mono);font-size:10px;border-bottom:1px solid var(--border);text-align:left}
+th{color:var(--dim);font-size:9px;letter-spacing:1px;text-transform:uppercase;background:var(--bg2)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.cell-on{color:var(--green2);display:flex;align-items:center;gap:4px}
+.cell-on::before{content:"●";font-size:7px}
+.cell-off{color:var(--dim);display:flex;align-items:center;gap:4px}
+.cell-off::before{content:"○";font-size:7px}
+.evt-feed{font-family:var(--mono);font-size:10px;max-height:220px;overflow-y:auto;padding:6px 12px}
+.evt{display:flex;gap:7px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.4}
+.evt:last-child{border-bottom:none}
+.evt-ts{color:var(--dim);flex-shrink:0;font-size:9px;padding-top:1px}
+.evt-good{color:var(--green2)}.evt-bad{color:var(--red)}.evt-warn{color:var(--amber)}.evt-info{color:var(--muted)}
+.evt-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.evt-dot-good{background:var(--green2)}.evt-dot-bad{background:var(--red)}.evt-dot-warn{background:var(--amber)}.evt-dot-info{background:var(--muted)}
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap: 12px;
-      min-width: 0;
-    }
+/* ═══════════════════════════════════════
+   PAGE 2 — LIGHTING
+═══════════════════════════════════════ */
+.light-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:9px 12px;margin-bottom:14px}
+.light-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:14px}
+.light-card{
+  background:var(--bg1);border:1px solid var(--border);
+  border-radius:var(--r2);padding:12px 14px;
+  display:flex;flex-direction:column;gap:8px;
+  transition:border-color .3s,box-shadow .3s;
+  cursor:default;
+}
+.light-card.on{
+  border-color:rgba(227,179,65,.45);
+  box-shadow:0 0 16px rgba(227,179,65,.1);
+  background:rgba(227,179,65,.04);
+}
+.light-card-top{display:flex;align-items:center;justify-content:space-between}
+.light-panel-name{font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--text)}
+.light-bulb{font-size:22px;transition:filter .3s;filter:grayscale(1) brightness(.5)}
+.light-card.on .light-bulb{filter:none}
+.light-state-txt{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-top:1px}
+.light-card.on .light-state-txt{color:var(--amber)}
+.light-card:not(.on) .light-state-txt{color:var(--dim)}
+.light-ts{font-family:var(--mono);font-size:8px;color:var(--dim)}
+.light-btns{display:flex;gap:5px}
+.light-on-btn,.light-off-btn{
+  flex:1;font-family:var(--display);font-size:10px;font-weight:700;letter-spacing:.4px;
+  text-transform:uppercase;padding:4px 6px;border-radius:4px;border:1px solid;cursor:pointer;
+  transition:all .15s;text-align:center;
+}
+.light-on-btn{background:var(--amberBg);border-color:rgba(227,179,65,.3);color:var(--amber)}
+.light-on-btn:hover{background:rgba(227,179,65,.2);border-color:var(--amber)}
+.light-off-btn{background:var(--bg2);border-color:var(--border);color:var(--dim)}
+.light-off-btn:hover{background:var(--bg3);border-color:var(--border2);color:var(--muted)}
 
-    .logo-side{
-      width: 52px;
-      height: 52px;
-      border-radius: 14px;
-      padding: 6px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.10);
-      box-shadow: 0 10px 22px rgba(0,0,0,.22);
-      object-fit: contain;
-    }
+/* ── Schedule builder ── */
+.schedule-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.schedule-grid{grid-template-columns:1fr}}
+.sched-block{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:14px}
+.sched-title{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.sched-form{display:flex;flex-direction:column;gap:10px}
+.sched-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sched-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);white-space:nowrap;min-width:64px}
+.days-picker{display:flex;gap:4px;flex-wrap:wrap}
+.day-btn{font-family:var(--mono);font-size:9px;padding:3px 6px;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--dim);transition:all .15s;font-weight:600}
+.day-btn.sel{background:var(--blueBg);border-color:rgba(88,166,255,.4);color:var(--blue)}
+input[type=time]{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);padding:4px 7px;outline:none}
+input[type=time]:focus{border-color:var(--blue)}
 
-    .titles{ min-width:0; }
-    .dashboard-title{
-      font-size: clamp(16px, 2.4vw, 22px);
-      font-weight: 800;
-      color: var(--text);
-      letter-spacing: .2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .subtitle{
-      margin-top: 2px;
-      font-size: 12px;
-      color: var(--muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+/* active schedules list */
+.sched-list{list-style:none}
+.sched-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px}
+.sched-item:last-child{border-bottom:none}
+.sched-badge{font-size:9px;padding:2px 6px;border-radius:3px;font-weight:700;flex-shrink:0}
+.sched-badge-light{background:var(--amberBg);border:1px solid rgba(227,179,65,.3);color:var(--amber)}
+.sched-del{margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:0 4px;border-radius:3px;transition:color .15s}
+.sched-del:hover{color:var(--red)}
+.sched-enabled-toggle{width:28px;height:16px;border-radius:8px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);position:relative;flex-shrink:0;transition:background .2s}
+.sched-enabled-toggle.on{background:var(--green);border-color:var(--green)}
+.sched-enabled-toggle::after{content:'';position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:#fff;transition:transform .2s}
+.sched-enabled-toggle.on::after{transform:translateX(12px)}
 
-    .status-pill{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      justify-content: center;
-      padding: 8px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.10);
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-    .dot{
-      width:10px;
-      height:10px;
-      border-radius: 50%;
-      background: var(--warn);
-      box-shadow: 0 0 14px rgba(255,204,0,.35);
-    }
-    .dot.ok{
-      background: var(--ok);
-      box-shadow: 0 0 14px rgba(52,199,89,.35);
-    }
-    .dot.bad{
-      background: var(--danger);
-      box-shadow: 0 0 14px rgba(255,59,48,.35);
-    }
+/* ═══════════════════════════════════════
+   PAGE 3 — TANKS
+═══════════════════════════════════════ */
+.tank-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:14px}
+.tank-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;transition:border-color .3s}
+.tank-card.high{border-color:rgba(88,166,255,.4)}
+.tank-card.low{border-color:rgba(248,81,73,.4);animation:pfault 2s infinite}
+.tank-head{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.tank-body{padding:16px 14px}
+.tank-gauge-wrap{position:relative;height:160px;background:var(--bg2);border-radius:var(--r);overflow:hidden;border:1px solid var(--border);margin-bottom:10px}
+.tank-gauge-fill{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(180deg,rgba(88,166,255,.6) 0%,rgba(88,166,255,.2) 100%);
+  transition:height 1s ease;
+  border-top:2px solid rgba(88,166,255,.8);
+}
+.tank-gauge-fill.low-water{background:linear-gradient(180deg,rgba(248,81,73,.6) 0%,rgba(248,81,73,.2) 100%);border-top-color:rgba(248,81,73,.8)}
+.tank-gauge-fill.high-water{background:linear-gradient(180deg,rgba(46,160,67,.6) 0%,rgba(46,160,67,.2) 100%);border-top-color:rgba(46,160,67,.8)}
+.tank-pct-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:800;font-family:var(--display);letter-spacing:-1px;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.tank-markers{position:absolute;right:8px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:space-between;font-family:var(--mono);font-size:8px;color:var(--dim);padding:4px 0}
+.tank-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tank-setpoints{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.sp-label{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.sp-row{display:flex;align-items:center;gap:5px}
+.sp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sp-dot-low{background:var(--red)}
+.sp-dot-high{background:var(--blue)}
+.sp-input{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px solid var(--border2);border-radius:4px;color:var(--text);padding:3px 6px;width:52px;outline:none}
+.sp-input:focus{border-color:var(--blue)}
+.sp-unit{font-family:var(--mono);font-size:9px;color:var(--dim)}
+.sp-apply{font-family:var(--mono);font-size:9px;padding:3px 7px;border-radius:4px;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--muted);transition:all .15s;white-space:nowrap}
+.sp-apply:hover{border-color:var(--blue);color:var(--blue)}
+.tank-alarm-bar{height:3px;width:100%;margin-top:2px;border-radius:0 0 var(--r2) var(--r2);background:transparent;transition:background .4s}
+.tank-alarm-bar.low{background:var(--red);box-shadow:0 0 6px var(--red);animation:blink 1s infinite}
+.tank-alarm-bar.high{background:var(--blue);box-shadow:0 0 6px var(--blue)}
 
-    .top-actions{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      justify-self:end;
-      flex-wrap: wrap;
-    }
+/* ═══ ALARM PANEL ═══ */
+.alarm-panel{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:14px;transition:border-color .3s,box-shadow .3s}
+.alarm-panel.has-alarms{border-color:rgba(248,81,73,.6);box-shadow:0 0 24px rgba(248,81,73,.15);animation:alarmpulse 2.5s infinite}
+@keyframes alarmpulse{0%,100%{box-shadow:0 0 16px rgba(248,81,73,.1)}50%{box-shadow:0 0 30px rgba(248,81,73,.3)}}
+.alarm-header{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.alarm-header.firing{background:rgba(248,81,73,.12)}
+.alarm-title-wrap{display:flex;align-items:center;gap:8px}
+.alarm-blink{width:8px;height:8px;border-radius:50%;background:var(--red);animation:blink 1s infinite;flex-shrink:0}
+.alarm-blink.ok{background:var(--green2);animation:none}
+.alarm-controls{display:flex;gap:6px;align-items:center}
+.alarm-sound-btn{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--muted);transition:all .15s}
+.alarm-sound-btn.muted{color:var(--dim);border-color:var(--border)}
+.alarm-sound-btn:hover{border-color:var(--blue);color:var(--blue)}
+.alarm-body{max-height:240px;overflow-y:auto}
+.alarm-row{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:11px;animation:alarm-in .2s ease}
+@keyframes alarm-in{from{opacity:0;background:rgba(248,81,73,.08)}to{opacity:1;background:none}}
+.alarm-row:last-child{border-bottom:none}
+.alarm-row.acked{opacity:.45}
+.alarm-sev{font-size:8px;letter-spacing:1px;text-transform:uppercase;font-weight:700;padding:2px 8px;border-radius:3px;flex-shrink:0;min-width:56px;text-align:center}
+.alarm-sev.critical{background:var(--redBg);border:1px solid rgba(248,81,73,.4);color:var(--red)}
+.alarm-sev.warn{background:var(--amberBg);border:1px solid rgba(227,179,65,.3);color:var(--amber)}
+.alarm-sev.info{background:var(--blueBg);border:1px solid rgba(88,166,255,.25);color:var(--blue)}
+.alarm-code{color:var(--dim);font-size:9px;flex-shrink:0;min-width:80px}
+.alarm-msg{flex:1;color:var(--text)}
+.alarm-ts{color:var(--dim);font-size:9px;flex-shrink:0;white-space:nowrap}
+.ack-btn{font-family:var(--mono);font-size:9px;letter-spacing:.5px;text-transform:uppercase;padding:2px 8px;border-radius:3px;cursor:pointer;font-weight:600;background:var(--amberBg);border:1px solid rgba(227,179,65,.3);color:var(--amber);transition:all .15s;flex-shrink:0}
+.ack-btn:hover{background:rgba(227,179,65,.2)}
+.alarm-empty{padding:14px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--dim)}
+.alarm-sidebar-badge{display:none;font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:3px;background:var(--redBg);border:1px solid rgba(248,81,73,.4);color:var(--red);font-weight:700;margin-left:auto;animation:blink 1.2s infinite}
 
-    .btn{
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.08);
-      color: var(--text);
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      min-height: 42px;
-      transition: transform .06s ease, background .2s ease, border-color .2s ease;
-      user-select:none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .btn:hover{
-      background: rgba(255,255,255,.10);
-      border-color: rgba(255,255,255,.18);
-    }
-    .btn:active{ transform: scale(.98); }
-    .btn.primary{
-      background: rgba(74,163,255,.16);
-      border-color: rgba(74,163,255,.35);
-      box-shadow: var(--glow);
-    }
-    .btn.danger{
-      background: rgba(255,59,48,.20);
-      border-color: rgba(255,59,48,.35);
-    }
+/* ═══ LOGIN ═══ */
+#loginOverlay{position:fixed;inset:0;z-index:9999;background:var(--bg0);display:flex;align-items:center;justify-content:center;animation:fadein .3s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.login-box{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:32px 28px;width:340px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+.login-brand{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:22px}
+.login-logo{width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid rgba(212,168,67,.35)}
+.login-brand-text .l-org{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.login-brand-text .l-prod{font-size:14px;font-weight:800;color:var(--text)}
+.login-field{margin-bottom:12px}
+.login-field label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:5px}
+.login-field input{width:100%;padding:9px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .2s}
+.login-field input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(46,160,67,.15)}
+.login-btn{width:100%;padding:10px;background:var(--green);border:none;border-radius:var(--r);color:#fff;font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;margin-top:4px;transition:background .2s}
+.login-btn:hover{background:var(--green2)}
+.login-err{color:var(--red);font-family:var(--mono);font-size:10px;text-align:center;margin-top:10px;min-height:14px}
+.login-note{text-align:center;font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:16px;padding-top:12px;border-top:1px solid var(--border);line-height:1.6}
 
-    .content{
-      margin-top: 12px;
-      background: var(--panel);
-      border: 1px solid var(--stroke);
-      box-shadow: var(--shadow);
-      border-radius: var(--radius);
-      padding: var(--pad);
-      backdrop-filter: blur(14px);
-    }
+/* responsive sidebar collapse */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);transition:transform .25s}
+  .sidebar.open{transform:none}
+  .main{margin-left:0}
+  .topbar .menu-toggle{display:flex}
+}
+.menu-toggle{display:none;align-items:center;justify-content:center;width:34px;height:34px;border-radius:var(--r);background:var(--bg2);border:1px solid var(--border);cursor:pointer;font-size:16px;color:var(--muted);transition:all .15s}
+.menu-toggle:hover{border-color:var(--blue);color:var(--blue)}
 
-    /* NEW: stale banner */
-    .stale-banner{
-      margin-bottom: 10px;
-      border-radius: 14px;
-      padding: 10px 14px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,204,0,.12);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 900;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      gap: 8px;
-      text-align:center;
-      line-height: 1.25;
-    }
-    .stale-banner.show{ display:flex; }
-    .stale-banner i{ opacity:.9; }
+/* ═══════════════════════════════════════════
+   DATA QUALITY — SCADA standard (GOOD/UNCERTAIN/BAD)
+   Mirrors Siemens WinCC / Honeywell Experion
+═══════════════════════════════════════════ */
+.dq-badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9px;letter-spacing:.5px;padding:2px 6px;border-radius:3px;font-weight:600}
+.dq-good  {background:rgba(63,185,80,.15);color:var(--green2);border:1px solid rgba(63,185,80,.3)}
+.dq-uncertain{background:rgba(210,153,34,.15);color:#d29922;border:1px solid rgba(210,153,34,.3)}
+.dq-bad   {background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.3);animation:blink 1s infinite}
+.dq-init  {background:rgba(139,148,158,.1);color:var(--dim);border:1px solid var(--border)}
 
-    #alarm-box{
-      min-height: 46px;
-      border-radius: 14px;
-      padding: 12px 14px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.06);
-      color: var(--muted);
-      font-size: 14px;
-      font-weight: 800;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      line-height: 1.25;
-      word-break: break-word;
-    }
-    #alarm-box.alarm{
-      background: rgba(255,59,48,.16);
-      border-color: rgba(255,59,48,.35);
-      color: #fff;
-      box-shadow: 0 0 0 2px rgba(255,59,48,.10) inset;
-    }
-    #alarm-box:empty::before{
-      content:"No active alarms (tap once to enable sound)";
-    }
+/* Stale overlay on any value element */
+.stale-val{color:var(--dim)!important;text-decoration:line-through;opacity:.45}
+.bad-val  {color:var(--red)!important;opacity:.6}
 
-    .dashboard{
-      margin-top: 14px;
-      display:grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: var(--gap);
-      align-items: stretch;
-    }
+/* Quality row on each section */
+.quality-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.quality-row .q-label{font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.quality-row .q-age{font-family:var(--mono);font-size:9px;color:var(--dim)}
 
-    .card{
-      grid-column: span 4;
-      border-radius: 18px;
-      padding: 14px;
-      background: var(--card);
-      border: 1px solid rgba(255,255,255,.10);
-      box-shadow: 0 10px 22px rgba(0,0,0,.25);
-      position: relative;
-      overflow: hidden;
-    }
-    .card::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background: radial-gradient(500px 200px at 0% 0%, rgba(74,163,255,.16), transparent 55%);
-      pointer-events:none;
-      opacity: .85;
-    }
-    .card > *{ position: relative; }
-
-    @media (max-width: 1024px){ .card{ grid-column: span 6; } }
-    @media (max-width: 680px){
-      .page{ padding: 10px; }
-      .content{ padding: 12px; }
-      .card{ grid-column: span 12; }
-      .topbar{
-        grid-template-columns: auto 1fr;
-        grid-template-rows: auto auto;
-      }
-      .top-actions{
-        grid-column: 1 / -1;
-        justify-self: stretch;
-        justify-content: space-between;
-      }
-      .btn{ flex: 1; justify-content: center; }
-    }
-
-    .card-header{
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-      color: rgba(238,242,255,.90);
-      font-size: 13px;
-      font-weight: 900;
-      letter-spacing: .8px;
-      text-transform: uppercase;
-    }
-    .badge{
-      font-size: 11px;
-      font-weight: 900;
-      color: rgba(238,242,255,.85);
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      border-radius: 999px;
-      padding: 6px 10px;
-    }
-
-    .status-indicators{
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-    }
-    .status{
-      flex: 1 1 90px;
-      min-width: 90px;
-      display:grid;
-      justify-items:center;
-      gap: 7px;
-    }
-    .status label{
-      font-size: 12px;
-      font-weight: 800;
-      color: rgba(238,242,255,.78);
-      letter-spacing: .2px;
-    }
-
-    .led{
-      width: 42px;
-      height: 42px;
-      border-radius: 999px;
-      background: rgba(0,0,0,.22);
-      border: 1px solid rgba(255,255,255,.10);
-      box-shadow: inset 0 0 16px rgba(0,0,0,.35);
-      transition: filter .2s ease, transform .2s ease;
-    }
-    .led.led-run{ background: var(--ok); box-shadow: 0 0 20px rgba(52,199,89,.35); }
-    .led.led-off{ background: var(--danger); box-shadow: 0 0 20px rgba(255,59,48,.35); }
-    .led.led-trip{ background: var(--warn); box-shadow: 0 0 20px rgba(255,204,0,.35); }
-    .led.led-alarm{ background: var(--danger); box-shadow: 0 0 20px rgba(255,59,48,.35); }
-    .led.led-normal{ background: var(--ok); box-shadow: 0 0 20px rgba(52,199,89,.35); }
-    .led.led-blank{ background: rgba(255,255,255,.08); box-shadow: inset 0 0 16px rgba(0,0,0,.35); }
-
-    .controls{
-      margin-top: 10px;
-      display:flex;
-      justify-content:center;
-    }
-    .control-group{
-      width: min(260px, 100%);
-      display:grid;
-      gap: 6px;
-    }
-    .control-label{
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 900;
-      letter-spacing: .2px;
-    }
-    .control-input{
-      width: 100%;
-      padding: 12px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.18);
-      color: var(--text);
-      font-size: 16px; /* prevents iOS zoom */
-      outline: none;
-    }
-
-    .value{
-      font-size: 34px;
-      font-weight: 900;
-      text-align:center;
-      letter-spacing: .2px;
-      margin: 10px 0 0;
-    }
-    .muted{
-      color: var(--muted);
-      font-weight: 800;
-      font-size: 12px;
-      text-align:center;
-      margin-top: 6px;
-    }
-
-    /* Pressure gauge */
-    .gauge{
-      margin-top: 10px;
-      display:grid;
-      gap: 10px;
-    }
-    .gauge-bar{
-      height: 14px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.10);
-      overflow: hidden;
-      box-shadow: inset 0 0 14px rgba(0,0,0,.35);
-    }
-    .gauge-fill{
-      height: 100%;
-      width: 0%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, rgba(74,163,255,.95), rgba(52,199,89,.95));
-      box-shadow: 0 0 18px rgba(74,163,255,.30);
-      transition: width .25s ease;
-    }
-    .gauge-scale{
-      display:flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 800;
-    }
-
-    .footer{
-      text-align:center;
-      margin-top: 14px;
-      font-size: 12px;
-      color: rgba(238,242,255,.70);
-      font-weight: 700;
-    }
-    .system-status{
-      display:flex;
-      justify-content:center;
-      margin-top: 10px;
-      font-size: 62px;
-    }
-  </style>
+/* Comm loss banner */
+.comm-loss-banner{display:none;position:sticky;top:0;z-index:500;background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.4);border-radius:6px;padding:8px 14px;margin-bottom:8px;font-family:var(--mono);font-size:11px;color:var(--red);align-items:center;gap:8px}
+.comm-loss-banner.show{display:flex}
+.comm-loss-banner .cb-icon{font-size:16px;animation:blink 1s infinite}
+</style>
 </head>
-
 <body>
-  <div class="page">
-    <div class="topbar">
-      <div class="brand">
-        <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png"
-             alt="Al Nakhla Logo" class="logo-side">
-        <div class="titles">
-          <div class="dashboard-title">Fire Pump Monitoring System</div>
-          <div class="subtitle">Real-time MQTT status • Al Nakhla Engineering</div>
-        </div>
-      </div>
 
-      <div class="status-pill" title="Connection state">
-        <span class="dot" id="conn-dot"></span>
-        <span id="conn-text">Starting…</span>
-      </div>
-
-      <div class="top-actions">
-        <button class="btn primary" type="button" onclick="acknowledgeAlarm()">
-          <i class="fa-solid fa-bell-slash"></i> Acknowledge
-        </button>
-        <button class="btn" type="button" onclick="resetAlarm()">
-          <i class="fa-solid fa-rotate-right"></i> Reset
-        </button>
-        <button class="btn danger" type="button" onclick="logout()">
-          <i class="fa-solid fa-right-from-bracket"></i> Logout
-        </button>
+<!-- ═══ LOGIN ═══ -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="login-brand">
+      <img src="data:image/jpeg;base64,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" class="login-logo" alt="Alsharq Village"/>
+      <div class="login-brand-text">
+        <div class="l-org">Alsharq Village</div>
+        <div class="l-prod">SCADA Platform</div>
       </div>
     </div>
-
-    <div class="content">
-      <!-- NEW: stale-data banner -->
-      <div id="stale-banner" class="stale-banner">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        <span id="stale-text">Data stale</span>
-      </div>
-
-      <div id="alarm-box"></div>
-
-      <div class="dashboard">
-        <div class="card">
-          <div class="card-header">
-            <span>Jockey Pump</span>
-            <span class="badge">JP</span>
-          </div>
-          <div class="status-indicators">
-            <div class="status"><div class="led" id="jockey-pump-run"></div><label>RUN</label></div>
-            <div class="status"><div class="led" id="jockey-pump-off"></div><label>OFF</label></div>
-            <div class="status"><div class="led" id="jockey-pump-trip"></div><label>TRIP</label></div>
-          </div>
-          <div class="controls">
-            <div class="control-group">
-              <div class="control-label">Mode</div>
-              <select class="control-input" id="jockey-mode">
-                <option value="0">Off</option>
-                <option value="1">Manual</option>
-                <option value="2">Auto</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span>Main Pump</span>
-            <span class="badge">MP</span>
-          </div>
-          <div class="status-indicators">
-            <div class="status"><div class="led" id="main-pump-run"></div><label>RUN</label></div>
-            <div class="status"><div class="led" id="main-pump-off"></div><label>OFF</label></div>
-            <div class="status"><div class="led" id="main-pump-trip"></div><label>TRIP</label></div>
-          </div>
-          <div class="controls">
-            <div class="control-group">
-              <div class="control-label">Mode</div>
-              <select class="control-input" id="main-mode">
-                <option value="0">Off</option>
-                <option value="1">Manual</option>
-                <option value="2">Auto</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span>Diesel Pump</span>
-            <span class="badge">DP</span>
-          </div>
-          <div class="status-indicators">
-            <div class="status"><div class="led" id="diesel-pump-run"></div><label>RUN</label></div>
-            <div class="status"><div class="led" id="diesel-pump-off"></div><label>OFF</label></div>
-            <div class="status"><div class="led" id="diesel-pump-trip"></div><label>TRIP</label></div>
-          </div>
-          <div class="controls">
-            <div class="control-group">
-              <div class="control-label">Mode</div>
-              <select class="control-input" id="diesel-mode">
-                <option value="0">Off</option>
-                <option value="1">Manual</option>
-                <option value="2">Auto</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span>Room Temp & Humidity</span>
-            <span class="badge">TH</span>
-          </div>
-          <div class="value" id="room-temperature">--°C</div>
-          <div class="value" id="room-humidity" style="font-size:28px; margin-top:8px;">--%</div>
-          <div class="muted">Auto-sanitized (valid ranges)</div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span>Water Pressure</span>
-            <span class="badge">0–16 Bar</span>
-          </div>
-          <div class="value" id="water-pressure">-- Bar</div>
-          <div class="gauge">
-            <div class="gauge-bar">
-              <div class="gauge-fill" id="pressure-fill"></div>
-            </div>
-            <div class="gauge-scale">
-              <span>0</span><span>8</span><span>16</span>
-            </div>
-          </div>
-          <div class="muted" id="pressure-note">Clamped to sensor range</div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span>Smoke Detector</span>
-            <span class="badge">SS1</span>
-          </div>
-          <div class="status-indicators">
-            <div class="status"><div class="led" id="smoke-detector-alarm"></div><label>ALARM</label></div>
-            <div class="status"><div class="led" id="smoke-detector-normal"></div><label>NORMAL</label></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span>Water Flood Sensor</span>
-            <span class="badge">FS</span>
-          </div>
-          <div class="status-indicators">
-            <div class="status"><div class="led" id="flood-sensor-alarm"></div><label>ALARM</label></div>
-            <div class="status"><div class="led" id="flood-sensor-normal"></div><label>NORMAL</label></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="footer">Created by Al Nakhla Engineering Dep. (Eng. Youssef)</div>
-      <div class="system-status">
-        <i id="system-status" class="fas fa-check-circle" style="color: var(--ok);"></i>
-      </div>
+    <div class="login-field">
+      <label>Username</label>
+      <input id="loginUser" type="text" placeholder="Enter username" autocomplete="username"/>
     </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Connect</button>
+    <div class="login-err" id="loginErr"></div>
+    <div class="login-note">Credentials sent directly to MQTT broker over TLS</div>
   </div>
+</div>
 
-  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-  <script>
-    /************ GitHub Pages base ************/
-    const BASE_URL = "https://kiai1987.github.io/Firepumpsmonitoring/";
-    function goTo(page){ window.location.href = BASE_URL + page; }
+<!-- ═══ MAIN APP ═══ -->
+<div id="mainApp" style="display:none">
 
-    /************ PWA install support ************/
-    (function registerSW(){
-      if (!("serviceWorker" in navigator)) return;
-      navigator.serviceWorker.register("sw.js").catch(console.error);
-    })();
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <div class="topbar-brand">
+      <img src="data:image/jpeg;base64,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" class="topbar-logo" alt="Alsharq Village"/>
+      <div class="topbar-text">
+        <div class="t-org">Alsharq Village</div>
+        <div class="t-name">SCADA Platform</div>
+      </div>
+    </div>
+    <div class="topbar-sep"></div>
+    <div class="mqtt-pill" id="mqttPill">
+      <span class="mqtt-dot" id="mqttDot"></span>
+      <span id="mqttText">Connecting…</span>
+    </div>
+    <div class="topbar-right">
+      <div class="nav-user-pill" id="navUser"></div>
+      <button class="logout-btn" onclick="doLogout()">⏻ Logout</button>
+    </div>
+  </header>
 
-    /************ Auth ************/
-    function checkAuthentication() {
-      if (localStorage.getItem("authenticated") !== "true") {
-        goTo("index.html");
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-section">Dashboards</div>
+    <a class="nav-item active" id="nav-pumps" onclick="showPage('pumps')">
+      <span class="nav-icon">⚙</span>
+      <span>Pumps</span>
+      <span class="alarm-sidebar-badge" id="sidebar-alarm-badge">0</span>
+      <span class="nav-badge nav-badge-pump" id="badge-pumps">3</span>
+    </a>
+    <a class="nav-item" id="nav-lights" onclick="showPage('lights')">
+      <span class="nav-icon">💡</span>
+      <span>Lighting</span>
+      <span class="nav-badge nav-badge-light" id="badge-lights">13</span>
+    </a>
+    <a class="nav-item" id="nav-tanks" onclick="showPage('tanks')">
+      <span class="nav-icon">🛢</span>
+      <span>Tanks</span>
+      <span class="nav-badge nav-badge-tank" id="badge-tanks">2</span>
+    </a>
+    <div class="sidebar-section" style="margin-top:8px">System</div>
+    <a class="nav-item" id="nav-events" onclick="showPage('events')">
+      <span class="nav-icon">📋</span>
+      <span>Event Log</span>
+      <span class="nav-badge nav-badge-pump" id="badge-evts" style="display:none">!</span>
+    </a>
+    <div class="sidebar-bottom">
+      <div class="db-stat-mini">📡 MQTT · wss://emqx</div>
+      <div class="db-stat-mini" id="sidebarLastUpdate">No data yet</div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- ══════════════════════════════
+         PAGE: PUMPS
+    ══════════════════════════════ -->
+    <div class="page active" id="page-pumps">
+      <div class="comm-loss-banner" id="commBannerPumps">
+        <span class="cb-icon">⚠</span>
+        <span id="commBannerPumpsMsg">No data received from Pumps gateway</span>
+        <span id="commBannerPumpsAge" style="margin-left:auto;opacity:.7"></span>
+      </div>
+      <div class="quality-row">
+        <span class="q-label">Pumps Data Quality:</span>
+        <span class="dq-badge dq-init" id="dqPumps">⬤ INITIALISING</span>
+        <span class="q-age" id="dqPumpsAge">No data received</span>
+      </div>
+
+      <!-- ══ ACTIVE ALARMS ══ -->
+      <div class="alarm-panel" id="alarmPanel">
+        <div class="alarm-header" id="alarmHeader">
+          <div class="alarm-title-wrap">
+            <span class="alarm-blink ok" id="alarmBlink"></span>
+            <span class="panel-title" id="alarmTitle" style="color:var(--dim)">ALL SYSTEMS NORMAL</span>
+            <span style="font-family:var(--mono);font-size:9px;padding:1px 8px;border-radius:3px;background:var(--bg3);border:1px solid var(--border);color:var(--dim)" id="alarmCount">0 alarms</span>
+          </div>
+          <div class="alarm-controls">
+            <button class="alarm-sound-btn" id="soundBtn" onclick="toggleSound()" title="Toggle alarm sound">🔔 Sound</button>
+            <button class="ack-btn" onclick="ackAllAlarms()">✓ Ack All</button>
+          </div>
+        </div>
+        <div class="alarm-body" id="alarmList">
+          <div class="alarm-empty" id="alarmEmpty">✓ All systems normal — no active alarms</div>
+        </div>
+      </div>
+
+      <!-- Pump KPI -->
+      <div class="section-label">System Overview</div>
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-icon blue">💧</div><div><div class="kpi-val" id="kpiPressure">--</div><div class="kpi-lbl">Active Pressure</div><div class="kpi-sub">bar · duty pump</div></div></div>
+        <div class="kpi-card"><div class="kpi-icon amber">⚡</div><div><div class="kpi-val" id="kpiFreq">--</div><div class="kpi-lbl">Frequency</div><div class="kpi-sub">Hz · VFD output</div></div></div>
+        <div class="kpi-card"><div class="kpi-icon green" id="kpiFaultIcon">🔔</div><div><div class="kpi-val" id="kpiFaults" style="color:var(--green2)">0</div><div class="kpi-lbl">Active Faults</div><div class="kpi-sub" id="kpiFaultDetail">All normal</div></div></div>
+        <div class="kpi-card"><div class="kpi-icon cyan">🔄</div><div><div class="kpi-val" id="kpiMode">--</div><div class="kpi-lbl">Mode · Duty</div><div class="kpi-sub" id="kpiDutySub">--</div></div></div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <span class="tb-label">Mode</span>
+        <select id="modeSel"><option value="AUTO">AUTO</option><option value="MANUAL">MANUAL</option></select>
+        <button class="btn btn-primary" onclick="mqttSend(CMD_BASE+'/mode',{mode:document.getElementById('modeSel').value})">Apply</button>
+        <div class="tb-sep"></div>
+        <span class="tb-label">Duty</span>
+        <select id="dutySel"><option value="DOM_A">DOM_A</option><option value="DOM_B">DOM_B</option></select>
+        <button class="btn" onclick="mqttSend(CMD_BASE+'/duty',{duty:document.getElementById('dutySel').value})">Set</button>
+        <button class="btn btn-warn" onclick="mqttSend(CMD_BASE+'/swap',{now:true})">⇄ Swap</button>
+        <div class="tb-sep"></div>
+        <span class="tb-label">Setpoint</span>
+        <input id="setpointInp" type="number" step="0.1" value="2.5" min="0" max="16"/>
+        <span class="tb-label">bar</span>
+        <button class="btn" onclick="applySetpoint()">Apply</button>
+        <div class="plat-status" id="platformTag">Mode: -- · Duty: --</div>
+      </div>
+
+      <!-- Pump Cards -->
+      <div class="section-label">Pump Units</div>
+      <div class="pump-grid">
+
+        <!-- DOM A -->
+        <div class="pump-card" id="cardA">
+          <div class="pump-head">
+            <div><div class="pump-name">Domestic A</div><div class="pump-role">DOM_A · Slave 1</div></div>
+            <span class="status-badge badge-stop" id="tagA">STOP</span>
+          </div>
+          <div class="pump-body">
+            <div class="metric-grid">
+              <div class="metric"><div class="m-lbl">Pressure</div><div class="m-val" id="aP">--</div><div class="m-unit">bar</div></div>
+              <div class="metric"><div class="m-lbl">Frequency</div><div class="m-val" id="aHz">--</div><div class="m-unit">Hz</div></div>
+              <div class="metric"><div class="m-lbl">Current</div><div class="m-val" id="aA">--</div><div class="m-unit">A</div></div>
+              <div class="metric" id="kpiATrip"><div class="m-lbl">Trip Code</div><div class="m-val" id="aTrip">--</div><div class="m-unit">0=OK</div></div>
+            </div>
+            <div class="spark-wrap"><canvas id="chartA"></canvas></div>
+            <div class="online-pill"><span class="online-dot" id="dotA"></span><span id="hA" style="color:var(--dim)">Offline</span><span style="margin-left:auto;color:var(--dim);font-size:9px" id="tA">--</span></div>
+            <div class="vfd-controls">
+              <button class="vfd-btn vfd-run"   onclick="vfdCmd('DOM_A','run')">▶ Run</button>
+              <button class="vfd-btn vfd-stop"  onclick="vfdCmd('DOM_A','stop')">■ Stop</button>
+              <button class="vfd-btn vfd-reset" onclick="vfdCmd('DOM_A','reset')">↺ Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- DOM B -->
+        <div class="pump-card" id="cardB">
+          <div class="pump-head">
+            <div><div class="pump-name">Domestic B</div><div class="pump-role">DOM_B · Slave 2</div></div>
+            <span class="status-badge badge-stop" id="tagB">STOP</span>
+          </div>
+          <div class="pump-body">
+            <div class="metric-grid">
+              <div class="metric"><div class="m-lbl">Pressure</div><div class="m-val" id="bP">--</div><div class="m-unit">bar</div></div>
+              <div class="metric"><div class="m-lbl">Frequency</div><div class="m-val" id="bHz">--</div><div class="m-unit">Hz</div></div>
+              <div class="metric"><div class="m-lbl">Current</div><div class="m-val" id="bA">--</div><div class="m-unit">A</div></div>
+              <div class="metric" id="kpiBTrip"><div class="m-lbl">Trip Code</div><div class="m-val" id="bTrip">--</div><div class="m-unit">0=OK</div></div>
+            </div>
+            <div class="spark-wrap"><canvas id="chartB"></canvas></div>
+            <div class="online-pill"><span class="online-dot" id="dotB"></span><span id="hB" style="color:var(--dim)">Offline</span><span style="margin-left:auto;color:var(--dim);font-size:9px" id="tB">--</span></div>
+            <div class="vfd-controls">
+              <button class="vfd-btn vfd-run"   onclick="vfdCmd('DOM_B','run')">▶ Run</button>
+              <button class="vfd-btn vfd-stop"  onclick="vfdCmd('DOM_B','stop')">■ Stop</button>
+              <button class="vfd-btn vfd-reset" onclick="vfdCmd('DOM_B','reset')">↺ Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- IRR -->
+        <div class="pump-card" id="cardI">
+          <div class="pump-head">
+            <div><div class="pump-name">Irrigation</div><div class="pump-role">IRR · Slave 3</div></div>
+            <span class="status-badge badge-stop" id="tagIRR">STOP</span>
+          </div>
+          <div class="pump-body">
+            <div class="metric-grid">
+              <div class="metric"><div class="m-lbl">Pressure</div><div class="m-val" id="iP">--</div><div class="m-unit">bar</div></div>
+              <div class="metric"><div class="m-lbl">Frequency</div><div class="m-val" id="iHz">--</div><div class="m-unit">Hz</div></div>
+              <div class="metric"><div class="m-lbl">Current</div><div class="m-val" id="iA">--</div><div class="m-unit">A</div></div>
+              <div class="metric" id="kpiITrip"><div class="m-lbl">Trip Code</div><div class="m-val" id="iTrip">--</div><div class="m-unit">0=OK</div></div>
+            </div>
+            <div class="spark-wrap"><canvas id="chartI"></canvas></div>
+            <div class="online-pill"><span class="online-dot" id="dotI"></span><span id="hI" style="color:var(--dim)">Offline</span><span style="margin-left:auto;color:var(--dim);font-size:9px" id="tI">--</span></div>
+            <div class="vfd-controls">
+              <button class="vfd-btn vfd-run"   onclick="vfdCmd('IRR','run')">▶ Run</button>
+              <button class="vfd-btn vfd-stop"  onclick="vfdCmd('IRR','stop')">■ Stop</button>
+              <button class="vfd-btn vfd-reset" onclick="vfdCmd('IRR','reset')">↺ Reset</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /pump-grid -->
+
+      <!-- DTU Status table -->
+      <div class="section-label">DTU Link Health</div>
+      <div class="bottom-grid">
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">DTU Status</span><span style="font-family:var(--mono);font-size:9px;color:var(--dim)" id="lastUpdate">No data</span></div>
+          <table>
+            <thead><tr><th>Unit</th><th>Status</th><th>Last Seen</th><th>Pressure</th><th>Freq</th></tr></thead>
+            <tbody>
+              <tr><td><strong>DOM_A</strong></td><td id="dtuA">--</td><td id="tA2" style="color:var(--dim);font-size:9px">--</td><td id="dtuAP" style="color:var(--muted)">--</td><td id="dtuAHz" style="color:var(--muted)">--</td></tr>
+              <tr><td><strong>DOM_B</strong></td><td id="dtuB">--</td><td id="tB2" style="color:var(--dim);font-size:9px">--</td><td id="dtuBP" style="color:var(--muted)">--</td><td id="dtuBHz" style="color:var(--muted)">--</td></tr>
+              <tr><td><strong>IRR</strong></td><td id="dtuI">--</td><td id="tI2" style="color:var(--dim);font-size:9px">--</td><td id="dtuIP" style="color:var(--muted)">--</td><td id="dtuIHz" style="color:var(--muted)">--</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">Recent Events</span><span style="font-family:var(--mono);font-size:9px;color:var(--dim)" id="evtCount">0 events</span></div>
+          <div id="pumpEvents" class="evt-feed"><div class="evt"><span class="evt-dot evt-dot-info"></span><span class="evt-info">Waiting for telemetry…</span></div></div>
+        </div>
+      </div>
+
+    </div><!-- /page-pumps -->
+
+    <!-- ══════════════════════════════
+         PAGE: LIGHTING
+    ══════════════════════════════ -->
+    <div class="page" id="page-lights">
+      <div class="comm-loss-banner" id="commBannerLights">
+        <span class="cb-icon">⚠</span>
+        <span id="commBannerLightsMsg">No data received from Lights gateway</span>
+        <span id="commBannerLightsAge" style="margin-left:auto;opacity:.7"></span>
+      </div>
+      <div class="quality-row">
+        <span class="q-label">Lights Data Quality:</span>
+        <span class="dq-badge dq-init" id="dqLights">⬤ INITIALISING</span>
+        <span class="q-age" id="dqLightsAge">No data received</span>
+      </div>
+
+      <!-- Light toolbar -->
+      <div class="light-toolbar">
+        <span class="tb-label">Mode</span>
+        <select id="lightMode" onchange="onLightModeChange()">
+          <option value="manual">Manual</option>
+          <option value="auto">Auto (Schedule)</option>
+        </select>
+        <div class="tb-sep"></div>
+        <button class="btn btn-warn" onclick="lightAllOn()">💡 All ON</button>
+        <button class="btn" onclick="lightAllOff()">🌑 All OFF</button>
+        <div class="tb-sep"></div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted)">Lights ON: <span id="lightsOnCount" style="color:var(--amber);font-weight:600">0</span> / 13</div>
+      </div>
+
+      <!-- Light cards grid -->
+      <div class="section-label">Light Panels</div>
+      <div class="light-grid" id="lightGrid">
+        <!-- Generated by JS -->
+      </div>
+
+      <!-- Schedule section -->
+      <div id="scheduleSection" style="display:none">
+        <div class="section-label">Schedule Configuration</div>
+        <div class="schedule-grid">
+          <div class="sched-block">
+            <div class="sched-title">Add New Schedule</div>
+            <div class="sched-form">
+              <div class="sched-row">
+                <span class="sched-lbl">Target</span>
+                <select id="schedTarget" style="min-width:120px">
+                  <option value="all">All Panels</option>
+                  <option value="P01">P01</option><option value="P02">P02</option><option value="P03">P03</option>
+                  <option value="P04">P04</option><option value="P05">P05</option><option value="P06">P06</option>
+                  <option value="P07">P07</option><option value="P08">P08</option><option value="P09">P09</option>
+                  <option value="P10">P10</option><option value="P11">P11</option><option value="P12">P12</option>
+                  <option value="P13">P13</option>
+                </select>
+              </div>
+              <div class="sched-row">
+                <span class="sched-lbl">Days</span>
+                <div class="days-picker">
+                  <button class="day-btn sel" data-day="0">Sun</button>
+                  <button class="day-btn sel" data-day="1">Mon</button>
+                  <button class="day-btn sel" data-day="2">Tue</button>
+                  <button class="day-btn sel" data-day="3">Wed</button>
+                  <button class="day-btn sel" data-day="4">Thu</button>
+                  <button class="day-btn" data-day="5">Fri</button>
+                  <button class="day-btn" data-day="6">Sat</button>
+                </div>
+              </div>
+              <div class="sched-row">
+                <span class="sched-lbl">ON time</span>
+                <input type="time" id="schedOn" value="18:00"/>
+              </div>
+              <div class="sched-row">
+                <span class="sched-lbl">OFF time</span>
+                <input type="time" id="schedOff" value="06:00"/>
+              </div>
+              <div class="sched-row">
+                <button class="btn btn-primary" onclick="addSchedule()" style="margin-top:4px">+ Add Schedule</button>
+              </div>
+            </div>
+          </div>
+          <div class="sched-block">
+            <div class="sched-title">Active Schedules</div>
+            <ul class="sched-list" id="schedList">
+              <li style="font-family:var(--mono);font-size:10px;color:var(--dim);padding:8px 0">No schedules configured</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-lights -->
+
+    <!-- ══════════════════════════════
+         PAGE: TANKS
+    ══════════════════════════════ -->
+    <div class="page" id="page-tanks">
+      <div class="comm-loss-banner" id="commBannerTanks">
+        <span class="cb-icon">⚠</span>
+        <span id="commBannerTanksMsg">No data received from Tanks gateway</span>
+        <span id="commBannerTanksAge" style="margin-left:auto;opacity:.7"></span>
+      </div>
+      <div class="quality-row">
+        <span class="q-label">Tanks Data Quality:</span>
+        <span class="dq-badge dq-init" id="dqTanks">⬤ INITIALISING</span>
+        <span class="q-age" id="dqTanksAge">No data received</span>
+      </div>
+      <div class="section-label">Tank Levels</div>
+      <div class="kpi-row" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi-card"><div class="kpi-icon blue">🛢</div><div><div class="kpi-val" id="kpiTankA">--</div><div class="kpi-lbl">Tank A</div><div class="kpi-sub" id="kpiTankAStatus">--</div></div></div>
+        <div class="kpi-card"><div class="kpi-icon cyan">🛢</div><div><div class="kpi-val" id="kpiTankB">--</div><div class="kpi-lbl">Tank B</div><div class="kpi-sub" id="kpiTankBStatus">--</div></div></div>
+        <div class="kpi-card"><div class="kpi-icon green">🌿</div><div><div class="kpi-val" id="kpiTankIrr">--</div><div class="kpi-lbl">Irrigation</div><div class="kpi-sub" id="kpiTankIrrStatus">--</div></div></div>
+        <div class="kpi-card"><div class="kpi-icon red" id="kpiTankAlertIcon">✅</div><div><div class="kpi-val" id="kpiTankAlerts" style="color:var(--green2)">0</div><div class="kpi-lbl">Tank Alerts</div><div class="kpi-sub" id="kpiTankAlertDetail">All levels normal</div></div></div>
+      </div>
+      <div class="tank-grid">
+
+        <!-- Tank A -->
+        <div class="tank-card" id="tankCardA">
+          <div class="tank-head">
+            <div><div class="pump-name">Tank A</div><div class="pump-role">Slave 21 · Reg 40001</div></div>
+            <span class="status-badge badge-stop" id="tagTankA">--</span>
+          </div>
+          <div class="tank-body">
+            <div class="tank-gauge-wrap">
+              <div class="tank-gauge-fill" id="fillA" style="height:0%"></div>
+              <div class="tank-pct-label" id="pctA">--</div>
+              <div class="tank-markers"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div>
+            </div>
+            <div class="tank-metrics">
+              <div class="metric"><div class="m-lbl">Level</div><div class="m-val" id="tankALevel">--</div><div class="m-unit">%</div></div>
+              <div class="metric"><div class="m-lbl">Updated</div><div class="m-val" style="font-size:11px" id="tankATs">--</div><div class="m-unit">time</div></div>
+              <div class="metric"><div class="m-lbl">Status</div><div class="m-val" style="font-size:13px" id="tankAStatus">--</div><div class="m-unit">&nbsp;</div></div>
+            </div>
+            <div class="tank-setpoints">
+              <div>
+                <div class="sp-label">Low Level Alarm</div>
+                <div class="sp-row">
+                  <span class="sp-dot sp-dot-low"></span>
+                  <input class="sp-input" type="number" id="spLowA" value="20" min="0" max="99"/>
+                  <span class="sp-unit">%</span>
+                  <button class="sp-apply" onclick="applySetpoints('A')">Apply</button>
+                </div>
+              </div>
+              <div>
+                <div class="sp-label">High Level Alarm</div>
+                <div class="sp-row">
+                  <span class="sp-dot sp-dot-high"></span>
+                  <input class="sp-input" type="number" id="spHighA" value="90" min="1" max="100"/>
+                  <span class="sp-unit">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tank-alarm-bar" id="alarmBarA"></div>
+        </div>
+
+        <!-- Tank B -->
+        <div class="tank-card" id="tankCardB">
+          <div class="tank-head">
+            <div><div class="pump-name">Tank B</div><div class="pump-role">Slave 22 · Reg 40001</div></div>
+            <span class="status-badge badge-stop" id="tagTankB">--</span>
+          </div>
+          <div class="tank-body">
+            <div class="tank-gauge-wrap">
+              <div class="tank-gauge-fill" id="fillB" style="height:0%"></div>
+              <div class="tank-pct-label" id="pctB">--</div>
+              <div class="tank-markers"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div>
+            </div>
+            <div class="tank-metrics">
+              <div class="metric"><div class="m-lbl">Level</div><div class="m-val" id="tankBLevel">--</div><div class="m-unit">%</div></div>
+              <div class="metric"><div class="m-lbl">Updated</div><div class="m-val" style="font-size:11px" id="tankBTs">--</div><div class="m-unit">time</div></div>
+              <div class="metric"><div class="m-lbl">Status</div><div class="m-val" style="font-size:13px" id="tankBStatus">--</div><div class="m-unit">&nbsp;</div></div>
+            </div>
+            <div class="tank-setpoints">
+              <div>
+                <div class="sp-label">Low Level Alarm</div>
+                <div class="sp-row">
+                  <span class="sp-dot sp-dot-low"></span>
+                  <input class="sp-input" type="number" id="spLowB" value="20" min="0" max="99"/>
+                  <span class="sp-unit">%</span>
+                  <button class="sp-apply" onclick="applySetpoints('B')">Apply</button>
+                </div>
+              </div>
+              <div>
+                <div class="sp-label">High Level Alarm</div>
+                <div class="sp-row">
+                  <span class="sp-dot sp-dot-high"></span>
+                  <input class="sp-input" type="number" id="spHighB" value="90" min="1" max="100"/>
+                  <span class="sp-unit">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tank-alarm-bar" id="alarmBarB"></div>
+        </div>
+
+        <!-- Tank Irrigation -->
+        <div class="tank-card" id="tankCardIrr">
+          <div class="tank-head">
+            <div><div class="pump-name">Irrigation</div><div class="pump-role">tank_irr · Slave 23</div></div>
+            <span class="status-badge badge-stop" id="tagTankIrr">--</span>
+          </div>
+          <div class="tank-body">
+            <div class="tank-gauge-wrap">
+              <div class="tank-gauge-fill" id="fillIrr" style="height:0%" class="tank-gauge-fill"></div>
+              <div class="tank-pct-label" id="pctIrr">--</div>
+              <div class="tank-markers"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div>
+            </div>
+            <div class="tank-metrics">
+              <div class="metric"><div class="m-lbl">Level</div><div class="m-val" id="tankIrrLevel">--</div><div class="m-unit">%</div></div>
+              <div class="metric"><div class="m-lbl">Updated</div><div class="m-val" style="font-size:11px" id="tankIrrTs">--</div><div class="m-unit">time</div></div>
+              <div class="metric"><div class="m-lbl">Status</div><div class="m-val" style="font-size:13px" id="tankIrrStatus">--</div><div class="m-unit">&nbsp;</div></div>
+            </div>
+            <div class="tank-setpoints">
+              <div>
+                <div class="sp-label">Low Level Alarm</div>
+                <div class="sp-row">
+                  <span class="sp-dot sp-dot-low"></span>
+                  <input class="sp-input" type="number" id="spLowIrr" value="15" min="0" max="99"/>
+                  <span class="sp-unit">%</span>
+                  <button class="sp-apply" onclick="applySetpoints('Irr')">Apply</button>
+                </div>
+              </div>
+              <div>
+                <div class="sp-label">High Level Alarm</div>
+                <div class="sp-row">
+                  <span class="sp-dot sp-dot-high"></span>
+                  <input class="sp-input" type="number" id="spHighIrr" value="95" min="1" max="100"/>
+                  <span class="sp-unit">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tank-alarm-bar" id="alarmBarIrr"></div>
+        </div>
+
+      </div>
+    </div><!-- /page-tanks -->
+
+    <!-- ══════════════════════════════
+         PAGE: EVENT LOG
+    ══════════════════════════════ -->
+    <div class="page" id="page-events">
+      <div class="section-label">Full Event Log</div>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">Event Log</span>
+          <div style="display:flex;gap:6px">
+            <button class="ack-btn" style="background:var(--greenBg);border-color:rgba(46,160,67,.3);color:var(--green2)" onclick="exportEventsCSV()">⬇ CSV</button>
+            <button class="ack-btn" style="background:var(--bg3);border-color:var(--border);color:var(--dim)" onclick="clearEvents()">✕ Clear</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--bg2);flex-wrap:wrap">
+          <button class="day-btn sel" id="fAll"   onclick="setEvtFilter('all')">All</button>
+          <button class="day-btn"     id="fBad"   onclick="setEvtFilter('bad')">Faults</button>
+          <button class="day-btn"     id="fGood"  onclick="setEvtFilter('good')">Cleared</button>
+          <button class="day-btn"     id="fWarn"  onclick="setEvtFilter('warn')">Warnings</button>
+          <span style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-left:auto;align-self:center">💾 <span id="storedCount">0</span> stored</span>
+        </div>
+        <div id="fullEventFeed" class="evt-feed" style="max-height:500px">
+          <div class="evt"><span class="evt-dot evt-dot-info"></span><span class="evt-info">Waiting for events…</span></div>
+        </div>
+      </div>
+    </div><!-- /page-events -->
+
+    <div style="margin-top:24px;text-align:center;font-family:var(--mono);font-size:9px;color:var(--dim);padding-top:10px;border-top:1px solid var(--border)">
+      ALSHARQ VILLAGE · SCADA PLATFORM · Pumps · Lighting · Tanks · MQTT/WebSocket
+    </div>
+
+  </main>
+</div><!-- /mainApp -->
+
+<script>
+/* ════════════════════════════════════════════════════
+   MQTT (pure WebSocket, no library)
+════════════════════════════════════════════════════ */
+const WS_URL   = "wss://w219d1f1.ala.us-east-1.emqxsl.com:8084/mqtt";
+const CMD_BASE = "compound/pumps/cmd";
+const T_PUMPS  = "compound/pumps/tele";
+const T_LIGHTS = "compound/lights/state";
+const T_TANKS  = "compound/tanks/tele";
+const T_EVENTS = "compound/events";
+
+let MQTT_USERNAME="",MQTT_PASSWORD="";
+let pendingLoginUser=null;
+let ws=null,connected=false,pid=1,pingTimer=null,retryDelay=1500,_reconnecting=false;
+const enc=new TextEncoder(),dec=new TextDecoder();
+function encStr(s){const b=enc.encode(s),o=new Uint8Array(2+b.length);o[0]=b.length>>8;o[1]=b.length&0xFF;o.set(b,2);return o;}
+function concat(...a){const l=a.reduce((s,x)=>s+x.length,0),o=new Uint8Array(l);let p=0;a.forEach(x=>{o.set(x,p);p+=x.length;});return o;}
+function encVI(n){const out=[];do{let b=n&0x7F;n>>>=7;if(n>0)b|=0x80;out.push(b);}while(n>0);return new Uint8Array(out);}
+function decVI(b,o){let v=0,m=1,i=o;do{v+=(b[i]&0x7F)*m;m<<=7;}while((b[i++]&0x80)&&i<o+5);return{value:v,bytesRead:i-o};}
+function pktConnect(id,u,p){const hasU=!!u,hasP=!!p,flags=(hasU?0x80:0)|(hasP?0x40:0)|0x02;const vh=concat(encStr("MQTT"),new Uint8Array([4,flags,0,120]));const parts=[encStr(id)];if(hasU)parts.push(encStr(u));if(hasP)parts.push(encStr(p));const pl=concat(...parts);return concat(new Uint8Array([0x10]),encVI(vh.length+pl.length),vh,pl);}
+function pktSub(pid,t){const vh=new Uint8Array([pid>>8,pid&0xFF]),pl=concat(encStr(t),new Uint8Array([0]));return concat(new Uint8Array([0x82]),encVI(vh.length+pl.length),vh,pl);}
+function pktPub(t,pay){const tb=encStr(t),pb=enc.encode(pay);return concat(new Uint8Array([0x30]),encVI(tb.length+pb.length),tb,pb);}
+function pktPing(){return new Uint8Array([0xC0,0x00]);}
+function parsePub(buf){const b=new Uint8Array(buf);if((b[0]>>4)!==3)return null;const{value:rl,bytesRead}=decVI(b,1);let i=1+bytesRead;const tl=(b[i]<<8)|b[i+1];i+=2;const t=dec.decode(b.slice(i,i+tl));i+=tl;return{topic:t,payload:dec.decode(b.slice(i,1+bytesRead+rl))};}
+
+function setMQTT(ok,msg){const pill=document.getElementById("mqttPill"),dot=document.getElementById("mqttDot"),txt=document.getElementById("mqttText");pill.className="mqtt-pill"+(ok?" online":" error");dot.className="mqtt-dot"+(ok?" online":" error");txt.textContent=msg;}
+
+function mqttSend(t,o){
+  if(!connected||!ws||ws.readyState!==1){pushEvt("CMD not sent — not connected","warn");return;}
+  /* Audit trail: stamp every command with logged-in user + timestamp */
+  if(t.includes("/cmd")){o._user=MQTT_USERNAME||"unknown";o._ts=Date.now();}
+  try{ws.send(pktPub(t,JSON.stringify(o)));
+    pushEvt("CMD → "+t.split("/").pop()+" ["+MQTT_USERNAME+"] "+JSON.stringify(o),"info");}
+  catch(e){pushEvt("CMD send failed","bad");}
+}
+
+function vfdCmd(pump,action){
+  if(!confirm("Send VFD "+action.toUpperCase()+" to "+pump+"?")) return;
+  mqttSend(CMD_BASE+"/vfd/"+pump+"/"+action,{pump,action,ts:Date.now()});
+}
+
+function applySetpoint(){const v=parseFloat(document.getElementById("setpointInp").value);if(!isNaN(v)&&v>=0)mqttSend(CMD_BASE+"/setpoint",{setpoint_bar:v});}
+
+let _connTimeout=null;
+function _resetLoginBtn(){
+  const btn=document.getElementById("loginBtn");
+  if(btn){btn.disabled=false;btn.textContent="Connect";}
+}
+function _showLoginErr(msg){
+  const el=document.getElementById("loginErr");
+  if(el)el.textContent=msg;
+}
+function start(){
+  /* Guard: don't open a second socket if one is already open or connecting */
+  if(ws && (ws.readyState===0||ws.readyState===1)){return;}
+  if(_reconnecting){return;}
+  _reconnecting=true;
+  setMQTT(false,"Connecting…");
+  clearTimeout(_connTimeout);
+  /* Clean up any lingering old socket */
+  if(ws){try{ws.onclose=null;ws.onerror=null;ws.close();}catch(_){}ws=null;}
+  try{ws=new WebSocket(WS_URL,["mqtt"]);}catch(e){_reconnecting=false;setMQTT(false,"Invalid URL");_showLoginErr("Invalid broker URL.");_resetLoginBtn();return;}
+  ws.binaryType="arraybuffer";
+  // 10s timeout — if no CONNACK arrives, abort and let user retry
+  _connTimeout=setTimeout(()=>{
+    if(!connected){
+      setMQTT(false,"Timed out");
+      _showLoginErr("Connection timed out. Check broker URL / network.");
+      _resetLoginBtn();
+      pendingLoginUser=null;
+      try{ws.onclose=null;ws.close();}catch(_){}
+    }
+  },10000);
+  ws.onopen=()=>{retryDelay=1500;ws.send(pktConnect("dash-"+Math.random().toString(16).slice(2),MQTT_USERNAME,MQTT_PASSWORD));};
+  ws.onmessage=ev=>{
+    const b=new Uint8Array(ev.data),type=b[0]>>4;
+    if(type===2){
+      if(b[3]!==0){
+        // BROKER REJECTED credentials
+        setMQTT(false,"Auth failed");
+        MQTT_USERNAME="";MQTT_PASSWORD="";pendingLoginUser=null;
+        const errEl=document.getElementById("loginErr");
+        if(errEl)errEl.textContent="Wrong username or password. Please try again.";
+        const btn=document.getElementById("loginBtn");
+        if(btn){btn.disabled=false;btn.textContent="Connect";}
+        ws.close();return;
+      }
+      // BROKER ACCEPTED — now show dashboard
+      clearTimeout(_connTimeout);
+      connected=true;_reconnecting=false;retryDelay=1500;setMQTT(true,"Connected");
+      if(pendingLoginUser){
+        document.getElementById("loginOverlay").style.display="none";
+        document.getElementById("mainApp").style.display="block";
+        document.getElementById("navUser").textContent="● "+pendingLoginUser;
+        buildLightGrid();
+        const arr=loadEvts();evtCount=arr.length;
+        setV("storedCount",arr.length);setV("evtCount",arr.length+" stored");
+        renderEvtFeed();
+        _resetLoginBtn();
+        keepaliveWorker.postMessage("start");
+        pendingLoginUser=null;
+      }
+      ws.send(pktSub(pid++,T_PUMPS));
+      ws.send(pktSub(pid++,T_LIGHTS));
+      ws.send(pktSub(pid++,T_TANKS));
+      ws.send(pktSub(pid++,T_EVENTS));
+      /* Single keepalive via keepaliveWorker — no duplicate timer */
+      pushEvt("MQTT connected","good");return;
+    }
+    if(type===13)return;
+    const pub=parsePub(ev.data);
+    if(!pub)return;
+    try{
+      const d=JSON.parse(pub.payload);
+      if(pub.topic===T_PUMPS) applyPumpTele(d);
+      if(pub.topic===T_LIGHTS) applyLightState(d);
+      if(pub.topic===T_TANKS) applyTankTele(d);
+      if(pub.topic===T_EVENTS) applyMqttEvent(d);
+    }catch(e){console.warn(e);}
+  };
+  ws.onclose=(evt)=>{
+    /* Ignore close events from stale sockets */
+    if(ws!==arguments.callee._sock) return;
+    clearTimeout(_connTimeout);
+    connected=false;
+    _reconnecting=false;
+    const appVisible=document.getElementById("mainApp").style.display!=="none";
+    if(!appVisible && pendingLoginUser){
+      setMQTT(false,"Connection failed");
+      MQTT_USERNAME="";MQTT_PASSWORD="";pendingLoginUser=null;
+      _showLoginErr("Could not connect to broker. Check network.");
+      _resetLoginBtn();
+      ws=null;return;
+    }
+    if(!appVisible){ws=null;return;}
+    const code=evt.code||0;
+    const reason=evt.reason||"";
+    console.log("WS closed code="+code+" reason="+reason);
+    setMQTT(false,"Disconnected — retry "+Math.round(retryDelay/1000)+"s");
+    const delay=retryDelay+Math.random()*500; // jitter prevents hammering
+    retryDelay=Math.min(retryDelay*1.5,30000);
+    ws=null;
+    setTimeout(()=>{if(!connected&&MQTT_USERNAME)start();},delay);
+  };
+  ws.onclose._sock=ws; // tag so stale socket events are ignored
+  ws.onerror=(e)=>{
+    console.warn("WS error",e);
+    /* Don't call ws.close() here — browser closes automatically after onerror */
+    connected=false;
+    setMQTT(false,"Connection error — reconnecting…");
+    /* onclose will fire right after onerror, which handles reconnect */
+  };
+}
+
+/* ════════════════════════════════════════════════════
+   CHARTS (sparklines)
+════════════════════════════════════════════════════ */
+const RING=120;const mkB=()=>Array(RING).fill(null);
+const serA=mkB(),serB=mkB(),serI=mkB();let si=0;
+function drawSpark(canvas,series,color){
+  const w=canvas.clientWidth,h=canvas.clientHeight;canvas.width=w;canvas.height=h;
+  const ctx=canvas.getContext("2d");ctx.clearRect(0,0,w,h);
+  ctx.save();ctx.globalAlpha=.07;ctx.strokeStyle="#8b949e";ctx.lineWidth=1;
+  for(let i=1;i<4;i++){const y=h*i/4;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+  ctx.restore();
+  const vals=series.filter(v=>v!==null);if(vals.length<2){ctx.fillStyle="rgba(139,148,158,.35)";ctx.font="9px JetBrains Mono,monospace";ctx.fillText("No data",6,h/2+3);return;}
+  const mn=Math.min(...vals),mx=Math.max(...vals),pad=(mx-mn)*.2||.3;const lo=mn-pad,hi=mx+pad;
+  const pts=[];for(let i=0;i<RING;i++){const v=series[(si+i)%RING];if(v===null)continue;pts.push([4+(w-8)*(i/(RING-1)),4+(h-8)*(1-(v-lo)/(hi-lo))]);}
+  const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,color.replace(")",", .22)").replace("rgb","rgba"));g.addColorStop(1,color.replace(")",", 0)").replace("rgb","rgba"));
+  ctx.beginPath();pts.forEach(([x,y],i)=>i===0?ctx.moveTo(x,y):ctx.lineTo(x,y));
+  ctx.lineTo(pts[pts.length-1][0],h);ctx.lineTo(pts[0][0],h);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+  ctx.beginPath();pts.forEach(([x,y],i)=>i===0?ctx.moveTo(x,y):ctx.lineTo(x,y));
+  ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.lineJoin="round";ctx.stroke();
+  const last=vals[vals.length-1];ctx.fillStyle="rgba(230,237,243,.5)";ctx.font="9px JetBrains Mono,monospace";ctx.fillText(last.toFixed(2)+" bar",5,12);
+}
+
+/* ════════════════════════════════════════════════════
+   PUMP TELEMETRY
+════════════════════════════════════════════════════ */
+const prevFault={DOM_A:false,DOM_B:false,IRR:false};
+function fmtTs(ts){if(!ts)return"--";return new Date(ts*1000).toLocaleTimeString();}
+function fmtTsFull(ts){if(!ts)return"--";return new Date(ts*1000).toLocaleString();}
+function setV(id,v){const el=document.getElementById(id);if(el)el.textContent=(v===null||v===undefined)?"--":v;}
+function setTag(el,card,p){
+  if(!p){el.textContent="STOP";el.className="status-badge badge-stop";card.className="pump-card";return;}
+  if(p.fault){el.textContent="FAULT";el.className="status-badge badge-fault";card.className="pump-card fault";}
+  else if(p.running){el.textContent="RUN";el.className="status-badge badge-run";card.className="pump-card running";}
+  else{el.textContent="STOP";el.className="status-badge badge-stop";card.className="pump-card";}
+}
+function setOnline(dotId,statId,online){
+  const dot=document.getElementById(dotId),el=document.getElementById(statId);
+  if(dot)dot.className="online-dot"+(online?" on":"");
+  if(el){el.textContent=online?"Online":"Offline";el.style.color=online?"var(--green2)":"var(--dim)";}
+}
+function setDtuOnline(tdId,online){const el=document.getElementById(tdId);if(!el)return;/* XSS-safe: static text, no user data */
+  el.innerHTML='';
+  const sp=document.createElement("span");
+  sp.className=online?"cell-on":"cell-off";
+  sp.textContent=online?"Online":"Offline";
+  el.appendChild(sp);}
+function setTrip(kpiId,code){const el=document.getElementById(kpiId);if(el)el.className="metric"+(code&&code!==0?" alert":"");}
+
+function applyPumpTele(pl){
+  dqReceived("pumps");  /* ← Data Quality: mark GOOD */
+  const plat=pl.platform||{},pumps=pl.pumps||{};
+  const A=pumps.DOM_A,B=pumps.DOM_B,I=pumps.IRR;
+  let faults=0;
+
+  setV("platformTag","Mode: "+(plat.mode||"--")+" · Duty: "+(plat.duty||"--"));
+  setV("kpiMode",plat.mode||"--");setV("kpiDutySub","Duty: "+(plat.duty||"--"));
+  if(plat.mode)document.getElementById("modeSel").value=plat.mode;
+  if(plat.duty)document.getElementById("dutySel").value=plat.duty;
+  if(plat.setpoint_bar!=null)document.getElementById("setpointInp").value=plat.setpoint_bar;
+  const gwTs=plat.ts?new Date(plat.ts*1000).toLocaleTimeString():"--";
+  setV("lastUpdate","GW: "+gwTs+" · UI: "+new Date().toLocaleTimeString());
+  setV("sidebarLastUpdate","Updated "+new Date().toLocaleTimeString());
+
+  if(A){setTag(document.getElementById("tagA"),document.getElementById("cardA"),A);setV("aP",A.pressure_bar?.toFixed?.(2));setV("aHz",A.freq_hz?.toFixed?.(1));setV("aA",A.current_a?.toFixed?.(1));setV("aTrip",A.trip_code??0);setTrip("kpiATrip",A.trip_code);serA[si]=A.pressure_bar??null;setOnline("dotA","hA",A.online);setV("tA",fmtTs(A.last_seen));setV("tA2",fmtTsFull(A.last_seen));setDtuOnline("dtuA",A.online);setV("dtuAP",(A.pressure_bar?.toFixed?.(2)??'--')+" bar");setV("dtuAHz",(A.freq_hz?.toFixed?.(1)??'--')+" Hz");if(A.fault){faults++;if(!prevFault.DOM_A){pushEvt("DOM_A FAULT — trip "+A.trip_code,"bad");setAlarm("DOM_A","DOM_A FAULT trip "+A.trip_code,true);}}else if(prevFault.DOM_A){pushEvt("DOM_A fault cleared","good");setAlarm("DOM_A","",false);}prevFault.DOM_A=!!A.fault;if(A.running&&plat.duty==="DOM_A"){setV("kpiPressure",A.pressure_bar?.toFixed?.(2)??"--");setV("kpiFreq",A.freq_hz?.toFixed?.(1)??"--");}}
+  if(B){setTag(document.getElementById("tagB"),document.getElementById("cardB"),B);setV("bP",B.pressure_bar?.toFixed?.(2));setV("bHz",B.freq_hz?.toFixed?.(1));setV("bA",B.current_a?.toFixed?.(1));setV("bTrip",B.trip_code??0);setTrip("kpiBTrip",B.trip_code);serB[si]=B.pressure_bar??null;setOnline("dotB","hB",B.online);setV("tB",fmtTs(B.last_seen));setV("tB2",fmtTsFull(B.last_seen));setDtuOnline("dtuB",B.online);setV("dtuBP",(B.pressure_bar?.toFixed?.(2)??'--')+" bar");setV("dtuBHz",(B.freq_hz?.toFixed?.(1)??'--')+" Hz");if(B.fault){faults++;if(!prevFault.DOM_B){pushEvt("DOM_B FAULT — trip "+B.trip_code,"bad");setAlarm("DOM_B","DOM_B FAULT trip "+B.trip_code,true);}}else if(prevFault.DOM_B){pushEvt("DOM_B fault cleared","good");setAlarm("DOM_B","",false);}prevFault.DOM_B=!!B.fault;if(B.running&&plat.duty==="DOM_B"){setV("kpiPressure",B.pressure_bar?.toFixed?.(2)??"--");setV("kpiFreq",B.freq_hz?.toFixed?.(1)??"--");}}
+  if(I){setTag(document.getElementById("tagIRR"),document.getElementById("cardI"),I);setV("iP",I.pressure_bar?.toFixed?.(2));setV("iHz",I.freq_hz?.toFixed?.(1));setV("iA",I.current_a?.toFixed?.(1));setV("iTrip",I.trip_code??0);setTrip("kpiITrip",I.trip_code);serI[si]=I.pressure_bar??null;setOnline("dotI","hI",I.online);setV("tI",fmtTs(I.last_seen));setV("tI2",fmtTsFull(I.last_seen));setDtuOnline("dtuI",I.online);setV("dtuIP",(I.pressure_bar?.toFixed?.(2)??'--')+" bar");setV("dtuIHz",(I.freq_hz?.toFixed?.(1)??'--')+" Hz");if(I.fault){faults++;if(!prevFault.IRR){pushEvt("IRR FAULT — trip "+I.trip_code,"bad");setAlarm("IRR","IRR FAULT trip "+I.trip_code,true);}}else if(prevFault.IRR){pushEvt("IRR fault cleared","good");setAlarm("IRR","",false);}prevFault.IRR=!!I.fault;}
+
+  const kf=document.getElementById("kpiFaults");if(kf){kf.textContent=faults;kf.style.color=faults>0?"var(--red)":"var(--green2)";}
+  setV("kpiFaultDetail",faults>0?faults+" fault(s) active":"All systems normal");
+  document.getElementById("kpiFaultIcon").className="kpi-icon "+(faults>0?"red":"green");
+
+  si=(si+1)%RING;
+  drawSpark(document.getElementById("chartA"),serA,"rgb(88,166,255)");
+  drawSpark(document.getElementById("chartB"),serB,"rgb(63,185,80)");
+  drawSpark(document.getElementById("chartI"),serI,"rgb(118,227,234)");
+}
+
+/* ════════════════════════════════════════════════════
+   LIGHTING
+════════════════════════════════════════════════════ */
+const PANELS=["P01","P02","P03","P04","P05","P06","P07","P08","P09","P10","P11","P12","P13"];
+const lightState={};PANELS.forEach(p=>lightState[p]={state:null,ts:0});
+
+function buildLightGrid(){
+  const grid=document.getElementById("lightGrid");grid.innerHTML="";
+  PANELS.forEach(p=>{
+    const card=document.createElement("div");card.className="light-card";card.id="lcard_"+p;
+    card.innerHTML=`
+      <div class="light-card-top">
+        <div>
+          <div class="light-panel-name">${p}</div>
+          <div class="light-state-txt" id="ltxt_${p}">UNKNOWN</div>
+          <div class="light-ts" id="lts_${p}">--</div>
+        </div>
+        <span class="light-bulb" id="lbulb_${p}">💡</span>
+      </div>
+      <div class="light-btns">
+        <button class="light-on-btn"  onclick="lightCmd('${p}','on')">ON</button>
+        <button class="light-off-btn" onclick="lightCmd('${p}','off')">OFF</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function applyLightState(pl){
+  dqReceived("lights");  /* ← Data Quality: mark GOOD */
+  let onCount=0;
+  PANELS.forEach(p=>{
+    const d=pl[p]||pl[p.toLowerCase()];
+    if(!d)return;
+    const isOn=d.state==="on"||d.state===true||d.state===1;
+    lightState[p]={state:d.state,ts:d.ts||0};
+    const card=document.getElementById("lcard_"+p);
+    if(card)card.className="light-card"+(isOn?" on":"");
+    setV("ltxt_"+p,isOn?"ON":"OFF");
+    setV("lts_"+p,fmtTs(d.ts));
+    if(isOn)onCount++;
+  });
+  setV("lightsOnCount",onCount);
+  document.getElementById("badge-lights").textContent=onCount+" ON";
+}
+
+function lightCmd(panel,state){
+  mqttSend("compound/lights/cmd/"+panel,{state});
+}
+function lightAllOn(){if(confirm("Turn ALL 13 light panels ON?"))mqttSend("compound/lights/cmd/all",{state:"on"});}
+function lightAllOff(){if(confirm("Turn ALL 13 light panels OFF?"))mqttSend("compound/lights/cmd/all",{state:"off"});}
+function onLightModeChange(){
+  const isAuto=document.getElementById("lightMode").value==="auto";
+  document.getElementById("scheduleSection").style.display=isAuto?"block":"none";
+  pushEvt("Lighting mode set to "+(isAuto?"AUTO (schedule)":"MANUAL"),"info");
+}
+
+/* Days picker */
+document.addEventListener("DOMContentLoaded",()=>{
+  document.querySelectorAll(".day-btn").forEach(b=>{
+    b.addEventListener("click",()=>b.classList.toggle("sel"));
+  });
+});
+
+const schedules=[];
+function addSchedule(){
+  const target=document.getElementById("schedTarget").value;
+  const onTime=document.getElementById("schedOn").value;
+  const offTime=document.getElementById("schedOff").value;
+  const days=[...document.querySelectorAll(".day-btn.sel")].map(b=>parseInt(b.dataset.day));
+  if(!onTime||!offTime){alert("Please set both ON and OFF times.");return;}
+  if(!days.length){alert("Select at least one day.");return;}
+  const dayNames=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const sched={id:Date.now(),target,onTime,offTime,days,enabled:true};
+  schedules.push(sched);
+  renderSchedules();
+  /* Send to broker */
+  mqttSend("compound/schedules/cmd",{action:"set",schedules});
+  pushEvt("Schedule added: "+target+" ON:"+onTime+" OFF:"+offTime+" "+days.map(d=>dayNames[d]).join(","),"good");
+}
+
+function renderSchedules(){
+  const list=document.getElementById("schedList");
+  if(!schedules.length){list.innerHTML='<li style="font-family:var(--mono);font-size:10px;color:var(--dim);padding:8px 0">No schedules configured</li>';return;}
+  const dayNames=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  list.innerHTML="";
+  schedules.forEach((s,i)=>{
+    const li=document.createElement("li");li.className="sched-item";
+    /* XSS-safe schedule row */
+    const badge=document.createElement("span");badge.className="sched-badge sched-badge-light";badge.textContent=s.target;
+    const times=document.createElement("span");times.style.color="var(--text)";times.textContent=s.onTime+"→"+s.offTime;
+    const daysEl=document.createElement("span");daysEl.style.color="var(--dim)";daysEl.textContent=s.days.map(d=>dayNames[d]).join(",");
+    const tog=document.createElement("div");tog.className="sched-enabled-toggle"+(s.enabled?" on":"");
+    tog.addEventListener("click",()=>toggleSched(i));
+    const del=document.createElement("button");del.className="sched-del";del.textContent="✕";
+    del.addEventListener("click",()=>deleteSched(i));
+    li.append(badge,times,daysEl,tog,del);
+    list.appendChild(li);
+  });
+}
+
+function toggleSched(i){schedules[i].enabled=!schedules[i].enabled;renderSchedules();mqttSend("compound/schedules/cmd",{action:"set",schedules});}
+function deleteSched(i){schedules.splice(i,1);renderSchedules();mqttSend("compound/schedules/cmd",{action:"set",schedules});pushEvt("Schedule removed","warn");}
+
+/* ════════════════════════════════════════════════════
+   TANKS
+════════════════════════════════════════════════════ */
+/* Tank setpoints — default values, persisted in memory */
+/* Tank setpoints persisted to localStorage — survive page reload */
+const SP_LSKEY = "alsharq_tank_sp_v2";
+const SP_DEFAULTS = {A:{low:20,high:90},B:{low:20,high:90},Irr:{low:15,high:95}};
+let tankSP;
+try {
+  const saved = localStorage.getItem(SP_LSKEY);
+  tankSP = saved ? JSON.parse(saved) : {...SP_DEFAULTS};
+  /* ensure all three keys present after upgrades */
+  Object.keys(SP_DEFAULTS).forEach(k=>{if(!tankSP[k])tankSP[k]={...SP_DEFAULTS[k]};});
+} catch(_) {
+  tankSP = {...SP_DEFAULTS};
+}
+function _saveTankSP(){ try{localStorage.setItem(SP_LSKEY,JSON.stringify(tankSP));}catch(_){} }
+/* Previous alarm state per tank to avoid duplicate raises */
+const tankPrevAlarm={A:{low:false,high:false},B:{low:false,high:false},Irr:{low:false,high:false}};
+
+function applySetpoints(id){
+  const lo=parseFloat(document.getElementById("spLow"+id).value);
+  const hi=parseFloat(document.getElementById("spHigh"+id).value);
+  if(isNaN(lo)||isNaN(hi)||lo<0||hi>100||lo>=hi){
+    alert("Low must be < High, both between 0-100");return;
+  }
+  tankSP[id]={low:lo,high:hi};
+  _saveTankSP();  /* persist across reload */
+  pushEvt("Tank "+id+" setpoints updated — Low:"+lo+"% High:"+hi+"%","info");
+}
+
+function applyTankTele(pl){
+  dqReceived("tanks");  /* ← Data Quality: mark GOOD */
+  const A=pl.tank_a, B=pl.tank_b, Irr=pl.tank_irr||pl.tank_irrigation||pl.irrigation;
+  let alerts=0;
+
+  function updateTank(data,id,fillId,pctId,levelId,tsId,statusId,tagId,cardId,kpiId,kpiStatusId,barId){
+    if(!data)return;
+    const lvl=parseFloat(data.level??data.value??0);
+    const pct=Math.max(0,Math.min(100,lvl)).toFixed(1);
+    const pctN=parseFloat(pct);
+    const sp=tankSP[id]||{low:20,high:90};
+
+    /* gauge fill */
+    const fill=document.getElementById(fillId);
+    if(fill){
+      fill.style.height=pct+"%";
+      fill.className="tank-gauge-fill"+(pctN<=sp.low?" low-water":pctN>=sp.high?" high-water":"");
+    }
+    setV(pctId,Math.round(pctN)+"%");
+    setV(levelId,Math.round(pctN));
+    setV(tsId,fmtTs(data.ts));
+
+    /* status text */
+    const isLow=pctN<=sp.low, isHigh=pctN>=sp.high;
+    const status=isLow?"⚠ LOW":isHigh?"⚠ HIGH":"OK";
+    const statusColor=isLow?"var(--red)":isHigh?"var(--blue)":"var(--green2)";
+    const statEl=document.getElementById(statusId);
+    if(statEl){statEl.textContent=status;statEl.style.color=statusColor;}
+
+    /* badge */
+    const tag=document.getElementById(tagId);
+    if(tag){tag.textContent=status==="OK"?"NORMAL":status;tag.className="status-badge "+(isLow?"badge-fault":isHigh?"badge-run":"badge-stop");}
+
+    /* card border */
+    const card=document.getElementById(cardId);
+    if(card)card.className="tank-card"+(isLow?" low":isHigh?" high":"");
+
+    /* alarm bar at bottom of card */
+    const bar=document.getElementById(barId);
+    if(bar)bar.className="tank-alarm-bar"+(isLow?" low":isHigh?" high":"");
+
+    /* KPI */
+    setV(kpiId,Math.round(pctN)+"%");
+    setV(kpiStatusId,status);
+
+    /* Alarm logic — raise and KEEP until acked */
+    const prev=tankPrevAlarm[id]||{low:false,high:false};
+    if(isLow&&!prev.low){
+      raiseAlarm("tank_"+id+"_low","critical","TANK_LOW",
+        "Tank "+id+" BELOW low setpoint ("+Math.round(pctN)+"% ≤ "+sp.low+"%)");
+      prev.low=true;
+    } else if(!isLow&&prev.low){
+      /* condition cleared — only clear if alarm was acked */
+      if(!activeAlarms["tank_"+id+"_low"]||activeAlarms["tank_"+id+"_low"].acked){
+        clearAlarm("tank_"+id+"_low");
       } else {
-        document.body.style.display = "block";
-      }
-    }
-    function logout() {
-      localStorage.removeItem("authenticated");
-      localStorage.removeItem("userType");
-      goTo("index.html");
-    }
-    window.addEventListener("load", checkAuthentication);
-
-    /************ Connection badge ************/
-    function setConn(stateText, stateClass){
-      const dot = document.getElementById("conn-dot");
-      const txt = document.getElementById("conn-text");
-      txt.textContent = stateText;
-      dot.classList.remove("ok","bad");
-      if(stateClass) dot.classList.add(stateClass);
-    }
-
-    /************ Stale banner ************/
-    function setStale(show, text){
-      const banner = document.getElementById("stale-banner");
-      const label = document.getElementById("stale-text");
-      if (!banner || !label) return;
-      label.textContent = text || "Data stale";
-      banner.classList.toggle("show", !!show);
-    }
-
-    /************ Alarm audio (mobile safe) ************/
-    let audioContext = null;
-    let alarmBuffer = null;
-    let alarmSilenced = false;
-    let audioUnlocked = false;
-
-    const alarmSoundUrl = BASE_URL + "assets/alarm.wav"; // keep local file
-
-    function initAudioOnce() {
-      if (audioUnlocked) return;
-      try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        audioUnlocked = true;
-
-        fetch(alarmSoundUrl)
-          .then(r => r.arrayBuffer())
-          .then(b => audioContext.decodeAudioData(b))
-          .then(buf => { alarmBuffer = buf; })
-          .catch(err => console.error("Alarm sound load error:", err));
-      } catch (e) {
-        console.error("Audio init failed:", e);
-      }
-    }
-    ["pointerdown","touchstart","mousedown","keydown"].forEach(evt=>{
-      window.addEventListener(evt, initAudioOnce, {once:true, passive:true});
-    });
-
-    function playAlarmSound() {
-      if (!audioUnlocked || !audioContext || !alarmBuffer || alarmSilenced) return;
-      if (audioContext.state === "suspended") audioContext.resume().catch(()=>{});
-      const src = audioContext.createBufferSource();
-      src.buffer = alarmBuffer;
-      src.connect(audioContext.destination);
-      src.start(0);
-    }
-    function acknowledgeAlarm() {
-      alarmSilenced = true;
-      if (audioContext && audioContext.state === "running") audioContext.suspend().catch(()=>{});
-    }
-    function resetAlarm() {
-      alarmSilenced = false;
-      if (audioContext && audioContext.state === "suspended") audioContext.resume().catch(()=>{});
-
-      // ALSO reset sticky alarm latch
-      stickyAlarmLatch = false;
-      stickyAlarmMessages = [];
-      setAlarmBox("", false);
-      setSystemStatus(false);
-    }
-
-    /************ UI helpers ************/
-    function updateLedStatus(ledId, isActive, className) {
-      const el = document.getElementById(ledId);
-      if (!el) return;
-      el.className = "led";
-      el.classList.add(isActive ? className : "led-blank");
-    }
-
-    function updateSelector(selectorGroup, mode) {
-      const selector = document.getElementById(`${selectorGroup}-mode`);
-      if (!selector) return;
-      selector.value = String(mode);
-    }
-
-    function setSystemStatus(alarmActive) {
-      const icon = document.getElementById("system-status");
-      if (!icon) return;
-      if (alarmActive) {
-        icon.classList.remove("fa-check-circle");
-        icon.classList.add("fa-exclamation-circle");
-        icon.style.color = "var(--danger)";
-      } else {
-        icon.classList.remove("fa-exclamation-circle");
-        icon.classList.add("fa-check-circle");
-        icon.style.color = "var(--ok)";
-      }
-    }
-
-    function setAllLedsBlank() {
-      document.querySelectorAll(".led").forEach(led => led.className = "led led-blank");
-      document.getElementById("room-temperature").textContent = "--°C";
-      document.getElementById("room-humidity").textContent = "--%";
-      document.getElementById("water-pressure").textContent = "-- Bar";
-      setPressureFill(null);
-    }
-
-    /************ Sanitizers ************/
-    const PRESSURE_MIN = 0;
-    const PRESSURE_MAX = 16;
-
-    function parseNumberAny(v){
-      if (v === null || v === undefined) return null;
-      if (typeof v === "number") return Number.isFinite(v) ? v : null;
-      const s = String(v).trim().replace(",", ".");
-      const n = Number(s);
-      return Number.isFinite(n) ? n : null;
-    }
-
-    function sanitizePressure(raw){
-      const p = parseNumberAny(raw);
-      if (p === null) return {value:null, note:"Invalid"};
-
-      if (p < -1 || p > 1000) return {value:null, note:"Invalid / out of range"};
-
-      const clamped = Math.min(PRESSURE_MAX, Math.max(PRESSURE_MIN, p));
-      const note = (clamped !== p) ? `Clamped (${p.toFixed(2)} → ${clamped.toFixed(2)})` : "OK";
-      return {value:clamped, note};
-    }
-
-    function sanitizeTempHum(thString){
-      if (typeof thString !== "string" || !thString.includes(",")) return {t:null, h:null};
-      const parts = thString.split(",");
-      const t = parseNumberAny(parts[0]);
-      const h = parseNumberAny(parts[1]);
-      const tOk = (t !== null && t >= -30 && t <= 80) ? t : null;
-      const hOk = (h !== null && h >= 0 && h <= 100) ? h : null;
-      return {t:tOk, h:hOk};
-    }
-
-    function setPressureFill(p){
-      const fill = document.getElementById("pressure-fill");
-      if (!fill) return;
-      if (p === null){
-        fill.style.width = "0%";
-        return;
-      }
-      const percent = (p / PRESSURE_MAX) * 100;
-      fill.style.width = `${Math.max(0, Math.min(100, percent))}%`;
-    }
-
-    /************ Alarm box ************/
-    function setAlarmBox(text, isAlarm){
-      const box = document.getElementById("alarm-box");
-      box.textContent = text || "";
-      box.classList.toggle("alarm", !!isAlarm);
-    }
-
-    /************ MQTT ************/
-    const mqtt_server_primary   = "wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt";
-    const mqtt_server_secondary = "wss://279f2d6397444dbcbeb4eaa4897960f7.s1.eu.hivemq.cloud:8884/mqtt";
-
-    const options = {
-      username: "firepump",
-      password: "044313187Ki@",
-      clientId: `mqttjs_${Math.random().toString(16).slice(2,10)}`,
-      keepalive: 30,
-      connectTimeout: 10000,
-      clean: true
-      // IMPORTANT: we disable library auto-reconnect; we do our own backoff
-      // reconnectPeriod: 0
-    };
-
-    let mqttClient = null;
-    let activeServer = mqtt_server_primary;
-
-    // Separate states (professional):
-    let mqttConnected = false;     // websocket connected to broker
-    let lastPayloadTs = 0;         // last status message time
-
-    // Reconnect backoff
-    let retryMs = 1000;
-    function resetRetry(){ retryMs = 1000; }
-    function nextRetry(){
-      retryMs = Math.min(60000, Math.floor(retryMs * 1.8 + Math.random() * 600));
-      return retryMs;
-    }
-
-    // Failover control
-    let lastFailoverTs = 0;
-    const FAILOVER_COOLDOWN_MS = 15000;
-
-    // Stale thresholds
-    const STALE_MS = 15000;     // show stale banner
-    const OFFLINE_MS = 60000;   // declare offline/comm fail if no payload for 60s
-
-    // Sticky alarms (client-side latch)
-    let stickyAlarmLatch = false;
-    let stickyAlarmMessages = [];
-
-    function dataAgeMs(){
-      return lastPayloadTs ? (Date.now() - lastPayloadTs) : Infinity;
-    }
-
-    function updateConnectivityUI(){
-      const age = dataAgeMs();
-
-      // Decide status text
-      if (mqttConnected && age <= STALE_MS) {
-        setConn("Online", "ok");
-        setStale(false, "");
-      } else if (mqttConnected && age > STALE_MS && age <= OFFLINE_MS) {
-        setConn("Connected (No Data)", "");
-        setStale(true, `No data for ${Math.floor(age/1000)}s`);
-      } else if (!mqttConnected) {
-        setConn("Offline", "bad");
-        setStale(true, "Disconnected from broker");
-      } else {
-        // mqttConnected but very stale
-        setConn("Offline (Stale)", "bad");
-        setStale(true, `No data for ${Math.floor(age/1000)}s`);
-      }
-    }
-
-    function connectMqtt(server){
-      activeServer = server;
-
-      // Clean previous client
-      if (mqttClient) {
-        try { mqttClient.removeAllListeners(); mqttClient.end(true); } catch(e){}
-        mqttClient = null;
-      }
-
-      mqttConnected = false;
-      setConn("Connecting…", "");
-      updateConnectivityUI();
-
-      mqttClient = mqtt.connect(server, { ...options, reconnectPeriod: 0 });
-
-      mqttClient.on("connect", () => {
-        mqttConnected = true;
-        resetRetry();
-        setConn("Connected", "ok");
-        mqttClient.subscribe("fire-pump/status", { qos: 1 }, (err) => {
-          if (err) console.error("Subscribe error:", err);
-        });
-        // If you later add ack topic:
-        // mqttClient.subscribe("fire-pump/mode/ack", { qos: 1 });
-      });
-
-      mqttClient.on("message", (topic, message) => {
-        if (topic !== "fire-pump/status") return;
-        try {
-          const data = JSON.parse(message.toString());
-          lastPayloadTs = Date.now();
-          handleStatusUpdates(data);
-        } catch (e) {
-          console.error("Bad JSON:", e);
+        /* still showing — update message to show level recovered but keep alarm */
+        if(activeAlarms["tank_"+id+"_low"]){
+          activeAlarms["tank_"+id+"_low"].msg="Tank "+id+" recovered to "+Math.round(pctN)+"% (was LOW — please ACK)";
+          renderAlarms();
         }
-      });
-
-      mqttClient.on("error", (err) => {
-        console.error("MQTT error:", err);
-        // Force close -> our reconnect handler will run on 'close'
-        try { mqttClient.end(true); } catch(e){}
-      });
-
-      mqttClient.on("close", () => {
-        mqttConnected = false;
-        updateConnectivityUI();
-
-        // Controlled reconnect with backoff + failover
-        const delay = nextRetry();
-        setTimeout(() => {
-          // alternate server after a few failures or if very stale
-          const now = Date.now();
-          const shouldFailover = (now - lastFailoverTs) > FAILOVER_COOLDOWN_MS;
-          const target = shouldFailover ? failoverServer() : activeServer;
-          if (shouldFailover) lastFailoverTs = now;
-          connectMqtt(target);
-        }, delay);
-      });
+      }
+      prev.low=false;
     }
-
-    function failoverServer(){
-      return activeServer === mqtt_server_primary ? mqtt_server_secondary : mqtt_server_primary;
-    }
-
-    function showCommFailure(msg) {
-      // Keep last visuals; just show banner + alarm (more professional than blanking instantly)
-      setAlarmBox(msg, true);
-      playAlarmSound();
-      setSystemStatus(true);
-    }
-
-    function handleStatusUpdates(data) {
-      updateConnectivityUI();
-
-      updateLedStatus("jockey-pump-run",  !!data.JP,  "led-run");
-      updateLedStatus("jockey-pump-off",  !data.JP,   "led-off");
-      updateLedStatus("jockey-pump-trip", !!data.JPT, "led-trip");
-
-      updateLedStatus("main-pump-run",  !!data.MP,  "led-run");
-      updateLedStatus("main-pump-off",  !data.MP,   "led-off");
-      updateLedStatus("main-pump-trip", !!data.MPT, "led-trip");
-
-      updateLedStatus("diesel-pump-run",  !!data.DP,  "led-run");
-      updateLedStatus("diesel-pump-off",  !data.DP,   "led-off");
-      updateLedStatus("diesel-pump-trip", !!data.DPT, "led-trip");
-
-      updateLedStatus("smoke-detector-alarm",  !!data.SS1, "led-alarm");
-      updateLedStatus("smoke-detector-normal", !data.SS1,  "led-normal");
-
-      updateLedStatus("flood-sensor-alarm",  !!data.FS, "led-alarm");
-      updateLedStatus("flood-sensor-normal", !data.FS,  "led-normal");
-
-      const th = sanitizeTempHum(data.TH);
-      document.getElementById("room-temperature").textContent = (th.t === null) ? "--°C" : `${th.t.toFixed(1)}°C`;
-      document.getElementById("room-humidity").textContent    = (th.h === null) ? "--%"  : `${th.h.toFixed(0)}%`;
-
-      const pr = sanitizePressure(data.WP);
-      const pressureNote = document.getElementById("pressure-note");
-
-      if (pr.value === null){
-        document.getElementById("water-pressure").textContent = "-- Bar";
-        pressureNote.textContent = pr.note;
-        setPressureFill(null);
+    if(isHigh&&!prev.high){
+      raiseAlarm("tank_"+id+"_high","warn","TANK_HIGH",
+        "Tank "+id+" ABOVE high setpoint ("+Math.round(pctN)+"% ≥ "+sp.high+"%)");
+      prev.high=true;
+    } else if(!isHigh&&prev.high){
+      if(!activeAlarms["tank_"+id+"_high"]||activeAlarms["tank_"+id+"_high"].acked){
+        clearAlarm("tank_"+id+"_high");
       } else {
-        document.getElementById("water-pressure").textContent = `${pr.value.toFixed(2)} Bar`;
-        pressureNote.textContent = pr.note;
-        setPressureFill(pr.value);
-      }
-
-      updateSelector("jockey", data.JPM);
-      updateSelector("main", data.MPM);
-      updateSelector("diesel", data.DPM);
-
-      // Alarm logic (with sticky latch)
-      let alarmMsgs = [];
-      let alarmActive = false;
-
-      if (data.JPT) { alarmMsgs.push("Jockey Pump Trip"); alarmActive = true; }
-      if (data.MPT) { alarmMsgs.push("Main Pump Trip"); alarmActive = true; }
-      if (data.DPT) { alarmMsgs.push("Diesel Pump Trip"); alarmActive = true; }
-      if (data.SS1) { alarmMsgs.push("Smoke Detector Alarm"); alarmActive = true; }
-      if (data.FS)  { alarmMsgs.push("Water Flood Sensor Alarm"); alarmActive = true; }
-
-      // Pressure invalid warning
-      if (pr.value === null && data.WP !== undefined) {
-        alarmMsgs.push("Pressure reading invalid");
-        alarmActive = true;
-      }
-
-      // Optional: comm flags from payload
-      if (data.RXTX === false || data.RXMQTT === false) {
-        alarmMsgs.push("Communication Failed");
-        alarmActive = true;
-      }
-
-      // Sticky latch: once alarm active, keep it until Reset pressed
-      if (alarmActive) {
-        stickyAlarmLatch = true;
-        // store unique messages
-        alarmMsgs.forEach(m => { if (!stickyAlarmMessages.includes(m)) stickyAlarmMessages.push(m); });
-      }
-
-      if (stickyAlarmLatch) {
-        setAlarmBox(stickyAlarmMessages.join(" • "), true);
-        playAlarmSound();
-        setSystemStatus(true);
-      } else {
-        setAlarmBox("", false);
-        setSystemStatus(false);
-      }
-    }
-
-    /************ OFFLINE / STALE WATCHDOG ************/
-    setInterval(() => {
-      updateConnectivityUI();
-
-      const age = dataAgeMs();
-      // If no payload for OFFLINE_MS, show comm failure and attempt failover reconnect
-      if (age > OFFLINE_MS) {
-        showCommFailure(`No data for ${Math.floor(age/1000)}s • Checking connection…`);
-
-        // If still connected but no data, bounce connection
-        const now = Date.now();
-        if ((now - lastFailoverTs) > FAILOVER_COOLDOWN_MS) {
-          lastFailoverTs = now;
-          connectMqtt(failoverServer());
-        } else if (!mqttClient || !mqttClient.connected) {
-          connectMqtt(activeServer);
-        }
-        // Do NOT blank LEDs automatically; keep last known state (professional)
-      }
-    }, 1000);
-
-    /************ FAST RECOVERY AFTER MINIMIZE / LOCK ************/
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") {
-        // If stale or disconnected, reconnect immediately
-        if (!mqttClient || !mqttClient.connected || dataAgeMs() > STALE_MS) {
-          connectMqtt(activeServer);
+        if(activeAlarms["tank_"+id+"_high"]){
+          activeAlarms["tank_"+id+"_high"].msg="Tank "+id+" recovered (was HIGH — please ACK)";
+          renderAlarms();
         }
       }
+      prev.high=false;
+    }
+    tankPrevAlarm[id]=prev;
+    if(isLow||isHigh)alerts++;
+  }
+
+  updateTank(A,  "A",  "fillA",  "pctA",  "tankALevel",  "tankATs",  "tankAStatus",  "tagTankA",  "tankCardA",  "kpiTankA",  "kpiTankAStatus",  "alarmBarA");
+  updateTank(B,  "B",  "fillB",  "pctB",  "tankBLevel",  "tankBTs",  "tankBStatus",  "tagTankB",  "tankCardB",  "kpiTankB",  "kpiTankBStatus",  "alarmBarB");
+  updateTank(Irr,"Irr","fillIrr","pctIrr","tankIrrLevel","tankIrrTs","tankIrrStatus","tagTankIrr","tankCardIrr","kpiTankIrr","kpiTankIrrStatus","alarmBarIrr");
+
+  const kta=document.getElementById("kpiTankAlerts");
+  if(kta){kta.textContent=alerts;kta.style.color=alerts>0?"var(--red)":"var(--green2)";}
+  setV("kpiTankAlertDetail",alerts>0?alerts+" alert(s) active":"All levels normal");
+  document.getElementById("kpiTankAlertIcon").className="kpi-icon "+(alerts>0?"red":"green");
+}
+
+/* ════════════════════════════════════════════════════
+   DATA QUALITY ENGINE
+   Mirrors OPC UA / Siemens WinCC / Honeywell Experion
+   Every data source has: GOOD → UNCERTAIN → BAD
+   UNCERTAIN = no update for 30s
+   BAD       = no update for 90s → blank values + alarm
+════════════════════════════════════════════════════ */
+const DQ_UNCERTAIN_MS = 30000;  // 30s → UNCERTAIN (amber)
+const DQ_BAD_MS       = 90000;  // 90s → BAD (red, blank values)
+
+/* Track last received timestamp per source */
+const dqSources = {
+  pumps:  {lastRx: null, quality: 'init', alarmKey: 'comm_pumps',  badFn: blankPumps},
+  tanks:  {lastRx: null, quality: 'init', alarmKey: 'comm_tanks',  badFn: blankTanks},
+  lights: {lastRx: null, quality: 'init', alarmKey: 'comm_lights', badFn: blankLights},
+};
+
+/* Called each time a payload arrives for a source */
+function dqReceived(src){
+  const s=dqSources[src];
+  if(!s)return;
+  const wasBAD = s.quality==="bad";
+  s.lastRx = Date.now();
+  s.quality = "good";
+  setDQBadge(src,"good");
+  hideDQBanner(src);
+  if(wasBAD){
+    /* Remove bad-val styling from all elements when data comes back */
+    document.querySelectorAll(".bad-val").forEach(el=>el.classList.remove("bad-val"));
+    clearAlarm(s.alarmKey);
+    pushEvt("✓ "+src+" gateway data restored","good");
+  }
+}
+
+/* Watchdog — runs every 5s */
+function dqWatchdog(){
+  const now=Date.now();
+  Object.entries(dqSources).forEach(([src,s])=>{
+    if(!s.lastRx) return; // never received — stay INIT
+    const age=now-s.lastRx;
+    if(age>=DQ_BAD_MS && s.quality!=='bad'){
+      s.quality='bad';
+      setDQBadge(src,'bad');
+      showDQBanner(src, Math.round(age/1000));
+      s.badFn(); // blank all values
+      raiseAlarm(s.alarmKey,'critical','COMM_LOSS',
+        src.charAt(0).toUpperCase()+src.slice(1)+' gateway — no data for '+Math.round(age/1000)+'s');
+    } else if(age>=DQ_UNCERTAIN_MS && age<DQ_BAD_MS && s.quality==='good'){
+      s.quality='uncertain';
+      setDQBadge(src,'uncertain');
+      showDQBanner(src, Math.round(age/1000));
+    } else if(age<DQ_UNCERTAIN_MS && s.quality!=='good'){
+      s.quality='good';
+      setDQBadge(src,'good');
+      hideDQBanner(src);
+    }
+    /* Always update age label */
+    const ageEl=document.getElementById('dq'+src.charAt(0).toUpperCase()+src.slice(1)+'Age');
+    if(ageEl) ageEl.textContent='Last update: '+fmtTs(s.lastRx/1000)+
+      ' ('+Math.round(age/1000)+'s ago)';
+  });
+}
+setInterval(dqWatchdog, 5000);
+
+function setDQBadge(src,q){
+  const id='dq'+src.charAt(0).toUpperCase()+src.slice(1);
+  const el=document.getElementById(id); if(!el)return;
+  const cfg={
+    good:     {cls:'dq-good',    txt:'⬤ GOOD'},
+    uncertain:{cls:'dq-uncertain',txt:'◆ UNCERTAIN'},
+    bad:      {cls:'dq-bad',     txt:'✖ BAD — COMM LOSS'},
+    init:     {cls:'dq-init',    txt:'⬤ INITIALISING'}
+  }[q]||{cls:'dq-init',txt:'⬤ INIT'};
+  el.className='dq-badge '+cfg.cls;
+  el.textContent=cfg.txt;
+}
+function showDQBanner(src, ageSec){
+  const b=document.getElementById('commBanner'+src.charAt(0).toUpperCase()+src.slice(1));
+  if(b){b.classList.add('show');
+    const msg=b.querySelector('[id$="Msg"]');
+    if(msg) msg.textContent=(ageSec>=90?'⚠ COMM LOSS':'⚠ STALE DATA')+
+      ' — '+src+' gateway not responding';
+    const age=b.querySelector('[id$="Age"]');
+    if(age) age.textContent=ageSec+'s since last update';
+  }
+}
+function hideDQBanner(src){
+  const b=document.getElementById('commBanner'+src.charAt(0).toUpperCase()+src.slice(1));
+  if(b)b.classList.remove('show');
+}
+
+/* ── Blank functions — clear all values when BAD quality ── */
+const BLANK='--';
+function blankPumps(){
+  /* ── Blank all pump metric values (real element IDs) ── */
+  const BD = BLANK;
+  /* Pump A */
+  ['aP','aHz','aA','aTrip','tA','tA2','dtuAP','dtuAHz'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent=id.startsWith('dtu')?BD+' --':BD;el.classList.add('bad-val');}
+  });
+  /* Pump B */
+  ['bP','bHz','bA','bTrip','tB','tB2','dtuBP','dtuBHz'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent=BD;el.classList.add('bad-val');}
+  });
+  /* Pump IRR */
+  ['iP','iHz','iA','iTrip','tI','tI2','dtuIP','dtuIHz'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent=BD;el.classList.add('bad-val');}
+  });
+  /* Status badges → NO DATA */
+  ['tagA','tagB','tagIRR'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent='NO DATA';el.className='status-badge badge-fault';}
+  });
+  /* Online dots → grey/offline */
+  ['dotA','dotB','dotI'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.className='online-dot';} // remove .on class
+  });
+  /* Online text → NO DATA */
+  ['hA','hB','hI'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent='No Data';el.style.color='var(--red)';}
+  });
+  /* Card borders → neutral (remove running/fault animations) */
+  ['cardA','cardB','cardI'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.className='pump-card';} // strip running/fault classes
+  });
+  /* KPI row */
+  ['kpiPressure','kpiFreq'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent=BD;el.classList.add('bad-val');}
+  });
+  /* Platform tag */
+  setV('platformTag','COMM LOSS — no data');
+  pushEvt('⚠ Pumps data quality → BAD (no data received)','bad');
+}
+function blankTanks(){
+  const BD=BLANK;
+  /* Tank IDs match the HTML exactly */
+  const tanks=[
+    {fill:'fillA',  pct:'pctA',  level:'tankALevel',  ts:'tankATs',  status:'tankAStatus',  tag:'tagTankA',  card:'tankCardA',  kpi:'kpiTankA',  kpiS:'kpiTankAStatus',  bar:'alarmBarA'},
+    {fill:'fillB',  pct:'pctB',  level:'tankBLevel',  ts:'tankBTs',  status:'tankBStatus',  tag:'tagTankB',  card:'tankCardB',  kpi:'kpiTankB',  kpiS:'kpiTankBStatus',  bar:'alarmBarB'},
+    {fill:'fillIrr',pct:'pctIrr',level:'tankIrrLevel',ts:'tankIrrTs',status:'tankIrrStatus',tag:'tagTankIrr',card:'tankCardIrr',kpi:'kpiTankIrr',kpiS:'kpiTankIrrStatus',bar:'alarmBarIrr'},
+  ];
+  tanks.forEach(t=>{
+    /* Gauge fill → 0 (empty look) */
+    const fill=document.getElementById(t.fill);
+    if(fill){fill.style.height='0%';fill.className='tank-gauge-fill';}
+    /* Pct label */
+    const pct=document.getElementById(t.pct);
+    if(pct){pct.textContent=BD;pct.classList.add('bad-val');}
+    /* Metric values */
+    [t.level,t.ts,t.status].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.textContent=id===t.status?'NO DATA':BD;el.classList.add('bad-val');}
     });
-    window.addEventListener("focus", () => {
-      if (!mqttClient || !mqttClient.connected || dataAgeMs() > STALE_MS) {
-        connectMqtt(activeServer);
-      }
+    /* Badge */
+    const tag=document.getElementById(t.tag);
+    if(tag){tag.textContent='NO DATA';tag.className='status-badge badge-fault';}
+    /* Card — remove low/high class */
+    const card=document.getElementById(t.card);
+    if(card){card.className='tank-card';}
+    /* KPI */
+    const kpi=document.getElementById(t.kpi);
+    if(kpi){kpi.textContent=BD;kpi.classList.add('bad-val');}
+    const kpiS=document.getElementById(t.kpiS);
+    if(kpiS){kpiS.textContent='NO DATA';}
+    /* Alarm bar — clear */
+    const bar=document.getElementById(t.bar);
+    if(bar){bar.className='tank-alarm-bar';}
+  });
+  /* KPI summary row */
+  setV('kpiTankAlerts','--');
+  setV('kpiTankAlertDetail','No data — comms loss');
+  const icon=document.getElementById('kpiTankAlertIcon');
+  if(icon){icon.className='kpi-icon red';}
+  pushEvt('⚠ Tanks data quality → BAD (no data received)','bad');
+}
+function blankLights(){
+  /* Reset all light buttons to unknown state */
+  document.querySelectorAll('.light-btn').forEach(btn=>{
+    btn.className='light-btn light-unknown';
+  });
+  pushEvt('⚠ Lights data quality → BAD (no data)','bad');
+}
+
+/* ════════════════════════════════════════════════════
+   ALARM SYSTEM — receives from compound/events + pump faults
+   Python level: info|warn|error|critical
+════════════════════════════════════════════════════ */
+const activeAlarms={};   // key → {sev, code, msg, ts, acked}
+let soundEnabled=true;
+let _alarmBeepTimer=null;
+
+/* Continuous beep every 30s while unacked critical alarms exist */
+function startContinuousBeep(){
+  if(_alarmBeepTimer)return;
+  _alarmBeepTimer=setInterval(()=>{
+    if(!soundEnabled)return;
+    const hasUnacked=Object.values(activeAlarms).some(a=>!a.acked&&a.sev==="critical");
+    if(hasUnacked) playAlarmBeep();
+    else stopContinuousBeep();
+  },30000);
+}
+function stopContinuousBeep(){
+  clearInterval(_alarmBeepTimer);
+  _alarmBeepTimer=null;
+}
+
+/* Map Python event level → alarm severity */
+function levelToSev(level){
+  if(level==="critical"||level==="error") return "critical";
+  if(level==="warn"||level==="warning")   return "warn";
+  return "info";
+}
+/* Map Python event level → pushEvt type */
+function levelToType(level){
+  if(level==="critical"||level==="error") return "bad";
+  if(level==="warn"||level==="warning")   return "warn";
+  return "info";
+}
+
+/* Called when compound/events message arrives from Python backend */
+function applyMqttEvent(d){
+  const level   = d.level   || "info";
+  const code    = d.code    || "event";
+  const msg     = d.message || JSON.stringify(d);
+  const sev     = levelToSev(level);
+  const type    = levelToType(level);
+  /* push to event log always */
+  pushEvt("["+code+"] "+msg, type);
+  /* raise alarm for warn/error/critical */
+  if(sev==="critical"||sev==="warn"){
+    const key = code+(d.pump||d.pump_key||"");
+    raiseAlarm(key, sev, code, msg);
+  }
+}
+
+/* Raise an alarm — professional SCADA behaviour:
+   - First raise: add to panel, play sound
+   - If already active and unacked: just update message/time, don't re-fire sound immediately
+   - If re-fired after ack: create fresh alarm and sound */
+function raiseAlarm(key, sev, code, msg){
+  if(activeAlarms[key] && !activeAlarms[key].acked){
+    /* Already active, unacked — update message but no re-beep */
+    activeAlarms[key].msg=msg;
+    activeAlarms[key].conditionGone=false;
+    renderAlarms();
+    return;
+  }
+  /* New alarm or re-fired after ack */
+  activeAlarms[key]={sev, code, msg, ts:new Date().toLocaleTimeString(), acked:false, conditionGone:false};
+  renderAlarms();
+  updateAlarmHeader();
+  if(soundEnabled && (sev==="critical"||sev==="warn")){
+    playAlarmBeep();
+    if(sev==="critical") startContinuousBeep();
+  }
+}
+
+/* Clear an alarm by key.
+   Professional SCADA behaviour:
+   - If condition clears AND alarm was already acked → remove silently
+   - If condition clears but NOT acked → keep alarm active, add note,
+     but KEEP original severity (don't degrade to WARN) so operator
+     knows it was serious. Only a manual ACK removes it. */
+function clearAlarm(key){
+  if(activeAlarms[key]){
+    if(activeAlarms[key].acked){
+      /* Already acked — safe to remove */
+      delete activeAlarms[key];
+    } else {
+      /* Condition gone but NOT acked — keep alarm, add note */
+      activeAlarms[key].conditionGone=true;
+      /* Keep original severity — do NOT degrade */
+      if(!activeAlarms[key].msg.includes('[CLEARED]'))
+        activeAlarms[key].msg += ' [CLEARED — ACK to dismiss]';
+    }
+    renderAlarms();
+    updateAlarmHeader();
+  }
+}
+
+/* Called from pump telemetry to raise/clear fault alarms */
+function setAlarm(key, msg, active){
+  if(active){
+    raiseAlarm(key, "critical", key+"_fault", msg);
+  } else {
+    clearAlarm(key);
+    pushEvt(key+" fault cleared","good");
+  }
+}
+
+function updateAlarmHeader(){
+  const all   = Object.values(activeAlarms);
+  const unack = all.filter(a=>!a.acked);
+  const count = unack.length;
+  const panel  = document.getElementById("alarmPanel");
+  const header = document.getElementById("alarmHeader");
+  const blink  = document.getElementById("alarmBlink");
+  const title  = document.getElementById("alarmTitle");
+  const countEl= document.getElementById("alarmCount");
+  const badge  = document.getElementById("sidebar-alarm-badge");
+  if(count>0){
+    panel.className="alarm-panel has-alarms";
+    header.className="alarm-header firing";
+    blink.className="alarm-blink";
+    title.style.color="var(--red)";
+    title.textContent="⚠ "+count+" ACTIVE ALARM"+(count>1?"S":"");
+    countEl.textContent=count+" unacknowledged";
+    countEl.style.background="var(--redBg)";
+    countEl.style.borderColor="rgba(248,81,73,.4)";
+    countEl.style.color="var(--red)";
+    if(badge){badge.style.display="inline";badge.textContent=count;}
+  } else {
+    panel.className="alarm-panel";
+    header.className="alarm-header";
+    blink.className="alarm-blink ok";
+    title.style.color="var(--green2)";
+    title.textContent="✓ ALL SYSTEMS NORMAL";
+    countEl.textContent="0 alarms";
+    countEl.style.background="var(--bg3)";
+    countEl.style.borderColor="var(--border)";
+    countEl.style.color="var(--dim)";
+    if(badge){badge.style.display="none";}
+  }
+}
+
+function renderAlarms(){
+  const list  = document.getElementById("alarmList");
+  const empty = document.getElementById("alarmEmpty");
+  const keys  = Object.keys(activeAlarms);
+  if(!keys.length){
+    list.innerHTML="";
+    if(empty){list.appendChild(empty);empty.style.display="block";}
+    return;
+  }
+  if(empty) empty.style.display="none";
+  list.innerHTML="";
+  // Sort: unacked critical first
+  const sorted = keys.sort((a,b)=>{
+    const A=activeAlarms[a], B=activeAlarms[b];
+    if(!A.acked && B.acked) return -1;
+    if(A.acked && !B.acked) return 1;
+    if(A.sev==="critical" && B.sev!=="critical") return -1;
+    if(A.sev!=="critical" && B.sev==="critical") return 1;
+    return 0;
+  });
+  sorted.forEach(k=>{
+    const a=activeAlarms[k];
+    const row=document.createElement("div");
+    row.className="alarm-row"+(a.acked?" acked":"");
+    /* XSS-safe: build alarm row with DOM methods, never innerHTML with user data */
+    const sevEl=document.createElement("span");sevEl.className="alarm-sev "+a.sev;sevEl.textContent=a.sev.toUpperCase();
+    const codeEl=document.createElement("span");codeEl.className="alarm-code";codeEl.textContent=a.code;
+    const msgEl=document.createElement("span");msgEl.className="alarm-msg";msgEl.textContent=a.msg;
+    const tsEl=document.createElement("span");tsEl.className="alarm-ts";tsEl.textContent=a.ts;
+    row.append(sevEl,codeEl,msgEl,tsEl);
+    if(a.acked){
+      const ackTs=document.createElement("span");
+      ackTs.style.cssText="font-family:var(--mono);font-size:9px;color:var(--dim);flex-shrink:0";
+      ackTs.textContent="ACK'd "+(a.ackedAt||"");
+      const dis=document.createElement("button");
+      dis.className="sp-apply";dis.style.cssText="font-size:9px;padding:2px 7px;flex-shrink:0";
+      dis.textContent="Dismiss";dis.addEventListener("click",()=>dismissAlarm(k));
+      row.append(ackTs,dis);
+    } else {
+      const ackBtn=document.createElement("button");ackBtn.className="ack-btn";ackBtn.textContent="ACK";
+      ackBtn.addEventListener("click",()=>ackAlarm(k));row.appendChild(ackBtn);
+    }
+    list.appendChild(row);
+  });
+}
+
+function ackAlarm(k){
+  if(activeAlarms[k]){
+    activeAlarms[k].acked=true;
+    activeAlarms[k].ackedAt=new Date().toLocaleTimeString();
+    pushEvt("ACK: "+activeAlarms[k].code+" — "+activeAlarms[k].msg,"warn");
+    /* If condition already cleared, remove immediately after ack */
+    if(activeAlarms[k].conditionGone){
+      delete activeAlarms[k];
+    }
+    renderAlarms();
+    updateAlarmHeader();
+    /* Stop beep if no more unacked critical alarms */
+    const stillCritical=Object.values(activeAlarms).some(a=>!a.acked&&a.sev==="critical");
+    if(!stillCritical) stopContinuousBeep();
+  }
+}
+function ackAllAlarms(){
+  Object.keys(activeAlarms).forEach(k=>ackAlarm(k));
+}
+/* Dismiss = force-delete an acked alarm from the panel */
+function dismissAlarm(k){
+  if(activeAlarms[k]&&activeAlarms[k].acked){
+    delete activeAlarms[k];
+    renderAlarms();
+    updateAlarmHeader();
+  }
+}
+function toggleSound(){
+  soundEnabled=!soundEnabled;
+  const btn=document.getElementById("soundBtn");
+  if(btn){
+    btn.textContent=soundEnabled?"🔔 Sound":"🔕 Muted";
+    btn.className="alarm-sound-btn"+(soundEnabled?"":" muted");
+  }
+}
+function playAlarmBeep(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    [0,150,300].forEach(delay=>{
+      const osc=ctx.createOscillator(), gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.frequency.value=880;osc.type="square";
+      gain.gain.setValueAtTime(0.08,ctx.currentTime+delay/1000);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay/1000+0.12);
+      osc.start(ctx.currentTime+delay/1000);
+      osc.stop(ctx.currentTime+delay/1000+0.15);
     });
+  }catch(_){}
+}
 
-    /************ Publish mode changes (QoS 1) ************/
-    document.addEventListener("change", (e) => {
-      const target = e.target;
-      if (!target.classList || !target.classList.contains("control-input")) return;
-      if (!mqttClient || !mqttClient.connected) return;
+/* ════════════════════════════════════════════════════
+   EVENT LOG
+════════════════════════════════════════════════════ */
+const LS_KEY="alsharq_events_v2";const MAX_EVT=2000;
+let evtCount=0,evtsInit=false,evtFilter="all";
+function loadEvts(){try{return JSON.parse(localStorage.getItem(LS_KEY)||"[]");}catch(e){return[];}}
+function saveEvts(a){try{localStorage.setItem(LS_KEY,JSON.stringify(a.slice(-MAX_EVT)));}catch(e){}}
+function pushEvt(msg,type){
+  if(!evtsInit){evtsInit=true;}
+  const ts=new Date().toLocaleTimeString(),date=new Date().toLocaleDateString();
+  const evt={ts,date,type,msg};
+  const arr=loadEvts();arr.push(evt);saveEvts(arr);
+  evtCount=arr.length;setV("storedCount",arr.length);setV("evtCount",arr.length+" events");
+  /* pump page feed */
+  const feed=document.getElementById("pumpEvents");
+  if(feed){
+    if(feed.querySelector(".evt-info")&&feed.querySelector(".evt-info").textContent==="Waiting for telemetry…")feed.innerHTML="";
+    const d=document.createElement("div");d.className="evt";
+    /* XSS-safe */
+    const dot=document.createElement("span");dot.className="evt-dot evt-dot-"+type;
+    const tsS=document.createElement("span");tsS.className="evt-ts";tsS.textContent=ts;
+    const mS=document.createElement("span");mS.className="evt-"+type;mS.textContent=msg;
+    d.append(dot,tsS,mS);
+    feed.insertBefore(d,feed.firstChild);while(feed.children.length>60)feed.removeChild(feed.lastChild);
+  }
+  /* full event page */
+  renderEvtFeed();
+  /* badge */
+  const badgeEl=document.getElementById("badge-evts");
+  if(type==="bad"&&badgeEl){badgeEl.style.display="inline";badgeEl.textContent="⚠";}
+}
+function renderEvtFeed(){
+  const feed=document.getElementById("fullEventFeed");if(!feed)return;
+  const arr=loadEvts();const filtered=evtFilter==="all"?arr:arr.filter(e=>e.type===evtFilter);
+  if(!filtered.length){feed.innerHTML='<div class="evt"><span class="evt-info" style="color:var(--dim)">No events.</span></div>';return;}
+  feed.innerHTML="";[...filtered].reverse().forEach(e=>{const d=document.createElement("div");d.className="evt";/* XSS-safe */
+    const dot2=document.createElement("span");dot2.className="evt-dot evt-dot-"+e.type;
+    const ts2=document.createElement("span");ts2.className="evt-ts";ts2.textContent=e.ts;
+    const m2=document.createElement("span");m2.className="evt-"+e.type;m2.textContent=e.msg;
+    d.append(dot2,ts2,m2);feed.appendChild(d);});
+}
+function setEvtFilter(f){
+  evtFilter=f;
+  ["fAll","fBad","fGood","fWarn"].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove("sel");});
+  const map={all:"fAll",bad:"fBad",good:"fGood",warn:"fWarn"};
+  if(map[f]){const el=document.getElementById(map[f]);if(el)el.classList.add("sel");}
+  renderEvtFeed();
+}
+function exportEventsCSV(){
+  const arr=loadEvts();if(!arr.length){alert("No events to export.");return;}
+  const hdr="Date,Time,Type,Message\n";const rows=arr.map(e=>`${e.date||""},${e.ts||""},"${e.type}","${e.msg.replace(/"/g,"'")}"`).join("\n");
+  const blob=new Blob([hdr+rows],{type:"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="alsharq_events_"+new Date().toISOString().slice(0,10)+".csv";a.click();URL.revokeObjectURL(a.href);
+}
+function clearEvents(){if(!confirm("Clear all stored events?"))return;localStorage.removeItem(LS_KEY);evtCount=0;renderEvtFeed();setV("storedCount",0);setV("evtCount","0 events");}
 
-      const selectorGroup = target.id.split("-")[0];
-      const selectedMode = target.value;
+/* ════════════════════════════════════════════════════
+   PAGE NAVIGATION
+════════════════════════════════════════════════════ */
+function showPage(name){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  const page=document.getElementById("page-"+name);if(page)page.classList.add("active");
+  const nav=document.getElementById("nav-"+name);if(nav)nav.classList.add("active");
+  if(name==="events"){renderEvtFeed();const b=document.getElementById("badge-evts");if(b)b.style.display="none";}
+  // close sidebar on mobile
+  if(window.innerWidth<=768)document.getElementById("sidebar").classList.remove("open");
+}
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
 
-      // Recommended topic naming: fire-pump/mode/set
-      const payload = JSON.stringify({ group: selectorGroup, mode: selectedMode, ts: Date.now() });
+/* ════════════════════════════════════════════════════
+   AUTH
+════════════════════════════════════════════════════ */
+function doLogin(){
+  const u=document.getElementById("loginUser").value.trim();
+  const p=document.getElementById("loginPass").value;
+  const err=document.getElementById("loginErr");
+  if(!u||!p){err.textContent="Username and password required.";return;}
+  err.textContent="Connecting to broker…";
+  document.getElementById("loginBtn").disabled=true;
+  document.getElementById("loginBtn").textContent="Connecting…";
+  MQTT_USERNAME=u;MQTT_PASSWORD=p;
+  pendingLoginUser=u;
+  start();
+}
+function doLogout(){
+  connected=false;clearInterval(pingTimer);if(ws){try{ws.onclose=null;ws.close();}catch(_){}}ws=null;
+  MQTT_USERNAME="";MQTT_PASSWORD="";retryDelay=1500;
+  document.getElementById("loginUser").value="";document.getElementById("loginPass").value="";
+  document.getElementById("loginErr").textContent="";document.getElementById("navUser").textContent="";
+  document.getElementById("mainApp").style.display="none";document.getElementById("loginOverlay").style.display="flex";
+  keepaliveWorker.postMessage("stop");
+}
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&document.getElementById("loginOverlay").style.display!=="none")doLogin();});
 
-      mqttClient.publish("fire-pump/mode", payload, { qos: 1 }, (err) => {
-        if (err) console.error("Publish error:", err);
-      });
-    });
-
-    /************ Start ************/
-    setConn("Starting…", "");
-    connectMqtt(mqtt_server_primary);
-  </script>
+/* ════════════════════════════════════════════════════
+   BACKGROUND KEEPALIVE
+════════════════════════════════════════════════════ */
+// Keepalive — plain setInterval (no Worker)
+let _kaTimer=null;
+const keepaliveWorker={postMessage(cmd){if(cmd==="start"){if(_kaTimer)return;_kaTimer=setInterval(()=>{
+    if(connected&&ws&&ws.readyState===1){
+      ws.send(pktPing());
+    } else if(!connected&&MQTT_USERNAME&&!_reconnecting){
+      retryDelay=1500; // reset backoff on manual keepalive cycle
+      start();
+    }
+  },25000);}else if(cmd==="stop"){clearInterval(_kaTimer);_kaTimer=null;}}};
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible"&&!connected&&MQTT_USERNAME){
+    _reconnecting=false; // force-allow reconnect when tab becomes visible
+    start();
+  }
+});
+let rz;window.addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{drawSpark(document.getElementById("chartA"),serA,"rgb(88,166,255)");drawSpark(document.getElementById("chartB"),serB,"rgb(63,185,80)");drawSpark(document.getElementById("chartI"),serI,"rgb(118,227,234)");},80);});
+</script>
 </body>
 </html>
