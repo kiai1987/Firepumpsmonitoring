@@ -186,9 +186,10 @@ body{font-family:var(--display);background:var(--bg0);color:var(--text);min-heig
 /* ═══════════════════════════════════════
    PAGE 1 — PUMPS
 ═══════════════════════════════════════ */
-.pump-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.pump-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px}
+.pump-grid-irr{grid-template-columns:minmax(280px,1fr);max-width:560px}
 @media(max-width:1100px){.pump-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.pump-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.pump-grid{grid-template-columns:1fr}.pump-grid-irr{max-width:none}}
 
 .pump-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;transition:border-color .3s,box-shadow .3s}
 .pump-card.running{border-color:rgba(46,160,67,.45);box-shadow:0 0 18px rgba(46,160,67,.08)}
@@ -226,6 +227,8 @@ canvas{display:block;width:100%!important;height:100%!important}
 .vfd-reset{background:var(--amberBg);border-color:rgba(227,179,65,.3);color:var(--amber)}
 .vfd-reset:hover{background:rgba(227,179,65,.18);border-color:var(--amber)}
 .vfd-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.irr-setpoint-row{display:flex;align-items:center;gap:7px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.irr-setpoint-row input[type=number]{width:84px}
 
 /* toolbar */
 .toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:9px 12px;margin-bottom:14px}
@@ -686,11 +689,30 @@ input[type=time]:focus{border-color:var(--blue)}
         <button class="btn cmd-btn" onclick="mqttSend(CMD_BASE+'/duty',{duty:document.getElementById('dutySel').value})">Set</button>
         <button class="btn btn-warn cmd-btn" onclick="mqttSend(CMD_BASE+'/swap',{now:true})">⇄ Swap</button>
         <div class="tb-sep"></div>
-        <span class="tb-label">Setpoint</span>
+        <span class="tb-label">Domestic SP</span>
         <input id="setpointInp" type="number" step="0.1" value="2.5" min="0" max="16"/>
         <span class="tb-label">bar</span>
         <button class="btn cmd-btn" onclick="applySetpoint()">Apply</button>
-        <div class="plat-status" id="platformTag">Mode: -- · Duty: --</div>
+        <div class="plat-status" id="platformTag">Mode: -- · Duty: -- · DOM SP: -- bar · IRR SP: -- bar</div>
+      </div>
+
+      <!-- Weekly Changeover -->
+      <div class="section-label" style="margin-top:16px">Weekly Changeover</div>
+      <div class="toolbar" id="weeklyChangeoverBar" style="flex-wrap:wrap;gap:8px;background:rgba(59,190,193,.06);border:1px solid rgba(59,190,193,.25);border-radius:var(--r2);padding:10px 14px">
+        <span class="tb-label" style="color:var(--teal)">🔄 Auto Swap</span>
+        <select id="wcDay" style="min-width:90px">
+          <option value="0">Sunday</option><option value="1">Monday</option>
+          <option value="2">Tuesday</option><option value="3" selected>Wednesday</option>
+          <option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
+        </select>
+        <input id="wcTime" type="time" value="06:00" style="width:90px"/>
+        <label style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer">
+          <input type="checkbox" id="wcEnabled" onchange="weeklyChangeoverToggle()" style="accent-color:var(--teal)"/>
+          Enable
+        </label>
+        <div class="tb-sep"></div>
+        <button class="btn cmd-btn" onclick="weeklyChangeoverSave()" style="border-color:rgba(59,190,193,.4);color:var(--teal)">Save Schedule</button>
+        <span id="wcStatus" style="font-family:var(--mono);font-size:10px;color:var(--dim)">Not configured</span>
       </div>
 
       <!-- Pump Cards -->
@@ -742,6 +764,10 @@ input[type=time]:focus{border-color:var(--blue)}
             </div>
           </div>
         </div>
+      </div><!-- /pump-grid -->
+
+      <div class="section-label">Irrigation Pump</div>
+      <div class="pump-grid pump-grid-irr">
 
         <!-- IRR -->
         <div class="pump-card" id="cardI">
@@ -758,15 +784,53 @@ input[type=time]:focus{border-color:var(--blue)}
             </div>
             <div class="spark-wrap"><canvas id="chartI"></canvas></div>
             <div class="online-pill"><span class="online-dot" id="dotI"></span><span id="hI" style="color:var(--dim)">Offline</span><span style="margin-left:auto;color:var(--dim);font-size:9px" id="tI">--</span></div>
-            <div class="vfd-controls">
-              <button class="vfd-btn vfd-run cmd-btn"   onclick="vfdCmd('IRR','run')">▶ Run</button>
-              <button class="vfd-btn vfd-stop cmd-btn"  onclick="vfdCmd('IRR','stop')">■ Stop</button>
-              <button class="vfd-btn vfd-reset cmd-btn" onclick="vfdCmd('IRR','reset')">↺ Reset</button>
+            <!-- Irrigation Mode Selector -->
+            <div style="margin-top:8px;background:rgba(46,160,67,.06);border:1px solid rgba(46,160,67,.25);border-radius:6px;padding:10px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <span style="font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.5px">IRR MODE</span>
+                <button id="irrModeManualBtn" class="day-btn sel" onclick="irrSetMode('manual')" style="font-size:10px">Manual</button>
+                <button id="irrModeAutoBtn"   class="day-btn"     onclick="irrSetMode('auto')"   style="font-size:10px">Auto Schedule</button>
+              </div>
+              <!-- Manual controls -->
+              <div id="irrManualPanel">
+                <div class="vfd-controls" style="margin:0;padding-top:0;border-top:none">
+                  <button class="vfd-btn vfd-run cmd-btn"   onclick="vfdCmd('IRR','run')">▶ Run</button>
+                  <button class="vfd-btn vfd-stop cmd-btn"  onclick="vfdCmd('IRR','stop')">■ Stop</button>
+                  <button class="vfd-btn vfd-reset cmd-btn" onclick="vfdCmd('IRR','reset')">↺ Reset</button>
+                </div>
+                <div class="irr-setpoint-row">
+                  <span class="tb-label">Pressure SP</span>
+                  <input id="irrSetpointInp" type="number" step="0.1" value="2.5" min="0" max="16"/>
+                  <span class="tb-label">bar</span>
+                  <button class="btn cmd-btn" onclick="applyIrrSetpoint()">Apply</button>
+                </div>
+              </div>
+              <!-- Auto schedule controls -->
+              <div id="irrAutoPanel" style="display:none">
+                <div style="display:grid;grid-template-columns:auto 1fr;align-items:center;gap:6px 10px;font-family:var(--mono);font-size:11px;color:var(--dim)">
+                  <span>ON Time</span>  <input type="time" id="irrOnTime"  value="06:00" style="width:90px"/>
+                  <span>OFF Time</span> <input type="time" id="irrOffTime" value="22:00" style="width:90px"/>
+                  <span>Days</span>
+                  <div id="irrDayPicker" style="display:flex;gap:3px;flex-wrap:wrap">
+                    <button class="day-btn sel" data-irr-day="0">Sun</button>
+                    <button class="day-btn sel" data-irr-day="1">Mon</button>
+                    <button class="day-btn sel" data-irr-day="2">Tue</button>
+                    <button class="day-btn sel" data-irr-day="3">Wed</button>
+                    <button class="day-btn sel" data-irr-day="4">Thu</button>
+                    <button class="day-btn"     data-irr-day="5">Fri</button>
+                    <button class="day-btn"     data-irr-day="6">Sat</button>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                  <button class="btn btn-primary cmd-btn" onclick="irrSaveAutoSchedule()" style="font-size:10px;padding:4px 12px">💾 Save</button>
+                  <span id="irrAutoStatus" style="font-family:var(--mono);font-size:10px;color:var(--dim)">Not active</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-      </div><!-- /pump-grid -->
+      </div><!-- /pump-grid-irr -->
 
       <!-- DTU Status table -->
       <div class="section-label">DTU Link Health</div>
@@ -1325,7 +1389,15 @@ function vfdCmd(pump,action){
   mqttSend(CMD_BASE+"/vfd/"+pump+"/"+action,{pump,action,ts:Date.now()});
 }
 
-function applySetpoint(){const v=parseFloat(document.getElementById("setpointInp").value);if(!isNaN(v)&&v>=0)mqttSend(CMD_BASE+"/setpoint",{setpoint_bar:v});}
+function applySetpoint(){
+  const v=parseFloat(document.getElementById("setpointInp").value);
+  if(!isNaN(v)&&v>=0)mqttSend(CMD_BASE+"/setpoint",{setpoint_bar:v});
+}
+
+function applyIrrSetpoint(){
+  const v=parseFloat(document.getElementById("irrSetpointInp").value);
+  if(!isNaN(v)&&v>=0)mqttSend(CMD_BASE+"/setpoint/irr",{irrigation_setpoint_bar:v});
+}
 
 let _connTimeout=null;
 function _resetLoginBtn(){
@@ -1497,16 +1569,17 @@ function applyPumpTele(pl){
   const plat=pl.platform||{},pumps=pl.pumps||{};
   const A=pumps.DOM_A,B=pumps.DOM_B,I=pumps.IRR;
   let faults=0;
-
-  setV("platformTag","Mode: "+(plat.mode||"--")+" · Duty: "+(plat.duty||"--"));
+  const domSp = (plat.setpoint_bar!=null) ? Number(plat.setpoint_bar).toFixed(1) : "--";
+  const irrSp = (plat.irr_setpoint_bar!=null) ? Number(plat.irr_setpoint_bar).toFixed(1) : "--";
+  setV("platformTag","Mode: "+(plat.mode||"--")+" · Duty: "+(plat.duty||"--")+" · DOM SP: "+domSp+" bar · IRR SP: "+irrSp+" bar");
   setV("kpiMode",plat.mode||"--");setV("kpiDutySub","Duty: "+(plat.duty||"--"));
   if(plat.mode)document.getElementById("modeSel").value=plat.mode;
-  if(plat.duty)document.getElementById("dutySel").value=plat.duty;
+  if(plat.duty && ["DOM_A","DOM_B"].includes(plat.duty))document.getElementById("dutySel").value=plat.duty;
   if(plat.setpoint_bar!=null)document.getElementById("setpointInp").value=plat.setpoint_bar;
+  if(plat.irr_setpoint_bar!=null){const irrInp=document.getElementById("irrSetpointInp");if(irrInp)irrInp.value=plat.irr_setpoint_bar;}
   const gwTs=plat.ts?new Date(plat.ts*1000).toLocaleTimeString():"--";
   setV("lastUpdate","GW: "+gwTs+" · UI: "+new Date().toLocaleTimeString());
   setV("sidebarLastUpdate","Updated "+new Date().toLocaleTimeString());
-
   if(A){setTag(document.getElementById("tagA"),document.getElementById("cardA"),A);setV("aP",A.pressure_bar?.toFixed?.(2));setV("aHz",A.freq_hz?.toFixed?.(1));setV("aA",A.current_a?.toFixed?.(1));setV("aTrip",A.trip_code??0);setTrip("kpiATrip",A.trip_code);serA[si]=A.pressure_bar??null;setOnline("dotA","hA",A.online);setV("tA",fmtTs(A.last_seen));setV("tA2",fmtTsFull(A.last_seen));setDtuOnline("dtuA",A.online);setV("dtuAP",(A.pressure_bar?.toFixed?.(2)??'--')+" bar");setV("dtuAHz",(A.freq_hz?.toFixed?.(1)??'--')+" Hz");if(A.fault){faults++;if(!prevFault.DOM_A){pushEvt("DOM_A FAULT — trip "+A.trip_code,"bad");setAlarm("DOM_A","DOM_A FAULT trip "+A.trip_code,true);}}else if(prevFault.DOM_A){pushEvt("DOM_A fault cleared","good");setAlarm("DOM_A","",false);}prevFault.DOM_A=!!A.fault;if(A.running&&plat.duty==="DOM_A"){setV("kpiPressure",A.pressure_bar?.toFixed?.(2)??"--");setV("kpiFreq",A.freq_hz?.toFixed?.(1)??"--");}}
   if(B){setTag(document.getElementById("tagB"),document.getElementById("cardB"),B);setV("bP",B.pressure_bar?.toFixed?.(2));setV("bHz",B.freq_hz?.toFixed?.(1));setV("bA",B.current_a?.toFixed?.(1));setV("bTrip",B.trip_code??0);setTrip("kpiBTrip",B.trip_code);serB[si]=B.pressure_bar??null;setOnline("dotB","hB",B.online);setV("tB",fmtTs(B.last_seen));setV("tB2",fmtTsFull(B.last_seen));setDtuOnline("dtuB",B.online);setV("dtuBP",(B.pressure_bar?.toFixed?.(2)??'--')+" bar");setV("dtuBHz",(B.freq_hz?.toFixed?.(1)??'--')+" Hz");if(B.fault){faults++;if(!prevFault.DOM_B){pushEvt("DOM_B FAULT — trip "+B.trip_code,"bad");setAlarm("DOM_B","DOM_B FAULT trip "+B.trip_code,true);}}else if(prevFault.DOM_B){pushEvt("DOM_B fault cleared","good");setAlarm("DOM_B","",false);}prevFault.DOM_B=!!B.fault;if(B.running&&plat.duty==="DOM_B"){setV("kpiPressure",B.pressure_bar?.toFixed?.(2)??"--");setV("kpiFreq",B.freq_hz?.toFixed?.(1)??"--");}}
   if(I){setTag(document.getElementById("tagIRR"),document.getElementById("cardI"),I);setV("iP",I.pressure_bar?.toFixed?.(2));setV("iHz",I.freq_hz?.toFixed?.(1));setV("iA",I.current_a?.toFixed?.(1));setV("iTrip",I.trip_code??0);setTrip("kpiITrip",I.trip_code);serI[si]=I.pressure_bar??null;setOnline("dotI","hI",I.online);setV("tI",fmtTs(I.last_seen));setV("tI2",fmtTsFull(I.last_seen));setDtuOnline("dtuI",I.online);setV("dtuIP",(I.pressure_bar?.toFixed?.(2)??'--')+" bar");setV("dtuIHz",(I.freq_hz?.toFixed?.(1)??'--')+" Hz");if(I.fault){faults++;if(!prevFault.IRR){pushEvt("IRR FAULT — trip "+I.trip_code,"bad");setAlarm("IRR","IRR FAULT trip "+I.trip_code,true);}}else if(prevFault.IRR){pushEvt("IRR fault cleared","good");setAlarm("IRR","",false);}prevFault.IRR=!!I.fault;}
@@ -2288,15 +2361,7 @@ function doLogin(){
   pendingLoginUser=u;
   start();
 }
-function doLogout(){
-  connected=false;clearInterval(pingTimer);if(ws){try{ws.onclose=null;ws.close();}catch(_){}}ws=null;
-  _setHealthStripVisible(false);
-  MQTT_USERNAME="";MQTT_PASSWORD="";retryDelay=1500;
-  document.getElementById("loginUser").value="";document.getElementById("loginPass").value="";
-  document.getElementById("loginErr").textContent="";document.getElementById("navUser").textContent="";
-  document.getElementById("mainApp").style.display="none";document.getElementById("loginOverlay").style.display="flex";
-  keepaliveWorker.postMessage("stop");
-}
+/* doLogout defined below in user management section */
 document.addEventListener("keydown",e=>{if(e.key==="Enter"&&document.getElementById("loginOverlay").style.display!=="none")doLogin();});
 
 /* ════════════════════════════════════════════════════
@@ -2789,16 +2854,44 @@ function _onAppConnected() {
   _resetLoginBtn();
   keepaliveWorker.postMessage('start');
   applyRoleUI();
+  /* ── Save session to localStorage so refresh restores login ── */
+  try {
+    localStorage.setItem("alsharq_session_v4", JSON.stringify({
+      currentUser, MQTT_USERNAME, MQTT_PASSWORD, API_TOKEN,
+      savedAt: Date.now()
+    }));
+  } catch(_) {}
+  /* Restart irrigation auto-schedule if one was saved */
+  irrRestoreSchedule();
 }
 
-/* ── Updated doLogout ────────────────────────────────────────────── */
-const _origDoLogout = doLogout;
+/* ── doLogout — clears session, user state, MQTT ─────────────────── */
 function doLogout() {
+  /* Clear app session */
   currentUser = null;
-  document.getElementById('viewerLock').style.display = 'none';
-  const app = document.getElementById('mainApp');
-  if (app) app.classList.remove('readonly-mode');
-  _origDoLogout();
+  API_TOKEN   = "";
+  try { localStorage.removeItem("alsharq_session_v4"); } catch(_) {}
+  /* Clear viewer UI */
+  document.getElementById("viewerLock").style.display = "none";
+  const app = document.getElementById("mainApp");
+  if (app) app.classList.remove("readonly-mode");
+  /* Clear irrigation auto-schedule */
+  irrStopAutoSchedule();
+  /* Clear weekly changeover timer */
+  if (_weeklyTimer) { clearInterval(_weeklyTimer); _weeklyTimer = null; }
+  /* Clear MQTT */
+  connected = false;
+  clearInterval(pingTimer);
+  if (ws) { try { ws.onclose = null; ws.close(); } catch(_) {} ws = null; }
+  _setHealthStripVisible(false);
+  MQTT_USERNAME = ""; MQTT_PASSWORD = ""; retryDelay = 1500;
+  document.getElementById("loginUser").value  = "";
+  document.getElementById("loginPass").value  = "";
+  document.getElementById("loginErr").textContent  = "";
+  document.getElementById("navUser").textContent   = "";
+  document.getElementById("mainApp").style.display  = "none";
+  document.getElementById("loginOverlay").style.display = "flex";
+  keepaliveWorker.postMessage("stop");
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -3037,6 +3130,44 @@ function umOnPageOpen() {
 /* Init on load */
 umEnsureDefaultAdmin();
 
+/* ── Restore session on page refresh ────────────────────────────────
+   If a valid session exists in localStorage, skip the login screen   */
+(async function restoreSession() {
+  try {
+    const raw = localStorage.getItem("alsharq_session_v4");
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    /* Expire session after 12 hours */
+    if (!s || !s.currentUser || (Date.now() - (s.savedAt||0)) > 12*3600*1000) {
+      localStorage.removeItem("alsharq_session_v4"); return;
+    }
+    currentUser   = s.currentUser;
+    API_TOKEN     = s.API_TOKEN   || "";
+    MQTT_USERNAME = s.MQTT_USERNAME || "";
+    MQTT_PASSWORD = s.MQTT_PASSWORD || "";
+    if (!MQTT_USERNAME || !MQTT_PASSWORD) {
+      localStorage.removeItem("alsharq_session_v4");
+      currentUser = null; return;
+    }
+    /* Show dashboard immediately, reconnect MQTT in background */
+    pendingLoginUser = currentUser.username;
+    document.getElementById("loginOverlay").style.display = "none";
+    document.getElementById("mainApp").style.display = "block";
+    _setHealthStripVisible(true);
+    buildLightGrid();
+    const arr = loadEvts(); evtCount = arr.length;
+    setV("storedCount", arr.length); setV("evtCount", arr.length + " stored");
+    renderEvtFeed();
+    applyRoleUI();
+    irrRestoreSchedule();
+    start();   /* reconnect MQTT — will call _onAppConnected on CONNACK */
+    console.log("[Session] Restored for:", currentUser.username);
+  } catch(e) {
+    console.warn("[Session] Restore failed:", e.message);
+    localStorage.removeItem("alsharq_session_v4");
+  }
+})();
+
 
 function showMqttSetupModal(){
   const creds = umLoadMqtt();
@@ -3142,6 +3273,194 @@ async function checkApiStatus() {
 }
 setInterval(checkApiStatus, 30000);
 checkApiStatus();
+
+/* ═══════════════════════════════════════════════════════════════════
+   WEEKLY CHANGEOVER
+   Swaps DOM_A ↔ DOM_B duty pump on a configured day + time
+   ═══════════════════════════════════════════════════════════════════ */
+const WC_KEY = "alsharq_weekly_changeover_v1";
+let _weeklyTimer = null;
+
+function weeklyChangeoverLoad() {
+  try { return JSON.parse(localStorage.getItem(WC_KEY) || "{}"); } catch(_) { return {}; }
+}
+function weeklyChangeoverSave() {
+  const cfg = {
+    day:     parseInt(document.getElementById("wcDay").value),
+    time:    document.getElementById("wcTime").value,
+    enabled: document.getElementById("wcEnabled").checked,
+  };
+  localStorage.setItem(WC_KEY, JSON.stringify(cfg));
+  weeklyChangeoverApply(cfg);
+  const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  document.getElementById("wcStatus").textContent =
+    cfg.enabled ? "✅ Active — swaps every " + dayNames[cfg.day] + " at " + cfg.time
+                : "Disabled";
+  pushEvt("[Weekly] Changeover schedule saved: " + (cfg.enabled ? dayNames[cfg.day]+" "+cfg.time : "disabled"), "info");
+}
+function weeklyChangeoverToggle() {
+  const cfg = weeklyChangeoverLoad();
+  cfg.enabled = document.getElementById("wcEnabled").checked;
+  localStorage.setItem(WC_KEY, JSON.stringify(cfg));
+  weeklyChangeoverApply(cfg);
+}
+function weeklyChangeoverApply(cfg) {
+  if (_weeklyTimer) { clearInterval(_weeklyTimer); _weeklyTimer = null; }
+  if (!cfg || !cfg.enabled) return;
+  let _lastSwapDate = "";
+  _weeklyTimer = setInterval(() => {
+    const now    = new Date();
+    const today  = now.getDay();
+    const hhmm   = now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0");
+    const dateKey = now.toDateString();
+    if (today === cfg.day && hhmm === cfg.time && dateKey !== _lastSwapDate) {
+      _lastSwapDate = dateKey;
+      mqttSend(CMD_BASE + "/swap", {now: true, source: "weekly_changeover"});
+      pushEvt("[Weekly] Auto duty swap triggered at " + hhmm, "info");
+    }
+  }, 30000); // check every 30s
+}
+/* Restore weekly changeover on load */
+(function() {
+  const cfg = weeklyChangeoverLoad();
+  if (!cfg || !cfg.day === undefined) return;
+  const dayEl  = document.getElementById("wcDay");
+  const timeEl = document.getElementById("wcTime");
+  const enEl   = document.getElementById("wcEnabled");
+  if (dayEl  && cfg.day  !== undefined) dayEl.value  = cfg.day;
+  if (timeEl && cfg.time)               timeEl.value = cfg.time;
+  if (enEl)   enEl.checked = !!cfg.enabled;
+  weeklyChangeoverApply(cfg);
+  const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const st = document.getElementById("wcStatus");
+  if (st) st.textContent = cfg.enabled
+    ? "✅ Active — swaps every " + dayNames[cfg.day||0] + " at " + (cfg.time||"")
+    : "Disabled";
+})();
+
+/* ═══════════════════════════════════════════════════════════════════
+   IRRIGATION AUTO SCHEDULE
+   Runs IRR pump between ON and OFF times on selected days
+   ═══════════════════════════════════════════════════════════════════ */
+const IRR_SCHED_KEY = "alsharq_irr_schedule_v1";
+const IRR_MODE_KEY  = "alsharq_irr_mode_v1";
+let _irrSchedTimer  = null;
+let _irrMode        = "manual";   /* "manual" | "auto" */
+let _irrPumpState   = false;      /* tracked state to avoid repeat cmds */
+
+/* Initialise day-btn clicks for IRR picker */
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("[data-irr-day]").forEach(b => {
+    b.addEventListener("click", () => b.classList.toggle("sel"));
+  });
+});
+
+function irrSetMode(mode) {
+  _irrMode = mode;
+  localStorage.setItem(IRR_MODE_KEY, mode);
+  document.getElementById("irrModeManualBtn").className = "day-btn" + (mode==="manual"?" sel":"");
+  document.getElementById("irrModeAutoBtn").className   = "day-btn" + (mode==="auto"  ?" sel":"");
+  document.getElementById("irrManualPanel").style.display = mode==="manual" ? "" : "none";
+  document.getElementById("irrAutoPanel").style.display   = mode==="auto"   ? "" : "none";
+  if (mode === "manual") {
+    irrStopAutoSchedule();
+    pushEvt("[IRR] Mode → Manual", "info");
+  } else {
+    irrRestoreSchedule();   /* restart auto-schedule if saved */
+    pushEvt("[IRR] Mode → Auto Schedule", "info");
+  }
+}
+
+function irrSaveAutoSchedule() {
+  const onTime  = document.getElementById("irrOnTime").value;
+  const offTime = document.getElementById("irrOffTime").value;
+  const days    = [...document.querySelectorAll("[data-irr-day].sel")].map(b => parseInt(b.dataset.irrDay));
+  if (!onTime || !offTime) { alert("Set both ON and OFF times."); return; }
+  if (!days.length)         { alert("Select at least one day."); return; }
+  const sched = { onTime, offTime, days, savedAt: Date.now() };
+  localStorage.setItem(IRR_SCHED_KEY, JSON.stringify(sched));
+  irrStartAutoSchedule(sched);
+  const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  document.getElementById("irrAutoStatus").textContent =
+    "✅ ON:" + onTime + " → OFF:" + offTime + " | " + days.map(d=>dayNames[d]).join(",");
+  pushEvt("[IRR Auto] Schedule saved — ON:" + onTime + " OFF:" + offTime, "info");
+}
+
+function irrStartAutoSchedule(sched) {
+  irrStopAutoSchedule();
+  _irrSchedTimer = setInterval(() => {
+    const now     = new Date();
+    const dow     = now.getDay();
+    if (!sched.days.includes(dow)) {
+      /* Not a scheduled day — ensure pump off */
+      if (_irrPumpState) { vfdCmd("IRR","stop"); _irrPumpState = false; }
+      return;
+    }
+    const hhmm = now.getHours().toString().padStart(2,"0") + ":" +
+                 now.getMinutes().toString().padStart(2,"0");
+    /* Handle overnight schedules (ON > OFF) */
+    let shouldRun;
+    if (sched.onTime <= sched.offTime) {
+      shouldRun = hhmm >= sched.onTime && hhmm < sched.offTime;
+    } else {
+      shouldRun = hhmm >= sched.onTime || hhmm < sched.offTime;
+    }
+    if (shouldRun && !_irrPumpState) {
+      /* Suppress confirm dialog for auto commands */
+      mqttSend(CMD_BASE + "/vfd/IRR/run", {pump:"IRR", action:"run", source:"auto_schedule", ts:Date.now()});
+      _irrPumpState = true;
+      pushEvt("[IRR Auto] Pump started by schedule at " + hhmm, "good");
+    } else if (!shouldRun && _irrPumpState) {
+      mqttSend(CMD_BASE + "/vfd/IRR/stop", {pump:"IRR", action:"stop", source:"auto_schedule", ts:Date.now()});
+      _irrPumpState = false;
+      pushEvt("[IRR Auto] Pump stopped by schedule at " + hhmm, "info");
+    }
+  }, 30000);  /* check every 30s */
+}
+
+function irrStopAutoSchedule() {
+  if (_irrSchedTimer) { clearInterval(_irrSchedTimer); _irrSchedTimer = null; }
+  _irrPumpState = false;
+}
+
+function irrRestoreSchedule() {
+  try {
+    const savedMode = localStorage.getItem(IRR_MODE_KEY) || "manual";
+    _irrMode = savedMode;
+    /* Update UI buttons */
+    const mb = document.getElementById("irrModeManualBtn");
+    const ab = document.getElementById("irrModeAutoBtn");
+    const mp = document.getElementById("irrManualPanel");
+    const ap = document.getElementById("irrAutoPanel");
+    if (mb && ab) {
+      mb.className = "day-btn" + (savedMode==="manual"?" sel":"");
+      ab.className = "day-btn" + (savedMode==="auto"  ?" sel":"");
+    }
+    if (mp) mp.style.display = savedMode==="manual" ? "" : "none";
+    if (ap) ap.style.display = savedMode==="auto"   ? "" : "none";
+
+    if (savedMode !== "auto") return;
+    const raw = localStorage.getItem(IRR_SCHED_KEY);
+    if (!raw) return;
+    const sched = JSON.parse(raw);
+    /* Restore UI values */
+    const onEl  = document.getElementById("irrOnTime");
+    const offEl = document.getElementById("irrOffTime");
+    if (onEl  && sched.onTime)  onEl.value  = sched.onTime;
+    if (offEl && sched.offTime) offEl.value = sched.offTime;
+    if (sched.days) {
+      document.querySelectorAll("[data-irr-day]").forEach(b => {
+        const d = parseInt(b.dataset.irrDay);
+        b.classList.toggle("sel", sched.days.includes(d));
+      });
+    }
+    irrStartAutoSchedule(sched);
+    const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const st = document.getElementById("irrAutoStatus");
+    if (st) st.textContent = "✅ ON:" + sched.onTime + " → OFF:" + sched.offTime +
+      " | " + (sched.days||[]).map(d=>dayNames[d]).join(",");
+  } catch(e) { console.warn("[IRR Restore]", e.message); }
+}
 
 </script>
 
