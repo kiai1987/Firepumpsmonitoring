@@ -34,6 +34,77 @@ body{font-family:var(--display);background:var(--bg0);color:var(--text);min-heig
   box-shadow:0 1px 8px rgba(0,0,0,.4);
 }
 .topbar-brand{display:flex;align-items:center;gap:10px;flex-shrink:0}
+
+/* ══ GATEWAY HEALTH STRIP ══════════════════════════════════════ */
+.gw-health-strip{
+  width:100%;background:var(--bg1);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:0;
+  font-family:var(--mono);font-size:10px;
+  overflow:hidden;position:relative;
+  height:28px;flex-shrink:0;
+}
+.gw-health-strip.strip-ok  {border-bottom-color:rgba(46,160,67,.35);}
+.gw-health-strip.strip-warn{border-bottom-color:rgba(227,179,65,.5);}
+.gw-health-strip.strip-err {border-bottom-color:rgba(248,81,73,.5);}
+.ghs-pill{
+  display:flex;align-items:center;gap:5px;
+  padding:0 14px;height:100%;
+  border-right:1px solid var(--border);
+  white-space:nowrap;flex-shrink:0;
+  transition:background .4s;
+}
+.ghs-pill.ok   {background:rgba(46,160,67,.07);  color:var(--green2);}
+.ghs-pill.warn {background:rgba(227,179,65,.1);  color:var(--amber);}
+.ghs-pill.err  {background:rgba(248,81,73,.1);   color:var(--red);}
+.ghs-pill.dim  {color:var(--muted);}
+.ghs-dot{
+  width:6px;height:6px;border-radius:50%;flex-shrink:0;
+  transition:background .4s;
+}
+.ghs-dot.ok  {background:var(--green2);box-shadow:0 0 5px var(--green2);}
+.ghs-dot.warn{background:var(--amber); box-shadow:0 0 5px var(--amber);}
+.ghs-dot.err {background:var(--red);   box-shadow:0 0 5px var(--red);}
+.ghs-dot.dim {background:var(--dim);}
+.ghs-label{color:var(--dim);margin-right:2px;letter-spacing:.5px;font-size:9px;text-transform:uppercase;}
+.ghs-val{font-weight:600;letter-spacing:.3px;}
+.ghs-bar-wrap{
+  display:flex;align-items:center;gap:5px;
+  padding:0 14px;height:100%;
+  border-right:1px solid var(--border);flex-shrink:0;
+}
+.ghs-minibar{
+  width:48px;height:5px;border-radius:3px;
+  background:var(--bg3);overflow:hidden;
+}
+.ghs-minibar-fill{
+  height:100%;border-radius:3px;
+  transition:width .6s ease,background .4s;
+}
+.ghs-sparkrow{
+  display:flex;align-items:center;gap:8px;
+  padding:0 14px;height:100%;
+  color:var(--muted);overflow:hidden;flex:1;
+  font-size:9px;letter-spacing:.3px;
+}
+.ghs-tag{
+  display:inline-flex;align-items:center;gap:3px;
+  padding:1px 6px;border-radius:3px;
+  background:var(--bg3);border:1px solid var(--border);
+  color:var(--muted);font-size:9px;flex-shrink:0;
+}
+.ghs-tag.ok  {background:rgba(46,160,67,.1); border-color:rgba(46,160,67,.3);  color:var(--green2);}
+.ghs-tag.warn{background:rgba(227,179,65,.1);border-color:rgba(227,179,65,.3); color:var(--amber);}
+.ghs-tag.err {background:rgba(248,81,73,.1); border-color:rgba(248,81,73,.3);  color:var(--red);}
+.ghs-stale{color:var(--dim);font-style:italic;padding:0 16px;font-size:9px;}
+/* Layout: push health strip just below topbar */
+.health-strip-container{
+  position:fixed;top:var(--topbar);left:0;right:0;z-index:190;
+}
+.main{margin-top:calc(var(--topbar) + 28px) !important;}
+@media(max-width:640px){
+  .ghs-bar-wrap,.ghs-sparkrow{display:none;}
+}
 .topbar-logo{height:32px;width:32px;border-radius:6px;object-fit:cover;border:1px solid rgba(212,168,67,.3)}
 .topbar-text .t-org{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
 .topbar-text .t-name{font-size:14px;font-weight:800;color:var(--text);letter-spacing:.2px}
@@ -370,6 +441,45 @@ input[type=time]:focus{border-color:var(--blue)}
 .comm-loss-banner{display:none;position:sticky;top:0;z-index:500;background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.4);border-radius:6px;padding:8px 14px;margin-bottom:8px;font-family:var(--mono);font-size:11px;color:var(--red);align-items:center;gap:8px}
 .comm-loss-banner.show{display:flex}
 .comm-loss-banner .cb-icon{font-size:16px;animation:blink 1s infinite}
+
+/* ══ USER MANAGEMENT ════════════════════════════════════════════════ */
+.um-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.um-table-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:20px}
+.um-table{width:100%;border-collapse:collapse}
+.um-table th{padding:10px 14px;text-align:left;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:1px;font-weight:500;background:var(--bg2)}
+.um-table td{padding:10px 14px;border-top:1px solid var(--border);font-size:12px;vertical-align:middle}
+.um-table tr:hover td{background:rgba(255,255,255,.02)}
+.role-badge{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--mono);font-size:9px;letter-spacing:.5px;font-weight:600}
+.role-admin   {background:rgba(188,140,255,.15);color:var(--purple);border:1px solid rgba(188,140,255,.3)}
+.role-engineer{background:rgba(88,166,255,.12); color:var(--blue);  border:1px solid rgba(88,166,255,.3)}
+.role-operator{background:rgba(46,160,67,.12);  color:var(--green2);border:1px solid rgba(46,160,67,.3)}
+.role-viewer  {background:rgba(139,148,158,.1); color:var(--muted); border:1px solid rgba(139,148,158,.25)}
+.page-chip{display:inline-block;padding:1px 6px;border-radius:2px;font-family:var(--mono);font-size:9px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);margin:1px}
+.um-action-btn{padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:10px;cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--muted);transition:all .2s}
+.um-action-btn:hover{background:var(--bg3);color:var(--text)}
+.um-action-btn.del:hover{border-color:var(--red);color:var(--red)}
+.um-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center}
+.um-modal-overlay.open{display:flex}
+.um-modal{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:28px;width:440px;max-width:95vw;box-shadow:0 12px 60px rgba(0,0,0,.6)}
+.um-modal h3{font-family:var(--display);font-size:16px;margin-bottom:18px;color:var(--text)}
+.um-field{margin-bottom:13px}
+.um-field label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:5px}
+.um-field input,.um-field select{width:100%;padding:8px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:12px;outline:none}
+.um-field input:focus,.um-field select:focus{border-color:var(--blue)}
+.um-pages-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.um-page-chk{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;padding:5px 8px;border-radius:4px;border:1px solid var(--border);background:var(--bg2);transition:all .2s;user-select:none}
+.um-page-chk.checked{background:rgba(88,166,255,.1);border-color:rgba(88,166,255,.4);color:var(--blue)}
+.um-modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+.um-save-btn{padding:8px 20px;background:var(--blue);color:#000;border:none;border-radius:var(--r);font-family:var(--mono);font-size:11px;font-weight:700;cursor:pointer}
+.um-save-btn:hover{opacity:.85}
+.um-cancel-btn{padding:8px 16px;background:var(--bg3);color:var(--muted);border:1px solid var(--border);border-radius:var(--r);font-family:var(--mono);font-size:11px;cursor:pointer}
+.um-section{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:16px}
+.um-section h4{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:14px}
+.viewer-lock{display:none;position:fixed;bottom:16px;right:16px;z-index:300;background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.4);color:var(--red);padding:8px 14px;border-radius:8px;font-family:var(--mono);font-size:10px;letter-spacing:.5px}
+.cmd-btn:disabled{opacity:.35;cursor:not-allowed !important;pointer-events:none}
+/* readonly mode styling */
+.readonly-mode .cmd-btn{opacity:.3;pointer-events:none;cursor:not-allowed}
+.readonly-mode .light-on-btn,.readonly-mode .light-off-btn{opacity:.3;pointer-events:none}
 </style>
 </head>
 <body>
@@ -394,7 +504,14 @@ input[type=time]:focus{border-color:var(--blue)}
     </div>
     <button class="login-btn" id="loginBtn" onclick="doLogin()">Connect</button>
     <div class="login-err" id="loginErr"></div>
-    <div class="login-note">Credentials sent directly to MQTT broker over TLS</div>
+    <div class="login-note" id="loginNote">
+    App credentials verified locally · MQTT via stored broker credentials
+  </div>
+  <div style="margin-top:10px;text-align:center">
+    <button style="background:none;border:none;color:var(--dim);font-family:var(--mono);font-size:9px;cursor:pointer;text-decoration:underline" onclick="showMqttSetupModal()">
+      First time? Set MQTT broker credentials
+    </button>
+  </div>
   </div>
 </div>
 
@@ -422,6 +539,49 @@ input[type=time]:focus{border-color:var(--blue)}
     </div>
   </header>
 
+  <!-- GATEWAY HEALTH STRIP -->
+  <div class="health-strip-container" id="healthStripContainer" style="display:none">
+    <div class="gw-health-strip" id="gwHealthStrip">
+      <!-- Gateway status pill -->
+      <div class="ghs-pill dim" id="ghsPillGw">
+        <span class="ghs-dot dim" id="ghsDotGw"></span>
+        <span class="ghs-label">GW</span>
+        <span class="ghs-val" id="ghsGwStatus">—</span>
+      </div>
+      <!-- Modbus status pill -->
+      <div class="ghs-pill dim" id="ghsPillMb">
+        <span class="ghs-dot dim" id="ghsDotMb"></span>
+        <span class="ghs-label">MODBUS</span>
+        <span class="ghs-val" id="ghsMbStatus">—</span>
+      </div>
+      <!-- Uptime pill -->
+      <div class="ghs-pill dim" id="ghsPillUp">
+        <span class="ghs-label">UPTIME</span>
+        <span class="ghs-val" id="ghsUptime">—</span>
+      </div>
+      <!-- Reconnects pill -->
+      <div class="ghs-pill dim" id="ghsPillRe">
+        <span class="ghs-label">RECONNECTS</span>
+        <span class="ghs-val" id="ghsReconn">—</span>
+      </div>
+      <!-- DB size + mini progress bar -->
+      <div class="ghs-bar-wrap dim" id="ghsBarWrap">
+        <span class="ghs-label">DB</span>
+        <span class="ghs-val" id="ghsDbSize">—</span>
+        <div class="ghs-minibar">
+          <div class="ghs-minibar-fill" id="ghsDbBar" style="width:0%;background:var(--green2)"></div>
+        </div>
+      </div>
+      <!-- Poll counts row -->
+      <div class="ghs-sparkrow" id="ghsSparkRow">
+        <span class="ghs-tag" id="ghsTagPumps">⚙ —</span>
+        <span class="ghs-tag" id="ghsTagTanks">🛢 —</span>
+        <span class="ghs-tag" id="ghsTagLights">💡 —</span>
+        <span style="margin-left:auto;color:var(--dim);font-size:9px" id="ghsLastSeen">No heartbeat yet</span>
+      </div>
+    </div>
+  </div>
+
   <!-- SIDEBAR -->
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-section">Dashboards</div>
@@ -447,8 +607,25 @@ input[type=time]:focus{border-color:var(--blue)}
       <span>Event Log</span>
       <span class="nav-badge nav-badge-pump" id="badge-evts" style="display:none">!</span>
     </a>
+    <div class="sidebar-section" style="margin-top:auto">System</div>
+    <a class="nav-item" id="nav-health" onclick="showPage('health')">
+      <span class="nav-icon">🛡</span>
+      <span>Gateway Health</span>
+      <span class="nav-badge" id="badge-health" style="background:var(--bg3);color:var(--dim)">—</span>
+    </a>
+    <a class="nav-item" id="nav-users" onclick="showPage('users')" style="display:none">
+      <span class="nav-icon">👥</span>
+      <span>Users</span>
+      <span class="nav-badge" id="badge-users" style="background:var(--bg3);color:var(--dim)">—</span>
+    </a>
     <div class="sidebar-bottom">
-      <div class="db-stat-mini">📡 MQTT · wss://emqx</div>
+      <div class="db-stat-mini">📡 MQTT · wss://emqxsl.com</div>
+      <div class="db-stat-mini" style="margin-top:2px">🔌 Bus1 ttyUSB0 · E95-DTU</div>
+      <div class="db-stat-mini">🔌 Bus2 ttyUSB1 · M31 direct</div>
+      <div class="db-stat-mini" style="margin-top:4px">
+        <span id="apiStatusDot" style="color:var(--dim)" title="REST API status">●</span>
+        REST API :5000
+      </div>
       <div class="db-stat-mini" id="sidebarLastUpdate">No data yet</div>
     </div>
   </nav>
@@ -502,17 +679,17 @@ input[type=time]:focus{border-color:var(--blue)}
       <div class="toolbar">
         <span class="tb-label">Mode</span>
         <select id="modeSel"><option value="AUTO">AUTO</option><option value="MANUAL">MANUAL</option></select>
-        <button class="btn btn-primary" onclick="mqttSend(CMD_BASE+'/mode',{mode:document.getElementById('modeSel').value})">Apply</button>
+        <button class="btn btn-primary cmd-btn" onclick="mqttSend(CMD_BASE+'/mode',{mode:document.getElementById('modeSel').value})">Apply</button>
         <div class="tb-sep"></div>
         <span class="tb-label">Duty</span>
         <select id="dutySel"><option value="DOM_A">DOM_A</option><option value="DOM_B">DOM_B</option></select>
-        <button class="btn" onclick="mqttSend(CMD_BASE+'/duty',{duty:document.getElementById('dutySel').value})">Set</button>
-        <button class="btn btn-warn" onclick="mqttSend(CMD_BASE+'/swap',{now:true})">⇄ Swap</button>
+        <button class="btn cmd-btn" onclick="mqttSend(CMD_BASE+'/duty',{duty:document.getElementById('dutySel').value})">Set</button>
+        <button class="btn btn-warn cmd-btn" onclick="mqttSend(CMD_BASE+'/swap',{now:true})">⇄ Swap</button>
         <div class="tb-sep"></div>
         <span class="tb-label">Setpoint</span>
         <input id="setpointInp" type="number" step="0.1" value="2.5" min="0" max="16"/>
         <span class="tb-label">bar</span>
-        <button class="btn" onclick="applySetpoint()">Apply</button>
+        <button class="btn cmd-btn" onclick="applySetpoint()">Apply</button>
         <div class="plat-status" id="platformTag">Mode: -- · Duty: --</div>
       </div>
 
@@ -523,7 +700,7 @@ input[type=time]:focus{border-color:var(--blue)}
         <!-- DOM A -->
         <div class="pump-card" id="cardA">
           <div class="pump-head">
-            <div><div class="pump-name">Domestic A</div><div class="pump-role">DOM_A · Slave 1</div></div>
+            <div><div class="pump-name">Domestic A</div><div class="pump-role">H100 VFD · Slave 1 · Bus 1</div></div>
             <span class="status-badge badge-stop" id="tagA">STOP</span>
           </div>
           <div class="pump-body">
@@ -536,9 +713,9 @@ input[type=time]:focus{border-color:var(--blue)}
             <div class="spark-wrap"><canvas id="chartA"></canvas></div>
             <div class="online-pill"><span class="online-dot" id="dotA"></span><span id="hA" style="color:var(--dim)">Offline</span><span style="margin-left:auto;color:var(--dim);font-size:9px" id="tA">--</span></div>
             <div class="vfd-controls">
-              <button class="vfd-btn vfd-run"   onclick="vfdCmd('DOM_A','run')">▶ Run</button>
-              <button class="vfd-btn vfd-stop"  onclick="vfdCmd('DOM_A','stop')">■ Stop</button>
-              <button class="vfd-btn vfd-reset" onclick="vfdCmd('DOM_A','reset')">↺ Reset</button>
+              <button class="vfd-btn vfd-run cmd-btn"   onclick="vfdCmd('DOM_A','run')">▶ Run</button>
+              <button class="vfd-btn vfd-stop cmd-btn"  onclick="vfdCmd('DOM_A','stop')">■ Stop</button>
+              <button class="vfd-btn vfd-reset cmd-btn" onclick="vfdCmd('DOM_A','reset')">↺ Reset</button>
             </div>
           </div>
         </div>
@@ -546,7 +723,7 @@ input[type=time]:focus{border-color:var(--blue)}
         <!-- DOM B -->
         <div class="pump-card" id="cardB">
           <div class="pump-head">
-            <div><div class="pump-name">Domestic B</div><div class="pump-role">DOM_B · Slave 2</div></div>
+            <div><div class="pump-name">Domestic B</div><div class="pump-role">H100 VFD · Slave 2 · Bus 1</div></div>
             <span class="status-badge badge-stop" id="tagB">STOP</span>
           </div>
           <div class="pump-body">
@@ -559,9 +736,9 @@ input[type=time]:focus{border-color:var(--blue)}
             <div class="spark-wrap"><canvas id="chartB"></canvas></div>
             <div class="online-pill"><span class="online-dot" id="dotB"></span><span id="hB" style="color:var(--dim)">Offline</span><span style="margin-left:auto;color:var(--dim);font-size:9px" id="tB">--</span></div>
             <div class="vfd-controls">
-              <button class="vfd-btn vfd-run"   onclick="vfdCmd('DOM_B','run')">▶ Run</button>
-              <button class="vfd-btn vfd-stop"  onclick="vfdCmd('DOM_B','stop')">■ Stop</button>
-              <button class="vfd-btn vfd-reset" onclick="vfdCmd('DOM_B','reset')">↺ Reset</button>
+              <button class="vfd-btn vfd-run cmd-btn"   onclick="vfdCmd('DOM_B','run')">▶ Run</button>
+              <button class="vfd-btn vfd-stop cmd-btn"  onclick="vfdCmd('DOM_B','stop')">■ Stop</button>
+              <button class="vfd-btn vfd-reset cmd-btn" onclick="vfdCmd('DOM_B','reset')">↺ Reset</button>
             </div>
           </div>
         </div>
@@ -569,7 +746,7 @@ input[type=time]:focus{border-color:var(--blue)}
         <!-- IRR -->
         <div class="pump-card" id="cardI">
           <div class="pump-head">
-            <div><div class="pump-name">Irrigation</div><div class="pump-role">IRR · Slave 3</div></div>
+            <div><div class="pump-name">Irrigation</div><div class="pump-role">H100 VFD · Slave 3 · Bus 1</div></div>
             <span class="status-badge badge-stop" id="tagIRR">STOP</span>
           </div>
           <div class="pump-body">
@@ -582,9 +759,9 @@ input[type=time]:focus{border-color:var(--blue)}
             <div class="spark-wrap"><canvas id="chartI"></canvas></div>
             <div class="online-pill"><span class="online-dot" id="dotI"></span><span id="hI" style="color:var(--dim)">Offline</span><span style="margin-left:auto;color:var(--dim);font-size:9px" id="tI">--</span></div>
             <div class="vfd-controls">
-              <button class="vfd-btn vfd-run"   onclick="vfdCmd('IRR','run')">▶ Run</button>
-              <button class="vfd-btn vfd-stop"  onclick="vfdCmd('IRR','stop')">■ Stop</button>
-              <button class="vfd-btn vfd-reset" onclick="vfdCmd('IRR','reset')">↺ Reset</button>
+              <button class="vfd-btn vfd-run cmd-btn"   onclick="vfdCmd('IRR','run')">▶ Run</button>
+              <button class="vfd-btn vfd-stop cmd-btn"  onclick="vfdCmd('IRR','stop')">■ Stop</button>
+              <button class="vfd-btn vfd-reset cmd-btn" onclick="vfdCmd('IRR','reset')">↺ Reset</button>
             </div>
           </div>
         </div>
@@ -595,7 +772,7 @@ input[type=time]:focus{border-color:var(--blue)}
       <div class="section-label">DTU Link Health</div>
       <div class="bottom-grid">
         <div class="panel">
-          <div class="panel-head"><span class="panel-title">DTU Status</span><span style="font-family:var(--mono);font-size:9px;color:var(--dim)" id="lastUpdate">No data</span></div>
+          <div class="panel-head"><span class="panel-title">VFD Status (H100 · Bus 1 via E95 LoRa)</span><span style="font-family:var(--mono);font-size:9px;color:var(--dim)" id="lastUpdate">No data</span></div>
           <table>
             <thead><tr><th>Unit</th><th>Status</th><th>Last Seen</th><th>Pressure</th><th>Freq</th></tr></thead>
             <tbody>
@@ -636,8 +813,8 @@ input[type=time]:focus{border-color:var(--blue)}
           <option value="auto">Auto (Schedule)</option>
         </select>
         <div class="tb-sep"></div>
-        <button class="btn btn-warn" onclick="lightAllOn()">💡 All ON</button>
-        <button class="btn" onclick="lightAllOff()">🌑 All OFF</button>
+        <button class="btn btn-warn cmd-btn" onclick="lightAllOn()">💡 All ON</button>
+        <button class="btn cmd-btn" onclick="lightAllOff()">🌑 All OFF</button>
         <div class="tb-sep"></div>
         <div style="font-family:var(--mono);font-size:10px;color:var(--muted)">Lights ON: <span id="lightsOnCount" style="color:var(--amber);font-weight:600">0</span> / 13</div>
       </div>
@@ -687,7 +864,7 @@ input[type=time]:focus{border-color:var(--blue)}
                 <input type="time" id="schedOff" value="06:00"/>
               </div>
               <div class="sched-row">
-                <button class="btn btn-primary" onclick="addSchedule()" style="margin-top:4px">+ Add Schedule</button>
+                <button class="btn btn-primary cmd-btn" onclick="addSchedule()" style="margin-top:4px">+ Add Schedule</button>
               </div>
             </div>
           </div>
@@ -728,7 +905,7 @@ input[type=time]:focus{border-color:var(--blue)}
         <!-- Tank A -->
         <div class="tank-card" id="tankCardA">
           <div class="tank-head">
-            <div><div class="pump-name">Tank A</div><div class="pump-role">Slave 21 · Reg 40001</div></div>
+            <div><div class="pump-name">Tank A</div><div class="pump-role">QDY70B · Slave 21 · Bus 1</div></div>
             <span class="status-badge badge-stop" id="tagTankA">--</span>
           </div>
           <div class="tank-body">
@@ -739,6 +916,9 @@ input[type=time]:focus{border-color:var(--blue)}
             </div>
             <div class="tank-metrics">
               <div class="metric"><div class="m-lbl">Level</div><div class="m-val" id="tankALevel">--</div><div class="m-unit">%</div></div>
+              <div class="metric"><div class="m-lbl">Height</div><div class="m-val" id="tankALevelM">--</div><div class="m-unit">m</div></div>
+              <div class="metric"><div class="m-lbl">Air Gap</div><div class="m-val" id="tankADist">--</div><div class="m-unit">m</div></div>
+              <div class="metric"><div class="m-lbl">Temp</div><div class="m-val" id="tankATemp">--</div><div class="m-unit">°C</div></div>
               <div class="metric"><div class="m-lbl">Updated</div><div class="m-val" style="font-size:11px" id="tankATs">--</div><div class="m-unit">time</div></div>
               <div class="metric"><div class="m-lbl">Status</div><div class="m-val" style="font-size:13px" id="tankAStatus">--</div><div class="m-unit">&nbsp;</div></div>
             </div>
@@ -749,7 +929,7 @@ input[type=time]:focus{border-color:var(--blue)}
                   <span class="sp-dot sp-dot-low"></span>
                   <input class="sp-input" type="number" id="spLowA" value="20" min="0" max="99"/>
                   <span class="sp-unit">%</span>
-                  <button class="sp-apply" onclick="applySetpoints('A')">Apply</button>
+                  <button class="sp-apply cmd-btn" onclick="applySetpoints('A')">Apply</button>
                 </div>
               </div>
               <div>
@@ -768,7 +948,7 @@ input[type=time]:focus{border-color:var(--blue)}
         <!-- Tank B -->
         <div class="tank-card" id="tankCardB">
           <div class="tank-head">
-            <div><div class="pump-name">Tank B</div><div class="pump-role">Slave 22 · Reg 40001</div></div>
+            <div><div class="pump-name">Tank B</div><div class="pump-role">QDY70B · Slave 22 · Bus 1</div></div>
             <span class="status-badge badge-stop" id="tagTankB">--</span>
           </div>
           <div class="tank-body">
@@ -779,6 +959,9 @@ input[type=time]:focus{border-color:var(--blue)}
             </div>
             <div class="tank-metrics">
               <div class="metric"><div class="m-lbl">Level</div><div class="m-val" id="tankBLevel">--</div><div class="m-unit">%</div></div>
+              <div class="metric"><div class="m-lbl">Height</div><div class="m-val" id="tankBLevelM">--</div><div class="m-unit">m</div></div>
+              <div class="metric"><div class="m-lbl">Air Gap</div><div class="m-val" id="tankBDist">--</div><div class="m-unit">m</div></div>
+              <div class="metric"><div class="m-lbl">Temp</div><div class="m-val" id="tankBTemp">--</div><div class="m-unit">°C</div></div>
               <div class="metric"><div class="m-lbl">Updated</div><div class="m-val" style="font-size:11px" id="tankBTs">--</div><div class="m-unit">time</div></div>
               <div class="metric"><div class="m-lbl">Status</div><div class="m-val" style="font-size:13px" id="tankBStatus">--</div><div class="m-unit">&nbsp;</div></div>
             </div>
@@ -789,7 +972,7 @@ input[type=time]:focus{border-color:var(--blue)}
                   <span class="sp-dot sp-dot-low"></span>
                   <input class="sp-input" type="number" id="spLowB" value="20" min="0" max="99"/>
                   <span class="sp-unit">%</span>
-                  <button class="sp-apply" onclick="applySetpoints('B')">Apply</button>
+                  <button class="sp-apply cmd-btn" onclick="applySetpoints('B')">Apply</button>
                 </div>
               </div>
               <div>
@@ -808,7 +991,7 @@ input[type=time]:focus{border-color:var(--blue)}
         <!-- Tank Irrigation -->
         <div class="tank-card" id="tankCardIrr">
           <div class="tank-head">
-            <div><div class="pump-name">Irrigation</div><div class="pump-role">tank_irr · Slave 23</div></div>
+            <div><div class="pump-name">Irrigation</div><div class="pump-role">QDY70B · Slave 23 · Bus 1</div></div>
             <span class="status-badge badge-stop" id="tagTankIrr">--</span>
           </div>
           <div class="tank-body">
@@ -819,6 +1002,9 @@ input[type=time]:focus{border-color:var(--blue)}
             </div>
             <div class="tank-metrics">
               <div class="metric"><div class="m-lbl">Level</div><div class="m-val" id="tankIrrLevel">--</div><div class="m-unit">%</div></div>
+              <div class="metric"><div class="m-lbl">Height</div><div class="m-val" id="tankIrrLevelM">--</div><div class="m-unit">m</div></div>
+              <div class="metric"><div class="m-lbl">Air Gap</div><div class="m-val" id="tankIrrDist">--</div><div class="m-unit">m</div></div>
+              <div class="metric"><div class="m-lbl">Temp</div><div class="m-val" id="tankIrrTemp">--</div><div class="m-unit">°C</div></div>
               <div class="metric"><div class="m-lbl">Updated</div><div class="m-val" style="font-size:11px" id="tankIrrTs">--</div><div class="m-unit">time</div></div>
               <div class="metric"><div class="m-lbl">Status</div><div class="m-val" style="font-size:13px" id="tankIrrStatus">--</div><div class="m-unit">&nbsp;</div></div>
             </div>
@@ -829,7 +1015,7 @@ input[type=time]:focus{border-color:var(--blue)}
                   <span class="sp-dot sp-dot-low"></span>
                   <input class="sp-input" type="number" id="spLowIrr" value="15" min="0" max="99"/>
                   <span class="sp-unit">%</span>
-                  <button class="sp-apply" onclick="applySetpoints('Irr')">Apply</button>
+                  <button class="sp-apply cmd-btn" onclick="applySetpoints('Irr')">Apply</button>
                 </div>
               </div>
               <div>
@@ -878,6 +1064,206 @@ input[type=time]:focus{border-color:var(--blue)}
       ALSHARQ VILLAGE · SCADA PLATFORM · Pumps · Lighting · Tanks · MQTT/WebSocket
     </div>
 
+    <!-- ══════════════════════════════════════════════
+         PAGE: GATEWAY HEALTH
+    ══════════════════════════════════════════════ -->
+    <div class="page" id="page-health">
+      <div class="section-label">🛡 Gateway System Health</div>
+
+      <!-- Status cards row -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px">
+
+        <div class="kpi-card" id="hc-gw">
+          <div class="kpi-label">Gateway</div>
+          <div class="kpi-value" id="hv-gw" style="font-size:22px">—</div>
+          <div class="kpi-sub" id="hs-gw">Waiting for heartbeat…</div>
+        </div>
+
+        <div class="kpi-card" id="hc-mb">
+          <div class="kpi-label">Modbus</div>
+          <div class="kpi-value" id="hv-mb" style="font-size:22px">—</div>
+          <div class="kpi-sub" id="hs-mb">RS-485 bus status</div>
+        </div>
+
+        <div class="kpi-card" id="hc-up">
+          <div class="kpi-label">Uptime</div>
+          <div class="kpi-value" id="hv-up" style="font-size:22px">—</div>
+          <div class="kpi-sub" id="hs-up">Since last restart</div>
+        </div>
+
+        <div class="kpi-card" id="hc-re">
+          <div class="kpi-label">MQTT Reconnects</div>
+          <div class="kpi-value" id="hv-re" style="font-size:22px">—</div>
+          <div class="kpi-sub" id="hs-re">Since gateway start</div>
+        </div>
+
+        <div class="kpi-card" id="hc-db">
+          <div class="kpi-label">DB Size</div>
+          <div class="kpi-value" id="hv-db" style="font-size:22px">—</div>
+          <div class="kpi-sub">
+            <div style="background:var(--bg3);border-radius:3px;height:4px;margin-top:4px;overflow:hidden">
+              <div id="hv-db-bar" style="height:100%;width:0%;background:var(--green2);border-radius:3px;transition:width .6s"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-card" id="hc-ver">
+          <div class="kpi-label">Version</div>
+          <div class="kpi-value" id="hv-ver" style="font-size:22px">—</div>
+          <div class="kpi-sub" id="hs-ver">Gateway firmware</div>
+        </div>
+
+      </div>
+
+      <!-- Poll statistics table -->
+      <div class="section-label" style="margin-top:8px">Poll Statistics</div>
+      <div style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:20px">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:var(--bg2)">
+              <th style="padding:10px 14px;text-align:left;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:1px;font-weight:500">SOURCE</th>
+              <th style="padding:10px 14px;text-align:right;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:1px;font-weight:500">OK READS</th>
+              <th style="padding:10px 14px;text-align:right;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:1px;font-weight:500">ERRORS</th>
+              <th style="padding:10px 14px;text-align:right;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:1px;font-weight:500">ERROR RATE</th>
+              <th style="padding:10px 14px;text-align:right;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:1px;font-weight:500">STATUS</th>
+            </tr>
+          </thead>
+          <tbody id="hPollTable">
+            <tr><td colspan="5" style="padding:20px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:11px">Waiting for gateway heartbeat…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- DB rows table -->
+      <div class="section-label">Database Records</div>
+      <div style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:20px">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:var(--bg2)">
+              <th style="padding:10px 14px;text-align:left;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:1px;font-weight:500">TABLE</th>
+              <th style="padding:10px 14px;text-align:right;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:1px;font-weight:500">ROWS</th>
+              <th style="padding:10px 14px;text-align:left;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:1px;font-weight:500">RETENTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 14px;font-family:var(--mono);font-size:11px">pump_readings</td>
+              <td style="padding:10px 14px;text-align:right;font-family:var(--mono);font-size:11px" id="hDbPump">—</td>
+              <td style="padding:10px 14px;color:var(--dim);font-family:var(--mono);font-size:10px">7 days</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 14px;font-family:var(--mono);font-size:11px">tank_readings</td>
+              <td style="padding:10px 14px;text-align:right;font-family:var(--mono);font-size:11px" id="hDbTank">—</td>
+              <td style="padding:10px 14px;color:var(--dim);font-family:var(--mono);font-size:10px">30 days</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 14px;font-family:var(--mono);font-size:11px">event_log</td>
+              <td style="padding:10px 14px;text-align:right;font-family:var(--mono);font-size:11px" id="hDbEvt">—</td>
+              <td style="padding:10px 14px;color:var(--dim);font-family:var(--mono);font-size:10px">90 days</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Last heartbeat timestamp -->
+      <div style="font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right" id="hLastBeat">
+        No heartbeat received yet
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         PAGE: USER MANAGEMENT  (admin only)
+    ══════════════════════════════════════════════ -->
+    <div class="page" id="page-users">
+      <div class="section-label">👥 User Management</div>
+
+      <!-- MQTT Broker Credentials -->
+      <div class="um-section" id="umMqttSection">
+        <h4>🔌 MQTT Broker Credentials</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div class="um-field" style="margin:0">
+            <label>Username</label>
+            <input id="umMqttUser" type="text" placeholder="broker username"/>
+          </div>
+          <div class="um-field" style="margin:0">
+            <label>Password</label>
+            <input id="umMqttPass" type="password" placeholder="broker password"/>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="um-save-btn" onclick="saveMqttCreds()">Save Broker Credentials</button>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--dim)" id="umMqttStatus">Stored in browser localStorage</span>
+        </div>
+      </div>
+
+      <!-- Users Table -->
+      <div class="um-toolbar">
+        <div class="section-label" style="margin:0">Platform Users</div>
+        <button class="btn btn-primary" style="margin-left:auto" onclick="openUserModal()">＋ Add User</button>
+      </div>
+      <div class="um-table-wrap">
+        <table class="um-table">
+          <thead>
+            <tr>
+              <th>USERNAME</th>
+              <th>ROLE</th>
+              <th>PAGES ACCESS</th>
+              <th>CAN COMMAND</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="umUserTable">
+            <tr><td colspan="5" style="text-align:center;color:var(--dim);padding:20px;font-family:var(--mono);font-size:11px">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="font-family:var(--mono);font-size:10px;color:var(--dim)">
+        ⚠ Users and passwords are stored in this browser's localStorage. 
+        Each operator device needs its own user setup.
+        Default admin password: <span style="color:var(--amber)">Admin@1234</span> — change immediately.
+      </div>
+    </div>
+
+    <!-- User Add/Edit Modal -->
+    <div class="um-modal-overlay" id="umModalOverlay">
+      <div class="um-modal">
+        <h3 id="umModalTitle">Add User</h3>
+        <input type="hidden" id="umEditingUser"/>
+        <div class="um-field">
+          <label>Username</label>
+          <input id="umUsername" type="text" placeholder="e.g. youssef" autocomplete="off"/>
+        </div>
+        <div class="um-field">
+          <label>Password <span id="umPassHint" style="color:var(--dim);font-size:9px">(leave blank to keep existing)</span></label>
+          <input id="umPassword" type="password" placeholder="••••••••" autocomplete="new-password"/>
+        </div>
+        <div class="um-field">
+          <label>Role</label>
+          <select id="umRole" onchange="umRoleChanged()">
+            <option value="admin">Admin — full access + user management</option>
+            <option value="engineer">Engineer — full access, no user management</option>
+            <option value="operator" selected>Operator — pumps/tanks/lights, full commands</option>
+            <option value="viewer">Viewer — read-only, no commands</option>
+          </select>
+        </div>
+        <div class="um-field" id="umPagesField">
+          <label>Pages Access <span style="color:var(--dim)">(override role defaults)</span></label>
+          <div class="um-pages-grid" id="umPagesGrid">
+            <!-- built by JS -->
+          </div>
+        </div>
+        <div id="umErrMsg" style="color:var(--red);font-family:var(--mono);font-size:11px;min-height:16px;margin-top:4px"></div>
+        <div class="um-modal-btns">
+          <button class="um-cancel-btn" onclick="closeUserModal()">Cancel</button>
+          <button class="um-save-btn" onclick="saveUser()">Save User</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Viewer read-only badge -->
+    <div class="viewer-lock" id="viewerLock">🔒 READ-ONLY MODE</div>
+
   </main>
 </div><!-- /mainApp -->
 
@@ -886,25 +1272,41 @@ input[type=time]:focus{border-color:var(--blue)}
    MQTT (pure WebSocket, no library)
 ════════════════════════════════════════════════════ */
 const WS_URL   = "wss://w219d1f1.ala.us-east-1.emqxsl.com:8084/mqtt";
+/* REST API — change to your Pi IP address */
+const API_BASE = "http://localhost:5000";
+let   API_TOKEN = "";    /* set after login */
 const CMD_BASE = "compound/pumps/cmd";
 const T_PUMPS  = "compound/pumps/tele";
 const T_LIGHTS = "compound/lights/state";
 const T_TANKS  = "compound/tanks/tele";
 const T_EVENTS = "compound/events";
+const T_HEALTH = "compound/gateway/health";
 
 let MQTT_USERNAME="",MQTT_PASSWORD="";
 let pendingLoginUser=null;
-let ws=null,connected=false,pid=1,pingTimer=null,retryDelay=1500,_reconnecting=false;
+let ws=null,connected=false,pid=1,pingTimer=null,retryDelay=1500,_reconnecting=false,_lastPktTime=0;
 const enc=new TextEncoder(),dec=new TextDecoder();
 function encStr(s){const b=enc.encode(s),o=new Uint8Array(2+b.length);o[0]=b.length>>8;o[1]=b.length&0xFF;o.set(b,2);return o;}
 function concat(...a){const l=a.reduce((s,x)=>s+x.length,0),o=new Uint8Array(l);let p=0;a.forEach(x=>{o.set(x,p);p+=x.length;});return o;}
 function encVI(n){const out=[];do{let b=n&0x7F;n>>>=7;if(n>0)b|=0x80;out.push(b);}while(n>0);return new Uint8Array(out);}
 function decVI(b,o){let v=0,m=1,i=o;do{v+=(b[i]&0x7F)*m;m<<=7;}while((b[i++]&0x80)&&i<o+5);return{value:v,bytesRead:i-o};}
 function pktConnect(id,u,p){const hasU=!!u,hasP=!!p,flags=(hasU?0x80:0)|(hasP?0x40:0)|0x02;const vh=concat(encStr("MQTT"),new Uint8Array([4,flags,0,120]));const parts=[encStr(id)];if(hasU)parts.push(encStr(u));if(hasP)parts.push(encStr(p));const pl=concat(...parts);return concat(new Uint8Array([0x10]),encVI(vh.length+pl.length),vh,pl);}
-function pktSub(pid,t){const vh=new Uint8Array([pid>>8,pid&0xFF]),pl=concat(encStr(t),new Uint8Array([0]));return concat(new Uint8Array([0x82]),encVI(vh.length+pl.length),vh,pl);}
-function pktPub(t,pay){const tb=encStr(t),pb=enc.encode(pay);return concat(new Uint8Array([0x30]),encVI(tb.length+pb.length),tb,pb);}
+function pktSub(pid,t,qos=1){const vh=new Uint8Array([pid>>8,pid&0xFF]),pl=concat(encStr(t),new Uint8Array([qos&0x03]));return concat(new Uint8Array([0x82]),encVI(vh.length+pl.length),vh,pl);}
+function pktPub(t,pay,qos=0,pkid=0){const tb=encStr(t),pb=enc.encode(pay);if(qos===0){return concat(new Uint8Array([0x30]),encVI(tb.length+pb.length),tb,pb);}const pi=new Uint8Array([pkid>>8,pkid&0xFF]);return concat(new Uint8Array([0x32]),encVI(tb.length+2+pb.length),tb,pi,pb);}
+function pktPubAck(pkid){return new Uint8Array([0x40,0x02,pkid>>8,pkid&0xFF]);}
 function pktPing(){return new Uint8Array([0xC0,0x00]);}
-function parsePub(buf){const b=new Uint8Array(buf);if((b[0]>>4)!==3)return null;const{value:rl,bytesRead}=decVI(b,1);let i=1+bytesRead;const tl=(b[i]<<8)|b[i+1];i+=2;const t=dec.decode(b.slice(i,i+tl));i+=tl;return{topic:t,payload:dec.decode(b.slice(i,1+bytesRead+rl))};}
+function parsePub(buf){
+  const b=new Uint8Array(buf);
+  if((b[0]>>4)!==3)return null;
+  const qos=(b[0]>>1)&0x03;   /* QoS bits 2-1 */
+  const{value:rl,bytesRead}=decVI(b,1);
+  let i=1+bytesRead;
+  const tl=(b[i]<<8)|b[i+1];i+=2;
+  const t=dec.decode(b.slice(i,i+tl));i+=tl;
+  let pkid=0;
+  if(qos>0){pkid=(b[i]<<8)|b[i+1];i+=2;}  /* QoS 1: read packet ID */
+  return{topic:t,payload:dec.decode(b.slice(i,1+bytesRead+rl)),qos,pkid};
+}
 
 function setMQTT(ok,msg){const pill=document.getElementById("mqttPill"),dot=document.getElementById("mqttDot"),txt=document.getElementById("mqttText");pill.className="mqtt-pill"+(ok?" online":" error");dot.className="mqtt-dot"+(ok?" online":" error");txt.textContent=msg;}
 
@@ -912,7 +1314,8 @@ function mqttSend(t,o){
   if(!connected||!ws||ws.readyState!==1){pushEvt("CMD not sent — not connected","warn");return;}
   /* Audit trail: stamp every command with logged-in user + timestamp */
   if(t.includes("/cmd")){o._user=MQTT_USERNAME||"unknown";o._ts=Date.now();}
-  try{ws.send(pktPub(t,JSON.stringify(o)));
+  /* Commands sent at QoS 1 for reliable delivery */
+  try{ws.send(pktPub(t,JSON.stringify(o),1,pid++));
     pushEvt("CMD → "+t.split("/").pop()+" ["+MQTT_USERNAME+"] "+JSON.stringify(o),"info");}
   catch(e){pushEvt("CMD send failed","bad");}
 }
@@ -956,6 +1359,7 @@ function start(){
   },10000);
   ws.onopen=()=>{retryDelay=1500;ws.send(pktConnect("dash-"+Math.random().toString(16).slice(2),MQTT_USERNAME,MQTT_PASSWORD));};
   ws.onmessage=ev=>{
+    _lastPktTime=Date.now(); /* ← wake-from-sleep fix */
     const b=new Uint8Array(ev.data),type=b[0]>>4;
     if(type===2){
       if(b[3]!==0){
@@ -972,34 +1376,39 @@ function start(){
       clearTimeout(_connTimeout);
       connected=true;_reconnecting=false;retryDelay=1500;setMQTT(true,"Connected");
       if(pendingLoginUser){
-        document.getElementById("loginOverlay").style.display="none";
-        document.getElementById("mainApp").style.display="block";
-        document.getElementById("navUser").textContent="● "+pendingLoginUser;
-        buildLightGrid();
-        const arr=loadEvts();evtCount=arr.length;
-        setV("storedCount",arr.length);setV("evtCount",arr.length+" stored");
-        renderEvtFeed();
-        _resetLoginBtn();
-        keepaliveWorker.postMessage("start");
+        _onAppConnected();
         pendingLoginUser=null;
       }
       ws.send(pktSub(pid++,T_PUMPS));
       ws.send(pktSub(pid++,T_LIGHTS));
       ws.send(pktSub(pid++,T_TANKS));
       ws.send(pktSub(pid++,T_EVENTS));
+      ws.send(pktSub(pid++,T_HEALTH));
       /* Single keepalive via keepaliveWorker — no duplicate timer */
       pushEvt("MQTT connected","good");return;
     }
+    /* SUBACK from broker (type=9) — subscription confirmed */
+    if(type===9){console.log("[MQTT SUBACK] subscription confirmed, rc="+b[4]);return;}
+    /* PUBACK from broker (type=4) — our QoS 1 command was received */
+    if(type===4)return;
+    /* PINGRESP (type=13) */
     if(type===13)return;
     const pub=parsePub(ev.data);
     if(!pub)return;
+    /* If broker sent at QoS 1, we MUST reply with PUBACK */
+    if(pub.qos===1 && pub.pkid){
+      try{ws.send(pktPubAck(pub.pkid));}catch(_){}
+    }
+    /* Debug: log every incoming PUBLISH topic (open DevTools → Console) */
+    console.log("[MQTT IN] topic="+pub.topic+" qos="+pub.qos+" len="+pub.payload.length);
     try{
       const d=JSON.parse(pub.payload);
-      if(pub.topic===T_PUMPS) applyPumpTele(d);
+      if(pub.topic===T_PUMPS)  applyPumpTele(d);
       if(pub.topic===T_LIGHTS) applyLightState(d);
-      if(pub.topic===T_TANKS) applyTankTele(d);
+      if(pub.topic===T_TANKS)  applyTankTele(d);
       if(pub.topic===T_EVENTS) applyMqttEvent(d);
-    }catch(e){console.warn(e);}
+      if(pub.topic===T_HEALTH) applyGatewayHealth(d);
+    }catch(e){console.warn("[MQTT parse error]",pub.topic,e);}
   };
   ws.onclose=(evt)=>{
     /* Ignore close events from stale sockets */
@@ -1122,10 +1531,12 @@ function buildLightGrid(){
   const grid=document.getElementById("lightGrid");grid.innerHTML="";
   PANELS.forEach(p=>{
     const card=document.createElement("div");card.className="light-card";card.id="lcard_"+p;
+    const slaveId = 10 + PANELS.indexOf(p) + 1;
     card.innerHTML=`
       <div class="light-card-top">
         <div>
           <div class="light-panel-name">${p}</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin:1px 0">M31 · Slave ${slaveId} · Bus 2</div>
           <div class="light-state-txt" id="ltxt_${p}">UNKNOWN</div>
           <div class="light-ts" id="lts_${p}">--</div>
         </div>
@@ -1187,9 +1598,10 @@ function addSchedule(){
   const sched={id:Date.now(),target,onTime,offTime,days,enabled:true};
   schedules.push(sched);
   renderSchedules();
-  /* Send to broker */
   mqttSend("compound/schedules/cmd",{action:"set",schedules});
   pushEvt("Schedule added: "+target+" ON:"+onTime+" OFF:"+offTime+" "+days.map(d=>dayNames[d]).join(","),"good");
+  /* Persist to REST API */
+  api.setSchedules(schedules).catch(e=>console.warn("[Schedules API]",e.message));
 }
 
 function renderSchedules(){
@@ -1212,8 +1624,10 @@ function renderSchedules(){
   });
 }
 
-function toggleSched(i){schedules[i].enabled=!schedules[i].enabled;renderSchedules();mqttSend("compound/schedules/cmd",{action:"set",schedules});}
-function deleteSched(i){schedules.splice(i,1);renderSchedules();mqttSend("compound/schedules/cmd",{action:"set",schedules});pushEvt("Schedule removed","warn");}
+function toggleSched(i){schedules[i].enabled=!schedules[i].enabled;renderSchedules();mqttSend("compound/schedules/cmd",{action:"set",schedules});
+  api.setSchedules(schedules).catch(e=>console.warn("[Schedules API]",e.message));}
+function deleteSched(i){schedules.splice(i,1);renderSchedules();mqttSend("compound/schedules/cmd",{action:"set",schedules});pushEvt("Schedule removed","warn");
+  api.setSchedules(schedules).catch(e=>console.warn("[Schedules API]",e.message));}
 
 /* ════════════════════════════════════════════════════
    TANKS
@@ -1242,8 +1656,12 @@ function applySetpoints(id){
     alert("Low must be < High, both between 0-100");return;
   }
   tankSP[id]={low:lo,high:hi};
-  _saveTankSP();  /* persist across reload */
+  _saveTankSP();  /* localStorage fallback */
   pushEvt("Tank "+id+" setpoints updated — Low:"+lo+"% High:"+hi+"%","info");
+  /* Persist to REST API */
+  const tankIdMap={A:"tank_a",B:"tank_b",Irr:"tank_irr"};
+  api.setSetpoints({tank_id:tankIdMap[id],low_alarm_pct:lo,high_alarm_pct:hi})
+     .catch(e=>console.warn("[Setpoints API]",e.message));
 }
 
 function applyTankTele(pl){
@@ -1251,7 +1669,7 @@ function applyTankTele(pl){
   const A=pl.tank_a, B=pl.tank_b, Irr=pl.tank_irr||pl.tank_irrigation||pl.irrigation;
   let alerts=0;
 
-  function updateTank(data,id,fillId,pctId,levelId,tsId,statusId,tagId,cardId,kpiId,kpiStatusId,barId){
+  function updateTank(data,id,fillId,pctId,levelId,levelMId,distId,tempId,tsId,statusId,tagId,cardId,kpiId,kpiStatusId,barId){
     if(!data)return;
     const lvl=parseFloat(data.level??data.value??0);
     const pct=Math.max(0,Math.min(100,lvl)).toFixed(1);
@@ -1267,6 +1685,10 @@ function applyTankTele(pl){
     setV(pctId,Math.round(pctN)+"%");
     setV(levelId,Math.round(pctN));
     setV(tsId,fmtTs(data.ts));
+    /* QDY70B extra fields — level in metres, air gap, sensor temperature */
+    if(levelMId) setV(levelMId, data.level_m!=null ? data.level_m.toFixed(3) : "--");
+    if(distId)   setV(distId,   data.distance_m!=null ? data.distance_m.toFixed(3) : "--");
+    if(tempId)   setV(tempId,   data.temp_c!=null ? data.temp_c.toFixed(1) : "--");
 
     /* status text */
     const isLow=pctN<=sp.low, isHigh=pctN>=sp.high;
@@ -1329,9 +1751,9 @@ function applyTankTele(pl){
     if(isLow||isHigh)alerts++;
   }
 
-  updateTank(A,  "A",  "fillA",  "pctA",  "tankALevel",  "tankATs",  "tankAStatus",  "tagTankA",  "tankCardA",  "kpiTankA",  "kpiTankAStatus",  "alarmBarA");
-  updateTank(B,  "B",  "fillB",  "pctB",  "tankBLevel",  "tankBTs",  "tankBStatus",  "tagTankB",  "tankCardB",  "kpiTankB",  "kpiTankBStatus",  "alarmBarB");
-  updateTank(Irr,"Irr","fillIrr","pctIrr","tankIrrLevel","tankIrrTs","tankIrrStatus","tagTankIrr","tankCardIrr","kpiTankIrr","kpiTankIrrStatus","alarmBarIrr");
+  updateTank(A,  "A",  "fillA",  "pctA",  "tankALevel",  "tankALevelM",  "tankADist",  "tankATemp",  "tankATs",  "tankAStatus",  "tagTankA",  "tankCardA",  "kpiTankA",  "kpiTankAStatus",  "alarmBarA");
+  updateTank(B,  "B",  "fillB",  "pctB",  "tankBLevel",  "tankBLevelM",  "tankBDist",  "tankBTemp",  "tankBTs",  "tankBStatus",  "tagTankB",  "tankCardB",  "kpiTankB",  "kpiTankBStatus",  "alarmBarB");
+  updateTank(Irr,"Irr","fillIrr","pctIrr","tankIrrLevel","tankIrrLevelM","tankIrrDist","tankIrrTemp","tankIrrTs","tankIrrStatus","tagTankIrr","tankCardIrr","kpiTankIrr","kpiTankIrrStatus","alarmBarIrr");
 
   const kta=document.getElementById("kpiTankAlerts");
   if(kta){kta.textContent=alerts;kta.style.color=alerts>0?"var(--red)":"var(--green2)";}
@@ -1826,13 +2248,28 @@ function clearEvents(){if(!confirm("Clear all stored events?"))return;localStora
    PAGE NAVIGATION
 ════════════════════════════════════════════════════ */
 function showPage(name){
+  /* ── Access control: redirect to first allowed page if denied ── */
+  if(currentUser && !canAccessPage(name)){
+    const fallback=(currentUser.pages||[]).find(p=>p!=="users")||"pumps";
+    if(name!==fallback){showPage(fallback);}
+    return;
+  }
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
   const page=document.getElementById("page-"+name);if(page)page.classList.add("active");
   const nav=document.getElementById("nav-"+name);if(nav)nav.classList.add("active");
   if(name==="events"){renderEvtFeed();const b=document.getElementById("badge-evts");if(b)b.style.display="none";}
+  if(name==="users"){umOnPageOpen();}
   // close sidebar on mobile
   if(window.innerWidth<=768)document.getElementById("sidebar").classList.remove("open");
+  /* Re-apply cmd-btn disable state after page switch (light buttons built dynamically) */
+  if(currentUser&&!currentUser.canCommand){
+    setTimeout(()=>{
+      document.querySelectorAll(".light-on-btn,.light-off-btn").forEach(b=>{
+        b.disabled=true;b.style.opacity="0.3";b.style.pointerEvents="none";
+      });
+    },50);
+  }
 }
 function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
 
@@ -1853,6 +2290,7 @@ function doLogin(){
 }
 function doLogout(){
   connected=false;clearInterval(pingTimer);if(ws){try{ws.onclose=null;ws.close();}catch(_){}}ws=null;
+  _setHealthStripVisible(false);
   MQTT_USERNAME="";MQTT_PASSWORD="";retryDelay=1500;
   document.getElementById("loginUser").value="";document.getElementById("loginPass").value="";
   document.getElementById("loginErr").textContent="";document.getElementById("navUser").textContent="";
@@ -1875,12 +2313,859 @@ const keepaliveWorker={postMessage(cmd){if(cmd==="start"){if(_kaTimer)return;_ka
     }
   },25000);}else if(cmd==="stop"){clearInterval(_kaTimer);_kaTimer=null;}}};
 document.addEventListener("visibilitychange",()=>{
-  if(document.visibilityState==="visible"&&!connected&&MQTT_USERNAME){
-    _reconnecting=false; // force-allow reconnect when tab becomes visible
-    start();
+  if(document.visibilityState==="visible"&&MQTT_USERNAME){
+    const stale = connected && (Date.now()-_lastPktTime) > 30000;
+    if(!connected || stale){
+      /* Wake from sleep: broker dropped TCP but browser didn't notice.
+         Force close the zombie socket and reconnect. */
+      if(stale && ws){
+        try{ws.onclose=null;ws.onerror=null;ws.close();}catch(_){}
+        ws=null; connected=false;
+      }
+      _reconnecting=false;
+      start();
+    }
   }
 });
+/* Also handle OS network coming back online (e.g. after airplane mode) */
+window.addEventListener("online",()=>{
+  if(MQTT_USERNAME&&!connected){_reconnecting=false;start();}
+});
 let rz;window.addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{drawSpark(document.getElementById("chartA"),serA,"rgb(88,166,255)");drawSpark(document.getElementById("chartB"),serB,"rgb(63,185,80)");drawSpark(document.getElementById("chartI"),serI,"rgb(118,227,234)");},80);});
+
+/* ═══════════════════════════════════════════════════
+   GATEWAY HEALTH STRIP  — driven by compound/gateway/health
+   ═══════════════════════════════════════════════════ */
+let _lastHealthTs = 0;
+const DB_WARN_KB  = 256 * 1024;   /* 256 MB warn threshold */
+const DB_MAX_KB   = 512 * 1024;   /* 512 MB max for bar    */
+
+/* Called when health topic arrives (and on page-show for retained msg) */
+function applyGatewayHealth(d){
+  if(!d) return;
+  _lastHealthTs = Date.now();
+
+  const strip   = document.getElementById("gwHealthStrip");
+  const now     = new Date().toLocaleTimeString();
+
+  /* ── Gateway status ─────────────────────────── */
+  const gwOk    = d.mqtt_connected !== false;
+  _setGhsPill("ghsPillGw","ghsDotGw","ghsGwStatus",
+    gwOk ? "ok" : "err",
+    gwOk ? "ONLINE" : "OFFLINE");
+
+  /* ── Modbus status ──────────────────────────── */
+  const mbOk    = d.modbus_ok !== false;
+  _setGhsPill("ghsPillMb","ghsDotMb","ghsMbStatus",
+    mbOk ? "ok" : "err",
+    mbOk ? "OK" : "FAULT");
+
+  /* ── Uptime ─────────────────────────────────── */
+  const upEl = document.getElementById("ghsUptime");
+  const upWr = document.getElementById("ghsPillUp");
+  if(upEl){
+    upEl.textContent = d.uptime_human || _fmtUptime(d.uptime_s||0);
+    if(upWr) upWr.className = "ghs-pill dim";
+  }
+
+  /* ── Reconnects (warn if > 3) ───────────────── */
+  const rec  = d.mqtt_reconnects || 0;
+  const recEl= document.getElementById("ghsReconn");
+  const recWr= document.getElementById("ghsPillRe");
+  if(recEl){
+    recEl.textContent = rec;
+    if(recWr) recWr.className = "ghs-pill " + (rec > 3 ? "warn" : "dim");
+  }
+
+  /* ── DB size + minibar ──────────────────────── */
+  const kb   = d.db_size_kb || 0;
+  const szEl = document.getElementById("ghsDbSize");
+  const bar  = document.getElementById("ghsDbBar");
+  const bwEl = document.getElementById("ghsBarWrap");
+  if(szEl){
+    szEl.textContent = kb >= 1024 ? (kb/1024).toFixed(1)+" MB" : kb+" KB";
+    const pct = Math.min(100, (kb / DB_MAX_KB) * 100);
+    if(bar){
+      bar.style.width = pct + "%";
+      bar.style.background = kb > DB_WARN_KB ? "var(--amber)" :
+                             kb > DB_MAX_KB * 0.8 ? "var(--red)" : "var(--green2)";
+    }
+    if(bwEl) bwEl.className = "ghs-bar-wrap " + (kb > DB_WARN_KB ? "warn" : "dim");
+  }
+
+  /* ── Poll count tags ────────────────────────── */
+  const ok  = d.poll_counts  || {};
+  const err = d.error_counts || {};
+  _setGhsTag("ghsTagPumps",  "⚙", ok.pumps||0,  err.pumps||0);
+  _setGhsTag("ghsTagTanks",  "🛢", ok.tanks||0,  err.tanks||0);
+  _setGhsTag("ghsTagLights", "💡", ok.lights||0, err.lights||0);
+
+  /* ── Last seen ──────────────────────────────── */
+  const lsEl = document.getElementById("ghsLastSeen");
+  if(lsEl) lsEl.textContent = "♥ " + now;
+
+  /* ── Overall strip colour ───────────────────── */
+  const allOk = gwOk && mbOk && rec <= 3;
+  strip.className = "gw-health-strip " + (allOk ? "strip-ok" : mbOk ? "strip-warn" : "strip-err");
+
+  /* ── Populate detail health page ────────────── */
+  _applyHealthPage(d, gwOk, mbOk, rec, kb, allOk, now);
+}
+
+function _setGhsPill(pillId, dotId, valId, state, text){
+  const pill = document.getElementById(pillId);
+  const dot  = document.getElementById(dotId);
+  const val  = document.getElementById(valId);
+  if(pill) pill.className = "ghs-pill " + state;
+  if(dot)  dot.className  = "ghs-dot "  + state;
+  if(val)  val.textContent = text;
+}
+
+function _setGhsTag(tagId, icon, okCnt, errCnt){
+  const el = document.getElementById(tagId);
+  if(!el) return;
+  el.textContent = icon + " " + okCnt + (errCnt > 0 ? " ✕"+errCnt : "");
+  el.className = "ghs-tag " + (errCnt > 0 ? "warn" : "ok");
+}
+
+function _fmtUptime(s){
+  const d=Math.floor(s/86400), h=Math.floor((s%86400)/3600),
+        m=Math.floor((s%3600)/60), sc=s%60;
+  if(d) return d+"d "+String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(sc).padStart(2,"0");
+}
+
+function _applyHealthPage(d, gwOk, mbOk, rec, kb, allOk, now){
+  function _kpiCard(cardId, valId, subId, val, sub, state){
+    const c=document.getElementById(cardId);
+    const v=document.getElementById(valId);
+    const s=document.getElementById(subId);
+    const colors={ok:"rgba(46,160,67,.4)",warn:"rgba(227,179,65,.5)",err:"rgba(248,81,73,.5)"};
+    const textColors={ok:"var(--green2)",warn:"var(--amber)",err:"var(--red)"};
+    if(c && colors[state]) c.style.borderColor=colors[state];
+    if(v){v.textContent=val; if(textColors[state]) v.style.color=textColors[state];}
+    if(s && sub!==null) s.textContent=sub;
+  }
+  _kpiCard("hc-gw","hv-gw","hs-gw",
+    gwOk?"ONLINE":"OFFLINE", gwOk?"MQTT connected":"Gateway disconnected", gwOk?"ok":"err");
+  _kpiCard("hc-mb","hv-mb","hs-mb",
+    mbOk?"OK":"FAULT", mbOk?"RS-485 bus healthy":"Modbus failures", mbOk?"ok":"err");
+  _kpiCard("hc-up","hv-up","hs-up",
+    d.uptime_human||_fmtUptime(d.uptime_s||0),"Since last restart","");
+  _kpiCard("hc-re","hv-re","hs-re",
+    String(rec), rec>3?"High — check network":"Normal", rec>3?"warn":"ok");
+  const dbSt=kb>256*1024?"warn":"ok";
+  _kpiCard("hc-db","hv-db",null,
+    kb>=1024?(kb/1024).toFixed(1)+" MB":kb+" KB","",dbSt);
+  const dbBarH=document.getElementById("hv-db-bar");
+  if(dbBarH){
+    dbBarH.style.width=Math.min(100,(kb/(512*1024))*100)+"%";
+    dbBarH.style.background=dbSt==="warn"?"var(--amber)":"var(--green2)";
+  }
+  _kpiCard("hc-ver","hv-ver","hs-ver",d.version||"—","Gateway firmware","");
+
+  /* Poll table */
+  const tbl=document.getElementById("hPollTable");
+  if(tbl){
+    const okC=d.poll_counts||{},errC=d.error_counts||{};
+    const icons={pumps:"⚙",tanks:"🛢",lights:"💡"};
+    tbl.innerHTML=["pumps","tanks","lights"].map(src=>{
+      const o=okC[src]||0,e=errC[src]||0,tot=o+e;
+      const rate=tot>0?((e/tot)*100).toFixed(1)+"%":"0%";
+      const ec=e>0?"var(--amber)":"var(--dim)";
+      const bg=e>0?"rgba(227,179,65,.1)":"rgba(46,160,67,.1)";
+      const bc=e>0?"rgba(227,179,65,.3)":"rgba(46,160,67,.3)";
+      const tc=e>0?"var(--amber)":"var(--green2)";
+      return `<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:10px 14px;font-family:var(--mono);font-size:11px">${icons[src]} ${src}</td>
+        <td style="padding:10px 14px;text-align:right;font-family:var(--mono);font-size:11px;color:var(--green2)">${o.toLocaleString()}</td>
+        <td style="padding:10px 14px;text-align:right;font-family:var(--mono);font-size:11px;color:${ec}">${e}</td>
+        <td style="padding:10px 14px;text-align:right;font-family:var(--mono);font-size:11px;color:${ec}">${rate}</td>
+        <td style="padding:10px 14px;text-align:right">
+          <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:${bg};color:${tc};border:1px solid ${bc}">${e>0?"ERRORS":"OK"}</span>
+        </td></tr>`;
+    }).join("");
+  }
+  /* DB rows */
+  const rows=d.db_rows||{};
+  ["hDbPump|pump_rows","hDbTank|tank_rows","hDbEvt|event_rows"].forEach(pair=>{
+    const[id,key]=pair.split("|");
+    const el=document.getElementById(id);
+    if(el) el.textContent=(rows[key]||0).toLocaleString();
+  });
+  /* Last heartbeat + sidebar badge */
+  const lb=document.getElementById("hLastBeat");
+  if(lb) lb.textContent="Last heartbeat: "+now+" (every 30s)";
+  const badge=document.getElementById("badge-health");
+  if(badge){
+    badge.textContent=gwOk&&mbOk?"OK":"!";
+    badge.style.background=allOk?"rgba(46,160,67,.2)":"rgba(248,81,73,.2)";
+    badge.style.color=allOk?"var(--green2)":"var(--red)";
+  }
+}
+
+/* Stale health watchdog — if no heartbeat for 45s, mark strip grey/warn */
+setInterval(()=>{
+  if(_lastHealthTs === 0) return;   /* never received one yet */
+  const age = (Date.now() - _lastHealthTs) / 1000;
+  if(age > 45){
+    const strip = document.getElementById("gwHealthStrip");
+    if(strip) strip.className = "gw-health-strip strip-err";
+    const lsEl = document.getElementById("ghsLastSeen");
+    if(lsEl) lsEl.textContent = "⚠ No heartbeat for "+Math.round(age)+"s";
+    _setGhsPill("ghsPillGw","ghsDotGw","ghsGwStatus","err","STALE");
+  }
+}, 5000);
+
+/* Hide health strip when logged out */
+function _setHealthStripVisible(v){
+  const el = document.getElementById("healthStripContainer");
+  if(el) el.style.display = v ? "" : "none";
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   USER MANAGEMENT SYSTEM
+   - App-level auth separate from MQTT broker credentials
+   - Users stored in localStorage (key: alsharq_users_v4)
+   - MQTT broker creds stored in localStorage (key: alsharq_mqtt_v4)
+   - 4 roles: admin / engineer / operator / viewer
+   - Page access per user (override role defaults)
+   - Command gating via hasPermission('command')
+   ═══════════════════════════════════════════════════════════════════ */
+
+const UM_KEY       = 'alsharq_users_v4';
+const MQTT_KEY     = 'alsharq_mqtt_v4';
+const ALL_PAGES    = ['pumps','tanks','lights','events','health'];
+const ADMIN_PAGES  = ['pumps','tanks','lights','events','health','users'];
+
+const ROLE_DEFAULTS = {
+  admin:    {pages: ADMIN_PAGES,  canCommand: true},
+  engineer: {pages: ALL_PAGES,    canCommand: true},
+  operator: {pages: ['pumps','tanks','lights','events'], canCommand: true},
+  viewer:   {pages: ALL_PAGES,    canCommand: false},
+};
+
+let currentUser = null;   // {username, role, pages, canCommand}
+
+/* ── Password hashing (SHA-256 via Web Crypto) ──────────────────── */
+async function hashPass(password) {
+  const buf = await crypto.subtle.digest('SHA-256',
+    new TextEncoder().encode(password));
+  return Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ── LocalStorage helpers ────────────────────────────────────────── */
+function umLoadUsers() {
+  try { return JSON.parse(localStorage.getItem(UM_KEY)||'[]'); }
+  catch(_) { return []; }
+}
+function umSaveUsers(users) {
+  localStorage.setItem(UM_KEY, JSON.stringify(users));
+}
+function umLoadMqtt() {
+  try { return JSON.parse(localStorage.getItem(MQTT_KEY)||'{}'); }
+  catch(_) { return {}; }
+}
+function umSaveMqtt(creds) {
+  localStorage.setItem(MQTT_KEY, JSON.stringify(creds));
+}
+
+/* ── Ensure default admin exists ────────────────────────────────── */
+async function umEnsureDefaultAdmin() {
+  const users = umLoadUsers();
+  if (users.length === 0) {
+    const hash = await hashPass('Admin@1234');
+    umSaveUsers([{
+      username: 'admin',
+      passwordHash: hash,
+      role: 'admin',
+      pages: ADMIN_PAGES
+    }]);
+  }
+}
+
+/* ── App-level login check ─────────────────────────────────────── */
+async function appLogin(username, password) {
+  const users = umLoadUsers();
+  const user  = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+  if (!user) return {ok: false, reason: 'Unknown username.'};
+  const hash = await hashPass(password);
+  if (hash !== user.passwordHash) return {ok: false, reason: 'Incorrect password.'};
+  return {ok: true, user};
+}
+
+/* ── Permission helpers ─────────────────────────────────────────── */
+function hasPermission(action) {
+  if (!currentUser) return false;
+  if (action === 'command') return currentUser.canCommand;
+  if (action === 'users')   return currentUser.role === 'admin';
+  return true;
+}
+function canAccessPage(page) {
+  if (!currentUser) return false;
+  return currentUser.pages.includes(page);
+}
+
+/* ── Apply role restrictions to UI ─────────────────────────────── */
+function applyRoleUI() {
+  if (!currentUser) return;
+
+  /* Show/hide nav items */
+  ALL_PAGES.concat(['users']).forEach(page => {
+    const nav = document.getElementById('nav-' + page);
+    if (!nav) return;
+    nav.style.display = canAccessPage(page) ? '' : 'none';
+  });
+
+  /* Viewer: disable all command buttons, add readonly-mode class */
+  const app = document.getElementById('mainApp');
+  if (!currentUser.canCommand) {
+    app.classList.add('readonly-mode');
+    document.querySelectorAll('.cmd-btn').forEach(b => {
+      b.disabled = true;
+      b.title = 'Read-only: your role cannot send commands';
+    });
+    document.getElementById('viewerLock').style.display = 'block';
+  } else {
+    app.classList.remove('readonly-mode');
+    document.querySelectorAll('.cmd-btn').forEach(b => {
+      b.disabled = false;
+      b.title = '';
+    });
+    document.getElementById('viewerLock').style.display = 'none';
+  }
+
+  /* Show role in nav user pill */
+  const navUser = document.getElementById('navUser');
+  if (navUser) {
+    navUser.textContent = '● ' + currentUser.username;
+    navUser.title = 'Role: ' + currentUser.role;
+  }
+
+  /* Navigate to first accessible page */
+  const firstPage = currentUser.pages.find(p => p !== 'users') || 'pumps';
+  showPage(firstPage);
+
+  /* Update MQTT badge count */
+  const badge = document.getElementById('badge-users');
+  if (badge) {
+    badge.textContent = umLoadUsers().length;
+    badge.style.background = 'rgba(188,140,255,.2)';
+    badge.style.color = 'var(--purple)';
+  }
+}
+
+/* showPage access control merged into original above */
+
+/* ── Override mqttSend to enforce command permission ────────────── */
+const _origMqttSend = mqttSend;
+function mqttSend(t, o) {
+  if (!hasPermission('command')) {
+    pushEvt('🔒 Command blocked — read-only role', 'warn');
+    return;
+  }
+  /* Stamp with app username, not MQTT broker username */
+  if (t.includes('/cmd')) {
+    o._user = currentUser ? currentUser.username : 'unknown';
+    o._ts   = Date.now();
+  }
+  _origMqttSend(t, o);
+}
+
+/* ── Updated doLogin — app auth first, then MQTT ────────────────── */
+async function doLogin() {
+  const u   = document.getElementById('loginUser').value.trim();
+  const p   = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginErr');
+  const btn = document.getElementById('loginBtn');
+  if (!u || !p) { errEl.textContent = 'Username and password required.'; return; }
+
+  errEl.textContent = 'Verifying…';
+  btn.disabled = true; btn.textContent = 'Verifying…';
+
+  try {
+    /* ── Try REST API first ─────────────────────────────────────── */
+    const result = await api.login(u, p);
+    API_TOKEN = result.data.token;
+
+    const role  = result.data.role;
+    const pages = result.data.pages || ROLE_DEFAULTS[role].pages;
+    currentUser = {
+      username:   result.data.username,
+      role:       role,
+      pages:      pages,
+      canCommand: result.data.canCommand
+    };
+
+    /* Get MQTT credentials from API */
+    errEl.textContent = 'Fetching broker credentials…';
+    const mqttResult = await api.mqttCreds();
+    const creds = mqttResult.data;
+    MQTT_USERNAME = creds.username;
+    MQTT_PASSWORD = creds.password;
+
+    /* Load config from API in background after login */
+    _loadConfigFromApi();
+
+    errEl.textContent = 'Connecting to broker…';
+    btn.textContent = 'Connecting…';
+    pendingLoginUser = currentUser.username;
+    start();
+
+  } catch(apiErr) {
+    /* ── API offline — fall back to localStorage ─────────────────── */
+    console.warn('[Login] API unavailable, falling back to localStorage:', apiErr.message);
+    errEl.textContent = 'API offline — trying local auth…';
+
+    const result = await appLogin(u, p);
+    if (!result.ok) {
+      errEl.textContent = result.reason;
+      btn.disabled = false; btn.textContent = 'Connect';
+      return;
+    }
+    const role  = result.user.role;
+    const pages = result.user.pages || ROLE_DEFAULTS[role].pages;
+    currentUser = { username: result.user.username, role, pages,
+                    canCommand: ROLE_DEFAULTS[role].canCommand };
+
+    const mqttCreds = umLoadMqtt();
+    if (!mqttCreds.user || !mqttCreds.password) {
+      errEl.textContent = 'MQTT credentials not set. Start the API or set credentials locally.';
+      btn.disabled = false; btn.textContent = 'Connect';
+      currentUser = null; return;
+    }
+    MQTT_USERNAME = mqttCreds.user;
+    MQTT_PASSWORD = mqttCreds.password;
+    errEl.textContent = 'Connecting to broker…';
+    btn.textContent = 'Connecting…';
+    pendingLoginUser = currentUser.username;
+    start();
+  }
+}
+
+/* Load config from API after login (non-blocking) */
+async function _loadConfigFromApi() {
+  try {
+    /* Setpoints */
+    const sp = await api.getSetpoints();
+    if (sp.data && sp.data.length) {
+      sp.data.forEach(t => {
+        const k = t.tank_id === 'tank_a'   ? 'A'
+                : t.tank_id === 'tank_b'   ? 'B'
+                : t.tank_id === 'tank_irr' ? 'Irr' : null;
+        if (k) tankSP[k] = {low: t.low_alarm_pct, high: t.high_alarm_pct};
+      });
+    }
+    /* Schedules */
+    const sc = await api.getSchedules();
+    if (sc.data) {
+      schedules = sc.data.map(s => ({
+        id:       s.sched_id,
+        target:   s.target,
+        onTime:   s.on_time,
+        offTime:  s.off_time,
+        days:     s.days || [],
+        enabled:  !!s.enabled,
+      }));
+      renderSchedules();
+    }
+  } catch(e) {
+    console.warn('[Config] Failed to load config from API:', e.message);
+  }
+}
+
+/* ── Show dashboard after MQTT connect ─────────────────────────── */
+/* Override the post-CONNACK UI show — called from ws.onmessage CONNACK */
+function _onAppConnected() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  _setHealthStripVisible(true);
+  buildLightGrid();
+  const arr = loadEvts(); evtCount = arr.length;
+  setV('storedCount', arr.length); setV('evtCount', arr.length + ' stored');
+  renderEvtFeed();
+  _resetLoginBtn();
+  keepaliveWorker.postMessage('start');
+  applyRoleUI();
+}
+
+/* ── Updated doLogout ────────────────────────────────────────────── */
+const _origDoLogout = doLogout;
+function doLogout() {
+  currentUser = null;
+  document.getElementById('viewerLock').style.display = 'none';
+  const app = document.getElementById('mainApp');
+  if (app) app.classList.remove('readonly-mode');
+  _origDoLogout();
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   USER MANAGEMENT PAGE FUNCTIONS
+   ════════════════════════════════════════════════════════════════════ */
+
+const PAGE_LABELS = {
+  pumps:'⚙ Pumps', tanks:'🛢 Tanks', lights:'💡 Lights',
+  events:'📋 Events', health:'🛡 Health', users:'👥 Users'
+};
+
+async function umRenderTable() {
+  const tbody = document.getElementById('umUserTable');
+  if (!tbody) return;
+  let users = umLoadUsers();
+  try {
+    const result = await api.getUsers();
+    if (result.data) {
+      users = result.data;
+      /* Sync to localStorage for offline fallback */
+      const lsUsers = users.map(u => ({
+        username: u.username,
+        passwordHash: '(api)',
+        role: u.role,
+        pages: u.pages || [],
+      }));
+      umSaveUsers(lsUsers);
+    }
+  } catch(e) { /* API offline — use localStorage */ }
+  if (users.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--dim);padding:20px;font-family:var(--mono);font-size:11px">No users</td></tr>';
+    return;
+  }
+  tbody.innerHTML = users.map(u => {
+    const role    = u.role || 'operator';
+    const pages   = (u.pages || ROLE_DEFAULTS[role].pages);
+    const canCmd  = ROLE_DEFAULTS[role].canCommand;
+    const chips   = pages.map(p => `<span class="page-chip">${PAGE_LABELS[p]||p}</span>`).join('');
+    const isSelf  = currentUser && u.username === currentUser.username;
+    const isOnlyAdmin = role === 'admin' && users.filter(x=>x.role==='admin').length === 1;
+    return `<tr>
+      <td style="font-family:var(--mono);font-weight:600">${escHtml(u.username)}${isSelf?' <span style="color:var(--dim);font-weight:400">(you)</span>':''}</td>
+      <td><span class="role-badge role-${role}">${role.toUpperCase()}</span></td>
+      <td style="font-size:10px">${chips}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:${canCmd?'var(--green2)':'var(--red)'}">
+        ${canCmd?'✅ Yes':'🔒 No'}
+      </td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="um-action-btn" onclick="openUserModal('${escHtml(u.username)}')">Edit</button>
+        ${!isOnlyAdmin?`<button class="um-action-btn del" onclick="deleteUser('${escHtml(u.username)}')">Delete</button>`:''}
+        <button class="um-action-btn" onclick="resetPassword('${escHtml(u.username)}')">Reset PW</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function umBuildPagesGrid(selectedPages) {
+  const grid = document.getElementById('umPagesGrid');
+  if (!grid) return;
+  const all = ADMIN_PAGES;
+  grid.innerHTML = all.map(p => {
+    const checked = selectedPages.includes(p);
+    return `<label class="um-page-chk${checked?' checked':''}" id="pgchk_${p}" onclick="umTogglePage('${p}')">
+      <span>${PAGE_LABELS[p]||p}</span>
+    </label>`;
+  }).join('');
+}
+
+function umTogglePage(page) {
+  const el = document.getElementById('pgchk_' + page);
+  if (!el) return;
+  el.classList.toggle('checked');
+}
+
+function umRoleChanged() {
+  const role = document.getElementById('umRole').value;
+  const defaults = ROLE_DEFAULTS[role].pages;
+  umBuildPagesGrid(defaults);
+}
+
+function openUserModal(editUsername) {
+  const modal = document.getElementById('umModalOverlay');
+  document.getElementById('umErrMsg').textContent = '';
+  document.getElementById('umPassword').value = '';
+
+  if (editUsername) {
+    const users = umLoadUsers();
+    const user  = users.find(u => u.username === editUsername);
+    if (!user) return;
+    document.getElementById('umModalTitle').textContent = 'Edit User — ' + editUsername;
+    document.getElementById('umEditingUser').value = editUsername;
+    document.getElementById('umUsername').value  = user.username;
+    document.getElementById('umUsername').disabled = true;
+    document.getElementById('umRole').value  = user.role || 'operator';
+    document.getElementById('umPassHint').style.display = 'inline';
+    umBuildPagesGrid(user.pages || ROLE_DEFAULTS[user.role||'operator'].pages);
+  } else {
+    document.getElementById('umModalTitle').textContent = 'Add User';
+    document.getElementById('umEditingUser').value = '';
+    document.getElementById('umUsername').value  = '';
+    document.getElementById('umUsername').disabled = false;
+    document.getElementById('umRole').value  = 'operator';
+    document.getElementById('umPassHint').style.display = 'none';
+    umBuildPagesGrid(ROLE_DEFAULTS['operator'].pages);
+  }
+  modal.classList.add('open');
+}
+
+function closeUserModal() {
+  document.getElementById('umModalOverlay').classList.remove('open');
+}
+
+async function saveUser() {
+  const editing   = document.getElementById('umEditingUser').value;
+  const username  = document.getElementById('umUsername').value.trim();
+  const password  = document.getElementById('umPassword').value;
+  const role      = document.getElementById('umRole').value;
+  const errEl     = document.getElementById('umErrMsg');
+
+  if (!username) { errEl.textContent = 'Username is required.'; return; }
+  if (!editing && !password) { errEl.textContent = 'Password is required for new users.'; return; }
+  if (password && password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; return; }
+
+  const pages = ADMIN_PAGES.filter(p => {
+    const el = document.getElementById('pgchk_' + p);
+    return el && el.classList.contains('checked');
+  });
+  if (pages.length === 0) { errEl.textContent = 'Select at least one page.'; return; }
+
+  try {
+    if (editing) {
+      await api.editUser(editing, role, pages);
+      if (password) await api.resetPw(editing, password);
+    } else {
+      await api.addUser(username, password, role, pages);
+    }
+    /* Also update localStorage for offline fallback */
+    let users = umLoadUsers();
+    if (editing) {
+      const idx = users.findIndex(u => u.username === editing);
+      if (idx !== -1) { users[idx].role=role; users[idx].pages=pages;
+        if (password) users[idx].passwordHash = await hashPass(password); }
+    } else {
+      users.push({username, passwordHash: await hashPass(password), role, pages});
+    }
+    umSaveUsers(users);
+  } catch(apiErr) {
+    /* API offline — localStorage only */
+    console.warn('[Users API]', apiErr.message);
+    let users = umLoadUsers();
+    if (editing) {
+      const idx = users.findIndex(u => u.username === editing);
+      if (idx === -1) { errEl.textContent = 'User not found.'; return; }
+      users[idx].role=role; users[idx].pages=pages;
+      if (password) users[idx].passwordHash = await hashPass(password);
+    } else {
+      if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+        errEl.textContent = 'Username already exists.'; return;
+      }
+      users.push({username, passwordHash: await hashPass(password), role, pages});
+    }
+    umSaveUsers(users);
+  }
+
+  closeUserModal();
+  umRenderTable();
+  pushEvt('[Users] ' + (editing ? 'Updated' : 'Added') + ' user: ' + username, 'info');
+  const badge = document.getElementById('badge-users');
+  if (badge) badge.textContent = umLoadUsers().length;
+}
+
+async function deleteUser(username) {
+  if (currentUser && username === currentUser.username) {
+    alert('Cannot delete your own account while logged in.');
+    return;
+  }
+  if (!confirm('Delete user "' + username + '"? This cannot be undone.')) return;
+  try { await api.deleteUser(username); } catch(e) { console.warn('[Users API]', e.message); }
+  let users = umLoadUsers().filter(u => u.username !== username);
+  umSaveUsers(users);
+  umRenderTable();
+  pushEvt('[Users] Deleted user: ' + username, 'warn');
+}
+
+async function resetPassword(username) {
+  const newPass = prompt('New password for "' + username + '" (min 6 chars):');
+  if (!newPass) return;
+  if (newPass.length < 6) { alert('Password too short (min 6).'); return; }
+  try {
+    await api.resetPw(username, newPass);
+  } catch(e) { console.warn('[Users API]', e.message); }
+  let users = umLoadUsers();
+  const user = users.find(u => u.username === username);
+  if (user) { user.passwordHash = await hashPass(newPass); umSaveUsers(users); }
+  pushEvt('[Users] Password reset for: ' + username, 'info');
+}
+
+async function saveMqttCreds() {
+  const u  = document.getElementById('umMqttUser').value.trim();
+  const p  = document.getElementById('umMqttPass').value;
+  const host = document.getElementById('umMqttHost') ? document.getElementById('umMqttHost').value.trim() : WS_URL.replace('wss://','').replace('/mqtt','').split(':')[0];
+  if (!u || !p) { document.getElementById('umMqttStatus').textContent = '❌ Both fields required'; return; }
+  /* Save to localStorage always */
+  umSaveMqtt({user: u, password: p});
+  /* Save to API */
+  try {
+    await api.setMqttConfig({
+      broker_host: host || 'w219d1f1.ala.us-east-1.emqxsl.com',
+      broker_port: 8084,
+      broker_tls:  1,
+      username: u,
+      password: p
+    });
+    document.getElementById('umMqttStatus').textContent = '✅ Saved to DB at ' + new Date().toLocaleTimeString();
+  } catch(e) {
+    document.getElementById('umMqttStatus').textContent = '✅ Saved locally (API offline)';
+    console.warn('[MQTT Config API]', e.message);
+  }
+  document.getElementById('umMqttPass').value = '';
+  pushEvt('[Admin] MQTT broker credentials updated', 'info');
+}
+
+/* Pre-fill MQTT fields from localStorage when users page opens */
+function umOnPageOpen() {
+  const creds = umLoadMqtt();
+  if (creds.user) {
+    document.getElementById('umMqttUser').value = creds.user;
+  }
+  umRenderTable();
+}
+
+/* Init on load */
+umEnsureDefaultAdmin();
+
+
+function showMqttSetupModal(){
+  const creds = umLoadMqtt();
+  if(creds.user) document.getElementById('setupMqttUser').value = creds.user;
+  document.getElementById('setupMqttPass').value = '';
+  document.getElementById('mqttSetupErr').textContent = '';
+  document.getElementById('mqttSetupModal').classList.add('open');
+}
+function saveMqttSetup(){
+  const u = document.getElementById('setupMqttUser').value.trim();
+  const p = document.getElementById('setupMqttPass').value;
+  if(!u||!p){document.getElementById('mqttSetupErr').textContent='Both fields required.';return;}
+  umSaveMqtt({user:u, password:p});
+  document.getElementById('mqttSetupModal').classList.remove('open');
+  document.getElementById('loginErr').textContent = '✅ MQTT credentials saved.';
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   REST API CLIENT  — replaces localStorage for all config data
+   ═══════════════════════════════════════════════════════════════════ */
+
+async function apiFetch(path, options={}) {
+  const url = API_BASE + path;
+  const headers = { "Content-Type": "application/json" };
+  if (API_TOKEN) headers["X-Auth-Token"] = API_TOKEN;
+  try {
+    const res = await fetch(url, { ...options, headers: {...headers, ...(options.headers||{})} });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    return data;
+  } catch(e) {
+    console.warn("[API]", path, e.message);
+    throw e;
+  }
+}
+
+const api = {
+  /* Auth */
+  login:    (u,p)      => apiFetch("/api/auth",       {method:"POST",body:JSON.stringify({username:u,password:p})}),
+  logout:   ()         => apiFetch("/api/auth/logout", {method:"POST"}),
+  mqttCreds:()         => apiFetch("/api/mqtt_config/credentials"),
+
+  /* Users */
+  getUsers: ()         => apiFetch("/api/users"),
+  addUser:  (u,p,r,pg) => apiFetch("/api/users",      {method:"POST",body:JSON.stringify({username:u,password:p,role:r,pages:pg})}),
+  editUser: (u,r,pg)   => apiFetch(`/api/users/${u}`, {method:"PUT", body:JSON.stringify({role:r,pages:pg})}),
+  deleteUser:(u)       => apiFetch(`/api/users/${u}`, {method:"DELETE"}),
+  resetPw:  (u,p)      => apiFetch(`/api/users/${u}/password`,{method:"PUT",body:JSON.stringify({password:p})}),
+
+  /* MQTT config */
+  getMqttConfig: ()    => apiFetch("/api/mqtt_config"),
+  setMqttConfig: (d)   => apiFetch("/api/mqtt_config", {method:"PUT", body:JSON.stringify(d)}),
+
+  /* Setpoints */
+  getSetpoints: ()     => apiFetch("/api/setpoints"),
+  setSetpoints: (d)    => apiFetch("/api/setpoints",   {method:"PUT", body:JSON.stringify(d)}),
+
+  /* Schedules */
+  getSchedules: ()     => apiFetch("/api/schedules"),
+  setSchedules: (arr)  => apiFetch("/api/schedules",   {method:"PUT", body:JSON.stringify(arr)}),
+
+  /* Alarms */
+  getAlarms:    (params)  => apiFetch("/api/alarms?" + new URLSearchParams(params||{})),
+  addAlarm:     (d)       => apiFetch("/api/alarms",       {method:"POST",body:JSON.stringify(d)}),
+  ackAlarm:     (id)      => apiFetch(`/api/alarms/${id}/ack`,     {method:"PUT"}),
+  resolveAlarm: (id)      => apiFetch(`/api/alarms/${id}/resolve`, {method:"PUT"}),
+
+  /* Maintenance */
+  getMaintenance:()    => apiFetch("/api/maintenance"),
+  addMaintenance:(d)   => apiFetch("/api/maintenance", {method:"POST",body:JSON.stringify(d)}),
+
+  /* Devices */
+  getDevices:   ()     => apiFetch("/api/devices"),
+  editDevice:   (id,d) => apiFetch(`/api/devices/${id}`, {method:"PUT",body:JSON.stringify(d)}),
+
+  /* Site config */
+  getSiteConfig:()     => apiFetch("/api/site_config"),
+  setSiteConfig:(d)    => apiFetch("/api/site_config", {method:"PUT", body:JSON.stringify(d)}),
+
+  /* History */
+  pumpHistory:  (p)    => apiFetch("/api/history/pumps?" + new URLSearchParams(p||{})),
+  tankHistory:  (p)    => apiFetch("/api/history/tanks?" + new URLSearchParams(p||{})),
+  eventHistory: (p)    => apiFetch("/api/history/events?"+ new URLSearchParams(p||{})),
+
+  /* Health */
+  apiHealth:    ()     => apiFetch("/api/health"),
+};
+
+/* ── API status indicator (shown in sidebar bottom) ─────────────── */
+let _apiOnline = false;
+async function checkApiStatus() {
+  try {
+    await api.apiHealth();
+    _apiOnline = true;
+    const el = document.getElementById('apiStatusDot');
+    if (el) { el.style.color = 'var(--green2)'; el.title = 'REST API online'; }
+  } catch(_) {
+    _apiOnline = false;
+    const el = document.getElementById('apiStatusDot');
+    if (el) { el.style.color = 'var(--red)'; el.title = 'REST API offline — using localStorage fallback'; }
+  }
+}
+setInterval(checkApiStatus, 30000);
+checkApiStatus();
+
 </script>
+
+<!-- MQTT First-Time Setup Modal (accessible from login screen) -->
+<div class="um-modal-overlay" id="mqttSetupModal">
+  <div class="um-modal">
+    <h3>🔌 MQTT Broker Setup</h3>
+    <p style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:16px">
+      Enter your EMQX broker credentials. These are stored in browser localStorage.
+    </p>
+    <div class="um-field">
+      <label>Broker Username</label>
+      <input id="setupMqttUser" type="text" placeholder="YOUR_USERNAME"/>
+    </div>
+    <div class="um-field">
+      <label>Broker Password</label>
+      <input id="setupMqttPass" type="password" placeholder="YOUR_PASSWORD"/>
+    </div>
+    <div id="mqttSetupErr" style="color:var(--red);font-family:var(--mono);font-size:11px;min-height:14px"></div>
+    <div class="um-modal-btns">
+      <button class="um-cancel-btn" onclick="document.getElementById('mqttSetupModal').classList.remove('open')">Cancel</button>
+      <button class="um-save-btn" onclick="saveMqttSetup()">Save & Continue</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
