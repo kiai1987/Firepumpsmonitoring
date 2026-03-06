@@ -346,6 +346,30 @@ input[type=time]:focus{border-color:var(--blue)}
 }
 .menu-toggle{display:none;align-items:center;justify-content:center;width:34px;height:34px;border-radius:var(--r);background:var(--bg2);border:1px solid var(--border);cursor:pointer;font-size:16px;color:var(--muted);transition:all .15s}
 .menu-toggle:hover{border-color:var(--blue);color:var(--blue)}
+
+/* ═══════════════════════════════════════════
+   DATA QUALITY — SCADA standard (GOOD/UNCERTAIN/BAD)
+   Mirrors Siemens WinCC / Honeywell Experion
+═══════════════════════════════════════════ */
+.dq-badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9px;letter-spacing:.5px;padding:2px 6px;border-radius:3px;font-weight:600}
+.dq-good  {background:rgba(63,185,80,.15);color:var(--green2);border:1px solid rgba(63,185,80,.3)}
+.dq-uncertain{background:rgba(210,153,34,.15);color:#d29922;border:1px solid rgba(210,153,34,.3)}
+.dq-bad   {background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.3);animation:blink 1s infinite}
+.dq-init  {background:rgba(139,148,158,.1);color:var(--dim);border:1px solid var(--border)}
+
+/* Stale overlay on any value element */
+.stale-val{color:var(--dim)!important;text-decoration:line-through;opacity:.45}
+.bad-val  {color:var(--red)!important;opacity:.6}
+
+/* Quality row on each section */
+.quality-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.quality-row .q-label{font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.quality-row .q-age{font-family:var(--mono);font-size:9px;color:var(--dim)}
+
+/* Comm loss banner */
+.comm-loss-banner{display:none;position:sticky;top:0;z-index:500;background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.4);border-radius:6px;padding:8px 14px;margin-bottom:8px;font-family:var(--mono);font-size:11px;color:var(--red);align-items:center;gap:8px}
+.comm-loss-banner.show{display:flex}
+.comm-loss-banner .cb-icon{font-size:16px;animation:blink 1s infinite}
 </style>
 </head>
 <body>
@@ -436,6 +460,16 @@ input[type=time]:focus{border-color:var(--blue)}
          PAGE: PUMPS
     ══════════════════════════════ -->
     <div class="page active" id="page-pumps">
+      <div class="comm-loss-banner" id="commBannerPumps">
+        <span class="cb-icon">⚠</span>
+        <span id="commBannerPumpsMsg">No data received from Pumps gateway</span>
+        <span id="commBannerPumpsAge" style="margin-left:auto;opacity:.7"></span>
+      </div>
+      <div class="quality-row">
+        <span class="q-label">Pumps Data Quality:</span>
+        <span class="dq-badge dq-init" id="dqPumps">⬤ INITIALISING</span>
+        <span class="q-age" id="dqPumpsAge">No data received</span>
+      </div>
 
       <!-- ══ ACTIVE ALARMS ══ -->
       <div class="alarm-panel" id="alarmPanel">
@@ -583,6 +617,16 @@ input[type=time]:focus{border-color:var(--blue)}
          PAGE: LIGHTING
     ══════════════════════════════ -->
     <div class="page" id="page-lights">
+      <div class="comm-loss-banner" id="commBannerLights">
+        <span class="cb-icon">⚠</span>
+        <span id="commBannerLightsMsg">No data received from Lights gateway</span>
+        <span id="commBannerLightsAge" style="margin-left:auto;opacity:.7"></span>
+      </div>
+      <div class="quality-row">
+        <span class="q-label">Lights Data Quality:</span>
+        <span class="dq-badge dq-init" id="dqLights">⬤ INITIALISING</span>
+        <span class="q-age" id="dqLightsAge">No data received</span>
+      </div>
 
       <!-- Light toolbar -->
       <div class="light-toolbar">
@@ -662,6 +706,16 @@ input[type=time]:focus{border-color:var(--blue)}
          PAGE: TANKS
     ══════════════════════════════ -->
     <div class="page" id="page-tanks">
+      <div class="comm-loss-banner" id="commBannerTanks">
+        <span class="cb-icon">⚠</span>
+        <span id="commBannerTanksMsg">No data received from Tanks gateway</span>
+        <span id="commBannerTanksAge" style="margin-left:auto;opacity:.7"></span>
+      </div>
+      <div class="quality-row">
+        <span class="q-label">Tanks Data Quality:</span>
+        <span class="dq-badge dq-init" id="dqTanks">⬤ INITIALISING</span>
+        <span class="q-age" id="dqTanksAge">No data received</span>
+      </div>
       <div class="section-label">Tank Levels</div>
       <div class="kpi-row" style="grid-template-columns:repeat(4,1fr)">
         <div class="kpi-card"><div class="kpi-icon blue">🛢</div><div><div class="kpi-val" id="kpiTankA">--</div><div class="kpi-lbl">Tank A</div><div class="kpi-sub" id="kpiTankAStatus">--</div></div></div>
@@ -840,13 +894,13 @@ const T_EVENTS = "compound/events";
 
 let MQTT_USERNAME="",MQTT_PASSWORD="";
 let pendingLoginUser=null;
-let ws=null,connected=false,pid=1,pingTimer=null,retryDelay=1500;
+let ws=null,connected=false,pid=1,pingTimer=null,retryDelay=1500,_reconnecting=false;
 const enc=new TextEncoder(),dec=new TextDecoder();
 function encStr(s){const b=enc.encode(s),o=new Uint8Array(2+b.length);o[0]=b.length>>8;o[1]=b.length&0xFF;o.set(b,2);return o;}
 function concat(...a){const l=a.reduce((s,x)=>s+x.length,0),o=new Uint8Array(l);let p=0;a.forEach(x=>{o.set(x,p);p+=x.length;});return o;}
 function encVI(n){const out=[];do{let b=n&0x7F;n>>>=7;if(n>0)b|=0x80;out.push(b);}while(n>0);return new Uint8Array(out);}
 function decVI(b,o){let v=0,m=1,i=o;do{v+=(b[i]&0x7F)*m;m<<=7;}while((b[i++]&0x80)&&i<o+5);return{value:v,bytesRead:i-o};}
-function pktConnect(id,u,p){const hasU=!!u,hasP=!!p,flags=(hasU?0x80:0)|(hasP?0x40:0)|0x02;const vh=concat(encStr("MQTT"),new Uint8Array([4,flags,0,60]));const parts=[encStr(id)];if(hasU)parts.push(encStr(u));if(hasP)parts.push(encStr(p));const pl=concat(...parts);return concat(new Uint8Array([0x10]),encVI(vh.length+pl.length),vh,pl);}
+function pktConnect(id,u,p){const hasU=!!u,hasP=!!p,flags=(hasU?0x80:0)|(hasP?0x40:0)|0x02;const vh=concat(encStr("MQTT"),new Uint8Array([4,flags,0,120]));const parts=[encStr(id)];if(hasU)parts.push(encStr(u));if(hasP)parts.push(encStr(p));const pl=concat(...parts);return concat(new Uint8Array([0x10]),encVI(vh.length+pl.length),vh,pl);}
 function pktSub(pid,t){const vh=new Uint8Array([pid>>8,pid&0xFF]),pl=concat(encStr(t),new Uint8Array([0]));return concat(new Uint8Array([0x82]),encVI(vh.length+pl.length),vh,pl);}
 function pktPub(t,pay){const tb=encStr(t),pb=enc.encode(pay);return concat(new Uint8Array([0x30]),encVI(tb.length+pb.length),tb,pb);}
 function pktPing(){return new Uint8Array([0xC0,0x00]);}
@@ -856,7 +910,10 @@ function setMQTT(ok,msg){const pill=document.getElementById("mqttPill"),dot=docu
 
 function mqttSend(t,o){
   if(!connected||!ws||ws.readyState!==1){pushEvt("CMD not sent — not connected","warn");return;}
-  try{ws.send(pktPub(t,JSON.stringify(o)));pushEvt("CMD → "+t.split("/").pop()+" "+JSON.stringify(o),"info");}
+  /* Audit trail: stamp every command with logged-in user + timestamp */
+  if(t.includes("/cmd")){o._user=MQTT_USERNAME||"unknown";o._ts=Date.now();}
+  try{ws.send(pktPub(t,JSON.stringify(o)));
+    pushEvt("CMD → "+t.split("/").pop()+" ["+MQTT_USERNAME+"] "+JSON.stringify(o),"info");}
   catch(e){pushEvt("CMD send failed","bad");}
 }
 
@@ -877,10 +934,15 @@ function _showLoginErr(msg){
   if(el)el.textContent=msg;
 }
 function start(){
+  /* Guard: don't open a second socket if one is already open or connecting */
+  if(ws && (ws.readyState===0||ws.readyState===1)){return;}
+  if(_reconnecting){return;}
+  _reconnecting=true;
   setMQTT(false,"Connecting…");
-  clearInterval(pingTimer);
   clearTimeout(_connTimeout);
-  try{ws=new WebSocket(WS_URL,["mqtt"]);}catch(e){setMQTT(false,"Invalid URL");_showLoginErr("Invalid broker URL.");_resetLoginBtn();return;}
+  /* Clean up any lingering old socket */
+  if(ws){try{ws.onclose=null;ws.onerror=null;ws.close();}catch(_){}ws=null;}
+  try{ws=new WebSocket(WS_URL,["mqtt"]);}catch(e){_reconnecting=false;setMQTT(false,"Invalid URL");_showLoginErr("Invalid broker URL.");_resetLoginBtn();return;}
   ws.binaryType="arraybuffer";
   // 10s timeout — if no CONNACK arrives, abort and let user retry
   _connTimeout=setTimeout(()=>{
@@ -908,7 +970,7 @@ function start(){
       }
       // BROKER ACCEPTED — now show dashboard
       clearTimeout(_connTimeout);
-      connected=true;setMQTT(true,"Connected");
+      connected=true;_reconnecting=false;retryDelay=1500;setMQTT(true,"Connected");
       if(pendingLoginUser){
         document.getElementById("loginOverlay").style.display="none";
         document.getElementById("mainApp").style.display="block";
@@ -925,7 +987,7 @@ function start(){
       ws.send(pktSub(pid++,T_LIGHTS));
       ws.send(pktSub(pid++,T_TANKS));
       ws.send(pktSub(pid++,T_EVENTS));
-      pingTimer=setInterval(()=>{if(connected&&ws&&ws.readyState===1)ws.send(pktPing());},45000);
+      /* Single keepalive via keepaliveWorker — no duplicate timer */
       pushEvt("MQTT connected","good");return;
     }
     if(type===13)return;
@@ -939,23 +1001,38 @@ function start(){
       if(pub.topic===T_EVENTS) applyMqttEvent(d);
     }catch(e){console.warn(e);}
   };
-  ws.onclose=()=>{
+  ws.onclose=(evt)=>{
+    /* Ignore close events from stale sockets */
+    if(ws!==arguments.callee._sock) return;
     clearTimeout(_connTimeout);
-    connected=false;clearInterval(pingTimer);
+    connected=false;
+    _reconnecting=false;
     const appVisible=document.getElementById("mainApp").style.display!=="none";
     if(!appVisible && pendingLoginUser){
-      // Closed before login completed
       setMQTT(false,"Connection failed");
       MQTT_USERNAME="";MQTT_PASSWORD="";pendingLoginUser=null;
       _showLoginErr("Could not connect to broker. Check network.");
       _resetLoginBtn();
-      return;
+      ws=null;return;
     }
-    if(!appVisible) return; // not logged in, don't retry
+    if(!appVisible){ws=null;return;}
+    const code=evt.code||0;
+    const reason=evt.reason||"";
+    console.log("WS closed code="+code+" reason="+reason);
     setMQTT(false,"Disconnected — retry "+Math.round(retryDelay/1000)+"s");
-    setTimeout(start,retryDelay);retryDelay=Math.min(retryDelay*1.5,15000);
+    const delay=retryDelay+Math.random()*500; // jitter prevents hammering
+    retryDelay=Math.min(retryDelay*1.5,30000);
+    ws=null;
+    setTimeout(()=>{if(!connected&&MQTT_USERNAME)start();},delay);
   };
-  ws.onerror=()=>{connected=false;clearInterval(pingTimer);setMQTT(false,"Connection error");try{ws.close();}catch(_){}};
+  ws.onclose._sock=ws; // tag so stale socket events are ignored
+  ws.onerror=(e)=>{
+    console.warn("WS error",e);
+    /* Don't call ws.close() here — browser closes automatically after onerror */
+    connected=false;
+    setMQTT(false,"Connection error — reconnecting…");
+    /* onclose will fire right after onerror, which handles reconnect */
+  };
 }
 
 /* ════════════════════════════════════════════════════
@@ -998,10 +1075,16 @@ function setOnline(dotId,statId,online){
   if(dot)dot.className="online-dot"+(online?" on":"");
   if(el){el.textContent=online?"Online":"Offline";el.style.color=online?"var(--green2)":"var(--dim)";}
 }
-function setDtuOnline(tdId,online){const el=document.getElementById(tdId);if(!el)return;el.innerHTML=online?'<span class="cell-on">Online</span>':'<span class="cell-off">Offline</span>';}
+function setDtuOnline(tdId,online){const el=document.getElementById(tdId);if(!el)return;/* XSS-safe: static text, no user data */
+  el.innerHTML='';
+  const sp=document.createElement("span");
+  sp.className=online?"cell-on":"cell-off";
+  sp.textContent=online?"Online":"Offline";
+  el.appendChild(sp);}
 function setTrip(kpiId,code){const el=document.getElementById(kpiId);if(el)el.className="metric"+(code&&code!==0?" alert":"");}
 
 function applyPumpTele(pl){
+  dqReceived("pumps");  /* ← Data Quality: mark GOOD */
   const plat=pl.platform||{},pumps=pl.pumps||{};
   const A=pumps.DOM_A,B=pumps.DOM_B,I=pumps.IRR;
   let faults=0;
@@ -1011,7 +1094,8 @@ function applyPumpTele(pl){
   if(plat.mode)document.getElementById("modeSel").value=plat.mode;
   if(plat.duty)document.getElementById("dutySel").value=plat.duty;
   if(plat.setpoint_bar!=null)document.getElementById("setpointInp").value=plat.setpoint_bar;
-  setV("lastUpdate","Updated "+new Date().toLocaleTimeString());
+  const gwTs=plat.ts?new Date(plat.ts*1000).toLocaleTimeString():"--";
+  setV("lastUpdate","GW: "+gwTs+" · UI: "+new Date().toLocaleTimeString());
   setV("sidebarLastUpdate","Updated "+new Date().toLocaleTimeString());
 
   if(A){setTag(document.getElementById("tagA"),document.getElementById("cardA"),A);setV("aP",A.pressure_bar?.toFixed?.(2));setV("aHz",A.freq_hz?.toFixed?.(1));setV("aA",A.current_a?.toFixed?.(1));setV("aTrip",A.trip_code??0);setTrip("kpiATrip",A.trip_code);serA[si]=A.pressure_bar??null;setOnline("dotA","hA",A.online);setV("tA",fmtTs(A.last_seen));setV("tA2",fmtTsFull(A.last_seen));setDtuOnline("dtuA",A.online);setV("dtuAP",(A.pressure_bar?.toFixed?.(2)??'--')+" bar");setV("dtuAHz",(A.freq_hz?.toFixed?.(1)??'--')+" Hz");if(A.fault){faults++;if(!prevFault.DOM_A){pushEvt("DOM_A FAULT — trip "+A.trip_code,"bad");setAlarm("DOM_A","DOM_A FAULT trip "+A.trip_code,true);}}else if(prevFault.DOM_A){pushEvt("DOM_A fault cleared","good");setAlarm("DOM_A","",false);}prevFault.DOM_A=!!A.fault;if(A.running&&plat.duty==="DOM_A"){setV("kpiPressure",A.pressure_bar?.toFixed?.(2)??"--");setV("kpiFreq",A.freq_hz?.toFixed?.(1)??"--");}}
@@ -1056,6 +1140,7 @@ function buildLightGrid(){
 }
 
 function applyLightState(pl){
+  dqReceived("lights");  /* ← Data Quality: mark GOOD */
   let onCount=0;
   PANELS.forEach(p=>{
     const d=pl[p]||pl[p.toLowerCase()];
@@ -1114,12 +1199,15 @@ function renderSchedules(){
   list.innerHTML="";
   schedules.forEach((s,i)=>{
     const li=document.createElement("li");li.className="sched-item";
-    li.innerHTML=`
-      <span class="sched-badge sched-badge-light">${s.target}</span>
-      <span style="color:var(--text)">${s.onTime}→${s.offTime}</span>
-      <span style="color:var(--dim)">${s.days.map(d=>dayNames[d]).join(",")}</span>
-      <div class="sched-enabled-toggle ${s.enabled?"on":""}" onclick="toggleSched(${i})"></div>
-      <button class="sched-del" onclick="deleteSched(${i})">✕</button>`;
+    /* XSS-safe schedule row */
+    const badge=document.createElement("span");badge.className="sched-badge sched-badge-light";badge.textContent=s.target;
+    const times=document.createElement("span");times.style.color="var(--text)";times.textContent=s.onTime+"→"+s.offTime;
+    const daysEl=document.createElement("span");daysEl.style.color="var(--dim)";daysEl.textContent=s.days.map(d=>dayNames[d]).join(",");
+    const tog=document.createElement("div");tog.className="sched-enabled-toggle"+(s.enabled?" on":"");
+    tog.addEventListener("click",()=>toggleSched(i));
+    const del=document.createElement("button");del.className="sched-del";del.textContent="✕";
+    del.addEventListener("click",()=>deleteSched(i));
+    li.append(badge,times,daysEl,tog,del);
     list.appendChild(li);
   });
 }
@@ -1131,11 +1219,19 @@ function deleteSched(i){schedules.splice(i,1);renderSchedules();mqttSend("compou
    TANKS
 ════════════════════════════════════════════════════ */
 /* Tank setpoints — default values, persisted in memory */
-const tankSP={
-  A:{low:20,high:90},
-  B:{low:20,high:90},
-  Irr:{low:15,high:95}
-};
+/* Tank setpoints persisted to localStorage — survive page reload */
+const SP_LSKEY = "alsharq_tank_sp_v2";
+const SP_DEFAULTS = {A:{low:20,high:90},B:{low:20,high:90},Irr:{low:15,high:95}};
+let tankSP;
+try {
+  const saved = localStorage.getItem(SP_LSKEY);
+  tankSP = saved ? JSON.parse(saved) : {...SP_DEFAULTS};
+  /* ensure all three keys present after upgrades */
+  Object.keys(SP_DEFAULTS).forEach(k=>{if(!tankSP[k])tankSP[k]={...SP_DEFAULTS[k]};});
+} catch(_) {
+  tankSP = {...SP_DEFAULTS};
+}
+function _saveTankSP(){ try{localStorage.setItem(SP_LSKEY,JSON.stringify(tankSP));}catch(_){} }
 /* Previous alarm state per tank to avoid duplicate raises */
 const tankPrevAlarm={A:{low:false,high:false},B:{low:false,high:false},Irr:{low:false,high:false}};
 
@@ -1146,10 +1242,12 @@ function applySetpoints(id){
     alert("Low must be < High, both between 0-100");return;
   }
   tankSP[id]={low:lo,high:hi};
+  _saveTankSP();  /* persist across reload */
   pushEvt("Tank "+id+" setpoints updated — Low:"+lo+"% High:"+hi+"%","info");
 }
 
 function applyTankTele(pl){
+  dqReceived("tanks");  /* ← Data Quality: mark GOOD */
   const A=pl.tank_a, B=pl.tank_b, Irr=pl.tank_irr||pl.tank_irrigation||pl.irrigation;
   let alerts=0;
 
@@ -1242,11 +1340,217 @@ function applyTankTele(pl){
 }
 
 /* ════════════════════════════════════════════════════
+   DATA QUALITY ENGINE
+   Mirrors OPC UA / Siemens WinCC / Honeywell Experion
+   Every data source has: GOOD → UNCERTAIN → BAD
+   UNCERTAIN = no update for 30s
+   BAD       = no update for 90s → blank values + alarm
+════════════════════════════════════════════════════ */
+const DQ_UNCERTAIN_MS = 30000;  // 30s → UNCERTAIN (amber)
+const DQ_BAD_MS       = 90000;  // 90s → BAD (red, blank values)
+
+/* Track last received timestamp per source */
+const dqSources = {
+  pumps:  {lastRx: null, quality: 'init', alarmKey: 'comm_pumps',  badFn: blankPumps},
+  tanks:  {lastRx: null, quality: 'init', alarmKey: 'comm_tanks',  badFn: blankTanks},
+  lights: {lastRx: null, quality: 'init', alarmKey: 'comm_lights', badFn: blankLights},
+};
+
+/* Called each time a payload arrives for a source */
+function dqReceived(src){
+  const s=dqSources[src];
+  if(!s)return;
+  const wasBAD = s.quality==="bad";
+  s.lastRx = Date.now();
+  s.quality = "good";
+  setDQBadge(src,"good");
+  hideDQBanner(src);
+  if(wasBAD){
+    /* Remove bad-val styling from all elements when data comes back */
+    document.querySelectorAll(".bad-val").forEach(el=>el.classList.remove("bad-val"));
+    clearAlarm(s.alarmKey);
+    pushEvt("✓ "+src+" gateway data restored","good");
+  }
+}
+
+/* Watchdog — runs every 5s */
+function dqWatchdog(){
+  const now=Date.now();
+  Object.entries(dqSources).forEach(([src,s])=>{
+    if(!s.lastRx) return; // never received — stay INIT
+    const age=now-s.lastRx;
+    if(age>=DQ_BAD_MS && s.quality!=='bad'){
+      s.quality='bad';
+      setDQBadge(src,'bad');
+      showDQBanner(src, Math.round(age/1000));
+      s.badFn(); // blank all values
+      raiseAlarm(s.alarmKey,'critical','COMM_LOSS',
+        src.charAt(0).toUpperCase()+src.slice(1)+' gateway — no data for '+Math.round(age/1000)+'s');
+    } else if(age>=DQ_UNCERTAIN_MS && age<DQ_BAD_MS && s.quality==='good'){
+      s.quality='uncertain';
+      setDQBadge(src,'uncertain');
+      showDQBanner(src, Math.round(age/1000));
+    } else if(age<DQ_UNCERTAIN_MS && s.quality!=='good'){
+      s.quality='good';
+      setDQBadge(src,'good');
+      hideDQBanner(src);
+    }
+    /* Always update age label */
+    const ageEl=document.getElementById('dq'+src.charAt(0).toUpperCase()+src.slice(1)+'Age');
+    if(ageEl) ageEl.textContent='Last update: '+fmtTs(s.lastRx/1000)+
+      ' ('+Math.round(age/1000)+'s ago)';
+  });
+}
+setInterval(dqWatchdog, 5000);
+
+function setDQBadge(src,q){
+  const id='dq'+src.charAt(0).toUpperCase()+src.slice(1);
+  const el=document.getElementById(id); if(!el)return;
+  const cfg={
+    good:     {cls:'dq-good',    txt:'⬤ GOOD'},
+    uncertain:{cls:'dq-uncertain',txt:'◆ UNCERTAIN'},
+    bad:      {cls:'dq-bad',     txt:'✖ BAD — COMM LOSS'},
+    init:     {cls:'dq-init',    txt:'⬤ INITIALISING'}
+  }[q]||{cls:'dq-init',txt:'⬤ INIT'};
+  el.className='dq-badge '+cfg.cls;
+  el.textContent=cfg.txt;
+}
+function showDQBanner(src, ageSec){
+  const b=document.getElementById('commBanner'+src.charAt(0).toUpperCase()+src.slice(1));
+  if(b){b.classList.add('show');
+    const msg=b.querySelector('[id$="Msg"]');
+    if(msg) msg.textContent=(ageSec>=90?'⚠ COMM LOSS':'⚠ STALE DATA')+
+      ' — '+src+' gateway not responding';
+    const age=b.querySelector('[id$="Age"]');
+    if(age) age.textContent=ageSec+'s since last update';
+  }
+}
+function hideDQBanner(src){
+  const b=document.getElementById('commBanner'+src.charAt(0).toUpperCase()+src.slice(1));
+  if(b)b.classList.remove('show');
+}
+
+/* ── Blank functions — clear all values when BAD quality ── */
+const BLANK='--';
+function blankPumps(){
+  /* ── Blank all pump metric values (real element IDs) ── */
+  const BD = BLANK;
+  /* Pump A */
+  ['aP','aHz','aA','aTrip','tA','tA2','dtuAP','dtuAHz'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent=id.startsWith('dtu')?BD+' --':BD;el.classList.add('bad-val');}
+  });
+  /* Pump B */
+  ['bP','bHz','bA','bTrip','tB','tB2','dtuBP','dtuBHz'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent=BD;el.classList.add('bad-val');}
+  });
+  /* Pump IRR */
+  ['iP','iHz','iA','iTrip','tI','tI2','dtuIP','dtuIHz'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent=BD;el.classList.add('bad-val');}
+  });
+  /* Status badges → NO DATA */
+  ['tagA','tagB','tagIRR'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent='NO DATA';el.className='status-badge badge-fault';}
+  });
+  /* Online dots → grey/offline */
+  ['dotA','dotB','dotI'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.className='online-dot';} // remove .on class
+  });
+  /* Online text → NO DATA */
+  ['hA','hB','hI'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent='No Data';el.style.color='var(--red)';}
+  });
+  /* Card borders → neutral (remove running/fault animations) */
+  ['cardA','cardB','cardI'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.className='pump-card';} // strip running/fault classes
+  });
+  /* KPI row */
+  ['kpiPressure','kpiFreq'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent=BD;el.classList.add('bad-val');}
+  });
+  /* Platform tag */
+  setV('platformTag','COMM LOSS — no data');
+  pushEvt('⚠ Pumps data quality → BAD (no data received)','bad');
+}
+function blankTanks(){
+  const BD=BLANK;
+  /* Tank IDs match the HTML exactly */
+  const tanks=[
+    {fill:'fillA',  pct:'pctA',  level:'tankALevel',  ts:'tankATs',  status:'tankAStatus',  tag:'tagTankA',  card:'tankCardA',  kpi:'kpiTankA',  kpiS:'kpiTankAStatus',  bar:'alarmBarA'},
+    {fill:'fillB',  pct:'pctB',  level:'tankBLevel',  ts:'tankBTs',  status:'tankBStatus',  tag:'tagTankB',  card:'tankCardB',  kpi:'kpiTankB',  kpiS:'kpiTankBStatus',  bar:'alarmBarB'},
+    {fill:'fillIrr',pct:'pctIrr',level:'tankIrrLevel',ts:'tankIrrTs',status:'tankIrrStatus',tag:'tagTankIrr',card:'tankCardIrr',kpi:'kpiTankIrr',kpiS:'kpiTankIrrStatus',bar:'alarmBarIrr'},
+  ];
+  tanks.forEach(t=>{
+    /* Gauge fill → 0 (empty look) */
+    const fill=document.getElementById(t.fill);
+    if(fill){fill.style.height='0%';fill.className='tank-gauge-fill';}
+    /* Pct label */
+    const pct=document.getElementById(t.pct);
+    if(pct){pct.textContent=BD;pct.classList.add('bad-val');}
+    /* Metric values */
+    [t.level,t.ts,t.status].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.textContent=id===t.status?'NO DATA':BD;el.classList.add('bad-val');}
+    });
+    /* Badge */
+    const tag=document.getElementById(t.tag);
+    if(tag){tag.textContent='NO DATA';tag.className='status-badge badge-fault';}
+    /* Card — remove low/high class */
+    const card=document.getElementById(t.card);
+    if(card){card.className='tank-card';}
+    /* KPI */
+    const kpi=document.getElementById(t.kpi);
+    if(kpi){kpi.textContent=BD;kpi.classList.add('bad-val');}
+    const kpiS=document.getElementById(t.kpiS);
+    if(kpiS){kpiS.textContent='NO DATA';}
+    /* Alarm bar — clear */
+    const bar=document.getElementById(t.bar);
+    if(bar){bar.className='tank-alarm-bar';}
+  });
+  /* KPI summary row */
+  setV('kpiTankAlerts','--');
+  setV('kpiTankAlertDetail','No data — comms loss');
+  const icon=document.getElementById('kpiTankAlertIcon');
+  if(icon){icon.className='kpi-icon red';}
+  pushEvt('⚠ Tanks data quality → BAD (no data received)','bad');
+}
+function blankLights(){
+  /* Reset all light buttons to unknown state */
+  document.querySelectorAll('.light-btn').forEach(btn=>{
+    btn.className='light-btn light-unknown';
+  });
+  pushEvt('⚠ Lights data quality → BAD (no data)','bad');
+}
+
+/* ════════════════════════════════════════════════════
    ALARM SYSTEM — receives from compound/events + pump faults
    Python level: info|warn|error|critical
 ════════════════════════════════════════════════════ */
 const activeAlarms={};   // key → {sev, code, msg, ts, acked}
 let soundEnabled=true;
+let _alarmBeepTimer=null;
+
+/* Continuous beep every 30s while unacked critical alarms exist */
+function startContinuousBeep(){
+  if(_alarmBeepTimer)return;
+  _alarmBeepTimer=setInterval(()=>{
+    if(!soundEnabled)return;
+    const hasUnacked=Object.values(activeAlarms).some(a=>!a.acked&&a.sev==="critical");
+    if(hasUnacked) playAlarmBeep();
+    else stopContinuousBeep();
+  },30000);
+}
+function stopContinuousBeep(){
+  clearInterval(_alarmBeepTimer);
+  _alarmBeepTimer=null;
+}
 
 /* Map Python event level → alarm severity */
 function levelToSev(level){
@@ -1277,29 +1581,45 @@ function applyMqttEvent(d){
   }
 }
 
-/* Raise an alarm (from MQTT events OR from local pump fault detection) */
+/* Raise an alarm — professional SCADA behaviour:
+   - First raise: add to panel, play sound
+   - If already active and unacked: just update message/time, don't re-fire sound immediately
+   - If re-fired after ack: create fresh alarm and sound */
 function raiseAlarm(key, sev, code, msg){
-  /* If already active and unacked — don't re-trigger */
-  if(activeAlarms[key] && !activeAlarms[key].acked) return;
-  /* If acked but condition re-fired — raise fresh alarm */
+  if(activeAlarms[key] && !activeAlarms[key].acked){
+    /* Already active, unacked — update message but no re-beep */
+    activeAlarms[key].msg=msg;
+    activeAlarms[key].conditionGone=false;
+    renderAlarms();
+    return;
+  }
+  /* New alarm or re-fired after ack */
   activeAlarms[key]={sev, code, msg, ts:new Date().toLocaleTimeString(), acked:false, conditionGone:false};
   renderAlarms();
   updateAlarmHeader();
-  if(soundEnabled && (sev==="critical"||sev==="warn")) playAlarmBeep();
+  if(soundEnabled && (sev==="critical"||sev==="warn")){
+    playAlarmBeep();
+    if(sev==="critical") startContinuousBeep();
+  }
 }
 
 /* Clear an alarm by key.
-   If acked → remove immediately.
-   If NOT acked → keep it, just mark condition cleared so user still sees it. */
+   Professional SCADA behaviour:
+   - If condition clears AND alarm was already acked → remove silently
+   - If condition clears but NOT acked → keep alarm active, add note,
+     but KEEP original severity (don't degrade to WARN) so operator
+     knows it was serious. Only a manual ACK removes it. */
 function clearAlarm(key){
   if(activeAlarms[key]){
     if(activeAlarms[key].acked){
+      /* Already acked — safe to remove */
       delete activeAlarms[key];
     } else {
-      /* condition gone but alarm not acked — mark it so it turns yellow */
+      /* Condition gone but NOT acked — keep alarm, add note */
       activeAlarms[key].conditionGone=true;
-      activeAlarms[key].sev="warn";
-      activeAlarms[key].msg+=" [CONDITION CLEARED — ACK to dismiss]";
+      /* Keep original severity — do NOT degrade */
+      if(!activeAlarms[key].msg.includes('[CLEARED]'))
+        activeAlarms[key].msg += ' [CLEARED — ACK to dismiss]';
     }
     renderAlarms();
     updateAlarmHeader();
@@ -1375,15 +1695,24 @@ function renderAlarms(){
     const a=activeAlarms[k];
     const row=document.createElement("div");
     row.className="alarm-row"+(a.acked?" acked":"");
-    row.innerHTML=
-      `<span class="alarm-sev ${a.sev}">${a.sev.toUpperCase()}</span>`+
-      `<span class="alarm-code">${a.code}</span>`+
-      `<span class="alarm-msg">${a.msg}</span>`+
-      `<span class="alarm-ts">${a.ts}</span>`+
-      (a.acked
-        ? `<span style="font-family:var(--mono);font-size:9px;color:var(--dim);flex-shrink:0">ACK'd ${a.ackedAt||""}</span>`
-          +`<button class="sp-apply" style="font-size:9px;padding:2px 7px;flex-shrink:0" onclick="dismissAlarm('${k}')">Dismiss</button>`
-        : `<button class="ack-btn" onclick="ackAlarm('${k}')">ACK</button>`);
+    /* XSS-safe: build alarm row with DOM methods, never innerHTML with user data */
+    const sevEl=document.createElement("span");sevEl.className="alarm-sev "+a.sev;sevEl.textContent=a.sev.toUpperCase();
+    const codeEl=document.createElement("span");codeEl.className="alarm-code";codeEl.textContent=a.code;
+    const msgEl=document.createElement("span");msgEl.className="alarm-msg";msgEl.textContent=a.msg;
+    const tsEl=document.createElement("span");tsEl.className="alarm-ts";tsEl.textContent=a.ts;
+    row.append(sevEl,codeEl,msgEl,tsEl);
+    if(a.acked){
+      const ackTs=document.createElement("span");
+      ackTs.style.cssText="font-family:var(--mono);font-size:9px;color:var(--dim);flex-shrink:0";
+      ackTs.textContent="ACK'd "+(a.ackedAt||"");
+      const dis=document.createElement("button");
+      dis.className="sp-apply";dis.style.cssText="font-size:9px;padding:2px 7px;flex-shrink:0";
+      dis.textContent="Dismiss";dis.addEventListener("click",()=>dismissAlarm(k));
+      row.append(ackTs,dis);
+    } else {
+      const ackBtn=document.createElement("button");ackBtn.className="ack-btn";ackBtn.textContent="ACK";
+      ackBtn.addEventListener("click",()=>ackAlarm(k));row.appendChild(ackBtn);
+    }
     list.appendChild(row);
   });
 }
@@ -1393,10 +1722,15 @@ function ackAlarm(k){
     activeAlarms[k].acked=true;
     activeAlarms[k].ackedAt=new Date().toLocaleTimeString();
     pushEvt("ACK: "+activeAlarms[k].code+" — "+activeAlarms[k].msg,"warn");
-    /* Acked alarms stay visible (greyed) until condition clears.
-       They are only deleted when clearAlarm() is called AND they are acked. */
+    /* If condition already cleared, remove immediately after ack */
+    if(activeAlarms[k].conditionGone){
+      delete activeAlarms[k];
+    }
     renderAlarms();
     updateAlarmHeader();
+    /* Stop beep if no more unacked critical alarms */
+    const stillCritical=Object.values(activeAlarms).some(a=>!a.acked&&a.sev==="critical");
+    if(!stillCritical) stopContinuousBeep();
   }
 }
 function ackAllAlarms(){
@@ -1451,7 +1785,11 @@ function pushEvt(msg,type){
   if(feed){
     if(feed.querySelector(".evt-info")&&feed.querySelector(".evt-info").textContent==="Waiting for telemetry…")feed.innerHTML="";
     const d=document.createElement("div");d.className="evt";
-    d.innerHTML=`<span class="evt-dot evt-dot-${type}"></span><span class="evt-ts">${ts}</span><span class="evt-${type}">${msg}</span>`;
+    /* XSS-safe */
+    const dot=document.createElement("span");dot.className="evt-dot evt-dot-"+type;
+    const tsS=document.createElement("span");tsS.className="evt-ts";tsS.textContent=ts;
+    const mS=document.createElement("span");mS.className="evt-"+type;mS.textContent=msg;
+    d.append(dot,tsS,mS);
     feed.insertBefore(d,feed.firstChild);while(feed.children.length>60)feed.removeChild(feed.lastChild);
   }
   /* full event page */
@@ -1464,7 +1802,11 @@ function renderEvtFeed(){
   const feed=document.getElementById("fullEventFeed");if(!feed)return;
   const arr=loadEvts();const filtered=evtFilter==="all"?arr:arr.filter(e=>e.type===evtFilter);
   if(!filtered.length){feed.innerHTML='<div class="evt"><span class="evt-info" style="color:var(--dim)">No events.</span></div>';return;}
-  feed.innerHTML="";[...filtered].reverse().forEach(e=>{const d=document.createElement("div");d.className="evt";d.innerHTML=`<span class="evt-dot evt-dot-${e.type}"></span><span class="evt-ts">${e.ts}</span><span class="evt-${e.type}">${e.msg}</span>`;feed.appendChild(d);});
+  feed.innerHTML="";[...filtered].reverse().forEach(e=>{const d=document.createElement("div");d.className="evt";/* XSS-safe */
+    const dot2=document.createElement("span");dot2.className="evt-dot evt-dot-"+e.type;
+    const ts2=document.createElement("span");ts2.className="evt-ts";ts2.textContent=e.ts;
+    const m2=document.createElement("span");m2.className="evt-"+e.type;m2.textContent=e.msg;
+    d.append(dot2,ts2,m2);feed.appendChild(d);});
 }
 function setEvtFilter(f){
   evtFilter=f;
@@ -1524,8 +1866,20 @@ document.addEventListener("keydown",e=>{if(e.key==="Enter"&&document.getElementB
 ════════════════════════════════════════════════════ */
 // Keepalive — plain setInterval (no Worker)
 let _kaTimer=null;
-const keepaliveWorker={postMessage(cmd){if(cmd==="start"){if(_kaTimer)return;_kaTimer=setInterval(()=>{if(connected&&ws&&ws.readyState===1)ws.send(pktPing());else if(!connected&&MQTT_USERNAME)start();},20000);}else if(cmd==="stop"){clearInterval(_kaTimer);_kaTimer=null;}}};
-document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&!connected&&MQTT_USERNAME)start();});
+const keepaliveWorker={postMessage(cmd){if(cmd==="start"){if(_kaTimer)return;_kaTimer=setInterval(()=>{
+    if(connected&&ws&&ws.readyState===1){
+      ws.send(pktPing());
+    } else if(!connected&&MQTT_USERNAME&&!_reconnecting){
+      retryDelay=1500; // reset backoff on manual keepalive cycle
+      start();
+    }
+  },25000);}else if(cmd==="stop"){clearInterval(_kaTimer);_kaTimer=null;}}};
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible"&&!connected&&MQTT_USERNAME){
+    _reconnecting=false; // force-allow reconnect when tab becomes visible
+    start();
+  }
+});
 let rz;window.addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{drawSpark(document.getElementById("chartA"),serA,"rgb(88,166,255)");drawSpark(document.getElementById("chartB"),serB,"rgb(63,185,80)");drawSpark(document.getElementById("chartI"),serI,"rgb(118,227,234)");},80);});
 </script>
 </body>
