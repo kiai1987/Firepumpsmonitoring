@@ -7,7 +7,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
   <style>
-    /* ─── CSS VARIABLES ─── */
     :root {
       --bg-app:      #0d0f13;
       --bg-topbar:   #161921;
@@ -17,7 +16,6 @@
       --border:      #2a3046;
       --border-glow: #3d4a72;
       --accent:      #f08533;
-      --accent2:     #e05d1b;
       --text-main:   #d8dce8;
       --text-muted:  #6b7599;
       --text-label:  #9baacf;
@@ -34,711 +32,346 @@
       --font-body:   'Barlow', sans-serif;
       --font-mono:   'JetBrains Mono', monospace;
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: var(--bg-app); color: var(--text-main); font-family: var(--font-body); font-size: 14px; }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--bg-app); } ::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 3px; }
 
-    html, body {
-      height: 100%;
-      background: var(--bg-app);
-      color: var(--text-main);
-      font-family: var(--font-body);
-      font-size: 14px;
-    }
-
-    /* ─── SCROLLBAR ─── */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg-app); }
-    ::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 3px; }
-
-    /* ─── TOP NAVBAR ─── */
-    .topbar {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      display: flex; align-items: center; gap: 12px;
-      padding: 0 16px;
-      height: 52px;
-      background: var(--bg-topbar);
-      border-bottom: 1px solid var(--border);
-      box-shadow: 0 2px 16px rgba(0,0,0,.4);
-    }
-    .topbar-logo {
-      height: 34px; width: auto; opacity: .92;
-      filter: drop-shadow(0 0 6px rgba(240,133,51,.25));
-    }
-    .topbar-divider {
-      width: 1px; height: 28px; background: var(--border);
-    }
-    .topbar-title {
-      font-family: var(--font-head);
-      font-size: 18px; font-weight: 700; letter-spacing: .6px;
-      color: var(--text-main);
-      flex: 1;
-    }
+    /* ── TOPBAR ── */
+    .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 52px; background: var(--bg-topbar); border-bottom: 1px solid var(--border); box-shadow: 0 2px 16px rgba(0,0,0,.4); }
+    .topbar-logo { height: 34px; filter: drop-shadow(0 0 6px rgba(240,133,51,.2)); }
+    .topbar-divider { width: 1px; height: 28px; background: var(--border); }
+    .topbar-title { font-family: var(--font-head); font-size: 17px; font-weight: 700; letter-spacing: .5px; flex: 1; }
     .topbar-title span { color: var(--accent); }
-
-    .mqtt-badge {
-      display: flex; align-items: center; gap: 6px;
-      padding: 4px 10px;
-      background: var(--bg-input); border: 1px solid var(--border);
-      border-radius: 20px;
-      font-family: var(--font-mono); font-size: 11px;
-      color: var(--text-muted);
-      transition: all .3s;
-    }
-    .mqtt-badge .dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--blank); transition: background .3s;
-    }
+    .mqtt-badge { display: flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 20px; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); transition: all .3s; }
+    .mqtt-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--blank); transition: all .3s; }
     .mqtt-badge.connected .dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
     .mqtt-badge.connected { border-color: var(--green-dim); color: var(--green); }
     .mqtt-badge.error .dot { background: var(--red); box-shadow: 0 0 6px var(--red); animation: blink 1s infinite; }
     .mqtt-badge.error { border-color: var(--red-dim); color: var(--red); }
-
-    .topbar-clock {
-      font-family: var(--font-mono); font-size: 12px;
-      color: var(--text-muted); letter-spacing: .5px;
-    }
-    .topbar-btn {
-      background: transparent; border: 1px solid var(--border);
-      color: var(--text-muted); padding: 5px 12px;
-      border-radius: var(--radius); cursor: pointer;
-      font-family: var(--font-body); font-size: 12px;
-      transition: all .2s;
-    }
+    .topbar-clock { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+    .user-chip { display: flex; align-items: center; gap: 7px; padding: 4px 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 20px; font-size: 12px; color: var(--text-label); }
+    .user-chip i { color: var(--accent); font-size: 11px; }
+    .role-badge { font-family: var(--font-mono); font-size: 9px; font-weight: 600; padding: 1px 5px; border-radius: 3px; letter-spacing: .5px; }
+    .role-badge.role-admin    { background: rgba(91,154,245,.15); color: var(--blue);  border: 1px solid rgba(91,154,245,.25); }
+    .role-badge.role-operator { background: rgba(65,216,132,.15); color: var(--green); border: 1px solid rgba(65,216,132,.25); }
+    .role-badge.role-viewer   { background: rgba(107,117,153,.15); color: var(--text-muted); border: 1px solid rgba(107,117,153,.25); }
+    .topbar-btn { background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 5px 11px; border-radius: var(--radius); cursor: pointer; font-family: var(--font-body); font-size: 12px; transition: all .2s; }
     .topbar-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(240,133,51,.07); }
+    .topbar-btn.users-btn { border-color: var(--border-glow); color: var(--text-label); }
+    .topbar-btn.users-btn:hover { border-color: var(--blue); color: var(--blue); background: rgba(91,154,245,.07); }
 
-    /* ─── ALARM BANNER ─── */
-    .alarm-banner {
-      position: fixed; top: 52px; left: 0; right: 0; z-index: 99;
-      display: none; align-items: center; gap: 12px;
-      padding: 0 20px;
-      height: 44px;
-      background: linear-gradient(90deg, var(--red-dim), rgba(80,20,20,.6));
-      border-bottom: 1px solid var(--red);
-      font-family: var(--font-head);
-      font-size: 15px; font-weight: 700; letter-spacing: .5px;
-      color: var(--red);
-      animation: alarmPulse 1.2s ease-in-out infinite;
-    }
+    /* ── ALARM BANNER ── */
+    .alarm-banner { position: fixed; top: 52px; left: 0; right: 0; z-index: 99; display: none; align-items: center; gap: 12px; padding: 0 20px; height: 44px; background: linear-gradient(90deg, rgba(61,26,26,.95), rgba(61,26,26,.7)); border-bottom: 1px solid var(--red); font-family: var(--font-head); font-size: 15px; font-weight: 700; color: var(--red); animation: alarmPulse 1.2s ease-in-out infinite; }
     .alarm-banner.active { display: flex; }
-    .alarm-banner i { font-size: 18px; }
-    .alarm-banner .alarm-text { flex: 1; }
-    .alarm-ack-btn, .alarm-reset-btn {
-      padding: 5px 14px;
-      border-radius: var(--radius); cursor: pointer;
-      font-family: var(--font-body); font-size: 12px; font-weight: 600;
-      transition: all .2s;
-    }
-    .alarm-ack-btn {
-      background: rgba(224,80,80,.15);
-      border: 1px solid var(--red); color: var(--red);
-    }
+    .alarm-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .alarm-ack-btn, .alarm-reset-btn { flex-shrink: 0; padding: 4px 12px; border-radius: var(--radius); cursor: pointer; font-family: var(--font-body); font-size: 12px; font-weight: 600; transition: all .2s; }
+    .alarm-ack-btn { background: rgba(224,80,80,.15); border: 1px solid var(--red); color: var(--red); }
     .alarm-ack-btn:hover { background: rgba(224,80,80,.3); }
-    .alarm-reset-btn {
-      background: transparent; border: 1px solid var(--border); color: var(--text-muted);
-    }
+    .alarm-reset-btn { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
     .alarm-reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+    @keyframes alarmPulse { 0%,100% { opacity: 1; } 50% { opacity: .65; } }
 
-    @keyframes alarmPulse {
-      0%,100% { opacity: 1; }
-      50% { opacity: .7; }
-    }
-
-    /* ─── MAIN LAYOUT ─── */
-    .page {
-      padding-top: 68px;  /* topbar height */
-      padding-bottom: 32px;
-      min-height: 100vh;
-    }
-    .page.has-alarm { padding-top: 112px; } /* topbar + banner */
-
-    .page-content {
-      max-width: 1420px;
-      margin: 0 auto;
-      padding: 16px 16px 0;
-    }
-
-    /* ─── SECTION LABEL ─── */
-    .section-label {
-      font-family: var(--font-head);
-      font-size: 11px; font-weight: 700; letter-spacing: 2px;
-      color: var(--text-muted); text-transform: uppercase;
-      margin: 16px 0 8px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .section-label::after {
-      content: ''; flex: 1; height: 1px; background: var(--border);
-    }
-
-    /* ─── GRID ROWS ─── */
-    .row {
-      display: grid;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-    .row-pumps { grid-template-columns: repeat(3, 1fr); }
+    /* ── PAGE ── */
+    .page { padding-top: 68px; padding-bottom: 32px; min-height: 100vh; }
+    .page.has-alarm { padding-top: 112px; }
+    .page-content { max-width: 1420px; margin: 0 auto; padding: 16px 16px 0; }
+    .section-label { font-family: var(--font-head); font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; margin: 16px 0 8px; display: flex; align-items: center; gap: 8px; }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .row { display: grid; gap: 12px; margin-bottom: 12px; }
+    .row-pumps   { grid-template-columns: repeat(3, 1fr); }
     .row-sensors { grid-template-columns: repeat(4, 1fr); }
-    .row-system { grid-template-columns: 1fr 1fr; }
+    .row-system  { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 1100px) { .row-sensors { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 760px)  { .row-pumps { grid-template-columns: 1fr; } .row-sensors { grid-template-columns: 1fr 1fr; } .row-system { grid-template-columns: 1fr; } }
+    @media (max-width: 480px)  { .row-sensors { grid-template-columns: 1fr; } }
 
-    @media (max-width: 1100px) {
-      .row-pumps { grid-template-columns: repeat(3, 1fr); }
-      .row-sensors { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 760px) {
-      .row-pumps { grid-template-columns: 1fr; }
-      .row-sensors { grid-template-columns: 1fr 1fr; }
-      .row-system { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 480px) {
-      .row-sensors { grid-template-columns: 1fr; }
-    }
-
-    /* ─── PANEL ─── */
-    .panel {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      position: relative;
-      transition: border-color .3s;
-    }
+    /* ── PANEL ── */
+    .panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; position: relative; transition: border-color .3s; }
     .panel.alarm-state { border-color: var(--red); box-shadow: 0 0 16px rgba(224,80,80,.15); }
     .panel.run-state   { border-color: var(--green-dim); }
-
-    .panel-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 14px 8px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(255,255,255,.02);
-    }
-    .panel-title {
-      font-family: var(--font-head);
-      font-size: 13px; font-weight: 700; letter-spacing: 1.2px;
-      text-transform: uppercase; color: var(--text-label);
-    }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 8px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,.02); }
+    .panel-title { font-family: var(--font-head); font-size: 13px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-label); }
     .panel-title i { margin-right: 7px; color: var(--accent); font-size: 12px; }
-    .panel-badge {
-      font-family: var(--font-mono); font-size: 10px;
-      padding: 2px 7px; border-radius: 3px;
-      background: var(--bg-input); border: 1px solid var(--border);
-      color: var(--text-muted);
-    }
+    .panel-badge { font-family: var(--font-mono); font-size: 10px; padding: 2px 7px; border-radius: 3px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-muted); }
     .panel-body { padding: 16px 14px; }
 
-    /* ─── LED INDICATORS ─── */
-    .led-row {
-      display: flex; justify-content: space-around;
-      margin-bottom: 16px;
-    }
-    .led-group {
-      display: flex; flex-direction: column; align-items: center; gap: 6px;
-    }
-    .led {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: var(--blank);
-      border: 2px solid rgba(255,255,255,.06);
-      position: relative;
-      transition: background .2s, box-shadow .2s;
-    }
-    .led::after {
-      content: '';
-      position: absolute; top: 5px; left: 7px;
-      width: 9px; height: 5px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.25);
-      transform: rotate(-35deg);
-    }
+    /* ── LED ── */
+    .led-row { display: flex; justify-content: space-around; margin-bottom: 16px; }
+    .led-group { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .led { width: 36px; height: 36px; border-radius: 50%; background: var(--blank); border: 2px solid rgba(255,255,255,.06); position: relative; transition: background .2s, box-shadow .2s; }
+    .led::after { content: ''; position: absolute; top: 5px; left: 7px; width: 9px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.25); transform: rotate(-35deg); }
+    .led.run     { background: var(--green);  box-shadow: 0 0 10px var(--green), 0 0 22px rgba(65,216,132,.4);  border-color: rgba(65,216,132,.4);   animation: ledPulse 2s ease-in-out infinite; }
+    .led.off     { background: var(--red);    box-shadow: 0 0 8px rgba(224,80,80,.5);                            border-color: rgba(224,80,80,.4); }
+    .led.trip    { background: var(--yellow); box-shadow: 0 0 10px var(--yellow), 0 0 20px rgba(245,200,66,.4); border-color: rgba(245,200,66,.4);   animation: ledBlink .8s ease-in-out infinite; }
+    .led.alarm-led { background: var(--red); box-shadow: 0 0 10px var(--red), 0 0 20px rgba(224,80,80,.4); border-color: rgba(224,80,80,.4); animation: ledBlink .8s ease-in-out infinite; }
+    .led.normal  { background: var(--green); box-shadow: 0 0 8px rgba(65,216,132,.4); border-color: rgba(65,216,132,.3); }
+    .led.blank   { background: var(--blank); box-shadow: none; border-color: rgba(255,255,255,.05); }
+    @keyframes ledPulse { 0%,100% { box-shadow: 0 0 10px var(--green), 0 0 22px rgba(65,216,132,.4); } 50% { box-shadow: 0 0 14px var(--green), 0 0 32px rgba(65,216,132,.6); } }
+    @keyframes ledBlink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+    .led-label { font-family: var(--font-head); font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
 
-    /* LED States */
-    .led.run {
-      background: var(--green);
-      box-shadow: 0 0 10px var(--green), 0 0 22px rgba(65,216,132,.4);
-      border-color: rgba(65,216,132,.4);
-      animation: ledPulse 2s ease-in-out infinite;
-    }
-    .led.off {
-      background: var(--red);
-      box-shadow: 0 0 8px rgba(224,80,80,.5);
-      border-color: rgba(224,80,80,.4);
-    }
-    .led.trip {
-      background: var(--yellow);
-      box-shadow: 0 0 10px var(--yellow), 0 0 20px rgba(245,200,66,.4);
-      border-color: rgba(245,200,66,.4);
-      animation: ledBlink .8s ease-in-out infinite;
-    }
-    .led.alarm-led {
-      background: var(--red);
-      box-shadow: 0 0 10px var(--red), 0 0 20px rgba(224,80,80,.4);
-      border-color: rgba(224,80,80,.4);
-      animation: ledBlink .8s ease-in-out infinite;
-    }
-    .led.normal { background: var(--green); box-shadow: 0 0 8px rgba(65,216,132,.4); border-color: rgba(65,216,132,.3); }
-    .led.blank  { background: var(--blank); box-shadow: none; border-color: rgba(255,255,255,.05); }
-
-    @keyframes ledPulse {
-      0%,100% { box-shadow: 0 0 10px var(--green), 0 0 22px rgba(65,216,132,.4); }
-      50%      { box-shadow: 0 0 14px var(--green), 0 0 32px rgba(65,216,132,.6); }
-    }
-    @keyframes ledBlink {
-      0%,100% { opacity: 1; }
-      50%      { opacity: .35; }
-    }
-
-    .led-label {
-      font-family: var(--font-head);
-      font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
-      text-transform: uppercase; color: var(--text-muted);
-    }
-
-    /* ─── MODE SELECTOR ─── */
-    .mode-row {
-      border-top: 1px solid var(--border);
-      padding-top: 12px; margin-top: 4px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .mode-label {
-      font-family: var(--font-head);
-      font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
-      text-transform: uppercase; color: var(--text-muted);
-    }
-    .mode-select {
-      background: var(--bg-input); border: 1px solid var(--border);
-      color: var(--text-main);
-      padding: 5px 28px 5px 10px;
-      border-radius: var(--radius); cursor: pointer;
-      font-family: var(--font-mono); font-size: 12px;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7599'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 8px center;
-      transition: border-color .2s;
-    }
-    .mode-select:focus { outline: none; border-color: var(--accent); }
-    .mode-select:hover { border-color: var(--border-glow); }
+    /* ── MODE SELECTOR ── */
+    .mode-row { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; display: flex; align-items: center; justify-content: space-between; }
+    .mode-label { font-family: var(--font-head); font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+    .mode-select { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); padding: 5px 28px 5px 10px; border-radius: var(--radius); cursor: pointer; font-family: var(--font-mono); font-size: 12px; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7599'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; transition: border-color .2s; outline: none; }
+    .mode-select:focus { border-color: var(--accent); }
+    .mode-select:disabled { opacity: .4; cursor: not-allowed; }
     .mode-select option { background: #1c202b; }
 
-    /* ─── VALUE DISPLAY ─── */
-    .value-display {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 4px; padding: 8px 0;
-    }
-    .value-big {
-      font-family: var(--font-mono);
-      font-size: 42px; font-weight: 600;
-      color: var(--text-main); line-height: 1;
-    }
-    .value-big span { font-size: 18px; color: var(--text-muted); margin-left: 3px; }
-    .value-sublabel {
-      font-family: var(--font-head);
-      font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
-      text-transform: uppercase; color: var(--text-muted);
-    }
-
-    .two-values {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 0; border-radius: 4px; overflow: hidden;
-    }
-    .value-half {
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      padding: 14px 8px;
-      background: var(--bg-panel2);
-    }
+    /* ── ENV PANEL ── */
+    .two-values { display: grid; grid-template-columns: 1fr 1fr; border-radius: 4px; overflow: hidden; }
+    .value-half { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 8px; background: var(--bg-panel2); }
     .value-half:first-child { border-right: 1px solid var(--border); }
-    .value-half .val {
-      font-family: var(--font-mono); font-size: 32px; font-weight: 600;
-      color: var(--text-main); line-height: 1;
-    }
-    .value-half .val span { font-size: 15px; color: var(--text-muted); }
-    .value-half .lbl {
-      font-family: var(--font-head); font-size: 10px; font-weight: 700;
-      letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted);
-    }
-    .value-half i { font-size: 20px; color: var(--accent); margin-bottom: 4px; }
+    .value-half .val { font-family: var(--font-mono); font-size: 30px; font-weight: 600; color: var(--text-main); line-height: 1; }
+    .value-half .val span { font-size: 14px; color: var(--text-muted); }
+    .value-half .lbl { font-family: var(--font-head); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
+    .value-half i { font-size: 18px; color: var(--accent); margin-bottom: 4px; }
 
-    /* ─── PRESSURE BAR ─── */
-    .pressure-wrap {
-      display: flex; flex-direction: column; align-items: center; gap: 10px;
-    }
-    .pressure-bar-bg {
-      width: 100%; height: 10px; background: var(--bg-input);
-      border-radius: 5px; overflow: hidden;
-      border: 1px solid var(--border);
-    }
-    .pressure-bar-fill {
-      height: 100%; border-radius: 5px;
-      background: linear-gradient(90deg, var(--blue), var(--accent));
-      transition: width .6s ease;
-      box-shadow: 0 0 8px rgba(91,154,245,.4);
-    }
-    .pressure-range {
-      display: flex; justify-content: space-between; width: 100%;
-      font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);
-    }
+    /* ── PRESSURE PANEL ── */
+    .pressure-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .pressure-value-row { display: flex; align-items: baseline; gap: 6px; }
+    .pressure-number { font-family: var(--font-mono); font-size: 42px; font-weight: 600; color: var(--text-main); line-height: 1; transition: color .4s; }
+    .pressure-unit   { font-family: var(--font-mono); font-size: 16px; color: var(--text-muted); }
+    .pressure-bar-bg { width: 100%; height: 10px; background: var(--bg-input); border-radius: 5px; overflow: hidden; border: 1px solid var(--border); }
+    .pressure-bar-fill { height: 100%; border-radius: 5px; transition: width .6s ease, background .4s; }
+    .pressure-range { display: flex; justify-content: space-between; width: 100%; font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+    /* Zone colours */
+    .p-normal   .pressure-number { color: var(--green);  }
+    .p-normal   .pressure-bar-fill { background: linear-gradient(90deg, var(--blue), var(--green)); box-shadow: 0 0 8px rgba(65,216,132,.3); }
+    .p-warning  .pressure-number { color: var(--yellow); }
+    .p-warning  .pressure-bar-fill { background: linear-gradient(90deg, var(--blue), var(--yellow)); box-shadow: 0 0 8px rgba(245,200,66,.3); }
+    .p-critical .pressure-number { color: var(--red);    }
+    .p-critical .pressure-bar-fill { background: linear-gradient(90deg, var(--red), var(--red)); box-shadow: 0 0 8px rgba(224,80,80,.4); }
+    .p-nodata   .pressure-number { color: var(--text-muted); }
+    .p-nodata   .pressure-bar-fill { background: var(--blank); }
 
-    /* ─── SYSTEM STATUS PANEL ─── */
-    .sys-status-panel {
-      display: flex; align-items: center; gap: 14px;
-      padding: 14px 16px;
-    }
-    .sys-icon {
-      font-size: 52px; line-height: 1;
-      transition: color .4s;
-    }
+    /* ── SYSTEM ── */
+    .sys-status-panel { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
+    .sys-icon { font-size: 52px; line-height: 1; transition: color .4s; }
     .sys-icon.ok   { color: var(--green); filter: drop-shadow(0 0 10px rgba(65,216,132,.5)); }
-    .sys-icon.fail { color: var(--red);   filter: drop-shadow(0 0 10px rgba(224,80,80,.5)); animation: ledBlink 1s infinite; }
+    .sys-icon.fail { color: var(--red); filter: drop-shadow(0 0 10px rgba(224,80,80,.5)); animation: ledBlink 1s infinite; }
     .sys-meta { flex: 1; }
-    .sys-status-text {
-      font-family: var(--font-head); font-size: 20px; font-weight: 700;
-      letter-spacing: .5px; color: var(--text-main);
-    }
-    .sys-status-sub {
-      font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 4px;
-    }
-
-    /* ─── STATS ROW ─── */
-    .stats-row {
-      display: flex; gap: 0;
-      border-top: 1px solid var(--border); margin-top: 10px;
-    }
-    .stat-cell {
-      flex: 1; padding: 10px 12px; text-align: center;
-      border-right: 1px solid var(--border);
-    }
+    .sys-status-text { font-family: var(--font-head); font-size: 20px; font-weight: 700; color: var(--text-main); }
+    .sys-status-sub  { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .stats-row { display: flex; border-top: 1px solid var(--border); margin-top: 10px; }
+    .stat-cell { flex: 1; padding: 10px 12px; text-align: center; border-right: 1px solid var(--border); }
     .stat-cell:last-child { border-right: none; }
-    .stat-val {
-      font-family: var(--font-mono); font-size: 16px; font-weight: 600;
-      color: var(--text-main);
-    }
-    .stat-lbl {
-      font-family: var(--font-head); font-size: 10px; font-weight: 700;
-      letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted);
-      margin-top: 2px;
-    }
-
-    /* ─── RECONNECT PANEL ─── */
-    .reconnect-info {
-      flex: 1; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 8px; padding: 16px;
-    }
-    .reconnect-spinner {
-      width: 28px; height: 28px; border-radius: 50%;
-      border: 3px solid var(--border); border-top-color: var(--accent);
-      animation: spin 1s linear infinite; display: none;
-    }
+    .stat-val { font-family: var(--font-mono); font-size: 16px; font-weight: 600; color: var(--text-main); }
+    .stat-lbl { font-family: var(--font-head); font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; }
+    .reconnect-info { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px; }
+    .reconnect-spinner { width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--accent); animation: spin 1s linear infinite; display: none; }
     .reconnect-spinner.active { display: block; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .reconnect-msg {
-      font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);
-      text-align: center;
-    }
-    .reconnect-server {
-      font-size: 10px; color: var(--accent); max-width: 260px;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
-    .retry-countdown {
-      font-family: var(--font-mono); font-size: 22px; font-weight: 600; color: var(--accent);
-    }
+    .reconnect-msg { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); text-align: center; }
+    .reconnect-server { font-size: 10px; color: var(--accent); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .retry-countdown { font-family: var(--font-mono); font-size: 22px; font-weight: 600; color: var(--accent); }
 
-    /* ─── FOOTER ─── */
-    .footer {
-      text-align: center; margin-top: 24px; padding-bottom: 16px;
-      font-family: var(--font-body); font-size: 12px; color: var(--text-muted);
-      letter-spacing: .3px;
-    }
-    .footer span { color: var(--accent); }
-
-    /* ─── TOAST NOTIFICATION ─── */
-    .toast-container {
-      position: fixed; bottom: 20px; right: 20px; z-index: 200;
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    .toast {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 14px;
-      background: var(--bg-panel); border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: 0 4px 20px rgba(0,0,0,.4);
-      font-family: var(--font-body); font-size: 13px; color: var(--text-main);
-      animation: slideIn .3s ease;
-      min-width: 240px; max-width: 340px;
-    }
-    .toast.toast-ok  { border-color: var(--green-dim); }
-    .toast.toast-err { border-color: var(--red-dim); }
-    .toast.toast-warn{ border-color: var(--yellow-dim); }
+    /* ── TOAST ── */
+    .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+    .toast { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 4px 20px rgba(0,0,0,.4); font-size: 13px; color: var(--text-main); animation: slideIn .3s ease; min-width: 220px; max-width: 320px; }
+    .toast.toast-ok   { border-color: var(--green-dim); }
+    .toast.toast-err  { border-color: var(--red-dim); }
+    .toast.toast-warn { border-color: var(--yellow-dim); }
     .toast i { font-size: 14px; }
-    .toast.toast-ok  i { color: var(--green); }
-    .toast.toast-err i { color: var(--red); }
+    .toast.toast-ok   i { color: var(--green); }
+    .toast.toast-err  i { color: var(--red); }
     .toast.toast-warn i { color: var(--yellow); }
+    @keyframes slideIn  { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+    @keyframes slideOut { from { opacity: 1; } to { opacity: 0; transform: translateX(20px); } }
+    @keyframes blink    { 0%,100% { opacity: 1; } 50% { opacity: .2; } }
 
-    @keyframes slideIn  { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-    @keyframes slideOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(20px); } }
-
-    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .2; } }
+    /* ═══════════════════════════
+       USER MANAGEMENT MODAL
+    ═══════════════════════════ */
+    .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 700px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 24px 80px rgba(0,0,0,.6); animation: modalIn .25s ease; }
+    @keyframes modalIn { from { opacity: 0; transform: translateY(-20px) scale(.97); } to { opacity: 1; transform: none; } }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .modal-title { font-family: var(--font-head); font-size: 17px; font-weight: 700; letter-spacing: .5px; }
+    .modal-title i { color: var(--blue); margin-right: 8px; }
+    .modal-close { background: none; border: 1px solid var(--border); color: var(--text-muted); width: 30px; height: 30px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all .2s; display: flex; align-items: center; justify-content: center; }
+    .modal-close:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+    .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+    .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+    .section-sub { font-family: var(--font-head); font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
+    .section-divider { border: none; border-top: 1px solid var(--border); margin: 18px 0 14px; }
+    /* Form */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .form-group-sm { display: flex; flex-direction: column; gap: 5px; }
+    .form-label-sm { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--text-muted); }
+    .form-input-sm { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); padding: 8px 10px; border-radius: var(--radius); font-family: var(--font-mono); font-size: 12px; outline: none; transition: border-color .2s; width: 100%; }
+    .form-input-sm:focus { border-color: var(--accent); }
+    .form-select-sm { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); padding: 8px 10px; border-radius: var(--radius); font-family: var(--font-mono); font-size: 12px; outline: none; appearance: none; cursor: pointer; width: 100%; }
+    .form-select-sm:focus { border-color: var(--accent); }
+    .form-select-sm option { background: #1c202b; }
+    /* Table */
+    .users-table-wrap { overflow-x: auto; }
+    .users-table { width: 100%; border-collapse: collapse; }
+    .users-table th { text-align: left; padding: 8px 12px; font-family: var(--font-head); font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); background: var(--bg-panel2); }
+    .users-table td { padding: 10px 12px; border-bottom: 1px solid rgba(42,48,70,.6); font-size: 13px; color: var(--text-main); transition: background .15s; }
+    .users-table tr:hover td { background: rgba(255,255,255,.025); }
+    .mono { font-family: var(--font-mono); font-size: 12px; }
+    .role-pill { display: inline-block; padding: 2px 8px; border-radius: 3px; font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: .5px; }
+    .role-pill.admin    { background: rgba(91,154,245,.15); color: var(--blue);  border: 1px solid rgba(91,154,245,.3); }
+    .role-pill.operator { background: rgba(65,216,132,.15); color: var(--green); border: 1px solid rgba(65,216,132,.3); }
+    .role-pill.viewer   { background: rgba(107,117,153,.15); color: var(--text-muted); border: 1px solid rgba(107,117,153,.3); }
+    .tbl-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 4px 9px; border-radius: 4px; cursor: pointer; font-size: 11px; transition: all .2s; margin-left: 4px; }
+    .tbl-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .tbl-btn.del:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+    .tbl-btn.pass:hover { border-color: var(--blue); color: var(--blue); }
+    .add-btn { background: var(--accent); border: none; color: #fff; padding: 8px 20px; border-radius: var(--radius); cursor: pointer; font-family: var(--font-head); font-size: 14px; font-weight: 700; letter-spacing: .5px; transition: background .2s, box-shadow .2s; }
+    .add-btn:hover { background: #e07020; box-shadow: 0 4px 14px rgba(240,133,51,.35); }
+    /* Change pw mini modal */
+    .pass-overlay { position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,.75); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 16px; }
+    .pass-overlay.open { display: flex; }
+    .pass-modal { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px; width: 100%; max-width: 340px; padding: 22px; box-shadow: 0 16px 50px rgba(0,0,0,.6); animation: modalIn .2s ease; }
+    .pass-modal h3 { font-family: var(--font-head); font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+    .pass-modal h3 i { color: var(--blue); margin-right: 7px; }
+    .pass-actions { display: flex; gap: 8px; margin-top: 16px; }
+    .pass-save-btn { flex: 1; background: var(--blue); border: none; color: #fff; padding: 8px; border-radius: var(--radius); cursor: pointer; font-family: var(--font-head); font-size: 14px; font-weight: 700; transition: background .2s; }
+    .pass-save-btn:hover { background: #4080e0; }
+    .pass-cancel-btn { flex: 1; background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 8px; border-radius: var(--radius); cursor: pointer; font-size: 13px; transition: all .2s; }
+    .pass-cancel-btn:hover { border-color: var(--accent); color: var(--accent); }
+    /* Footer */
+    .footer { text-align: center; margin-top: 24px; padding-bottom: 16px; font-family: var(--font-body); font-size: 12px; color: var(--text-muted); }
+    .footer span { color: var(--accent); }
   </style>
 </head>
 <body>
 
-<!-- ═══ TOP NAVBAR ═══ -->
 <nav class="topbar">
-  <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png"
-       alt="Al Nakhla" class="topbar-logo"
-       onerror="this.style.display='none'">
+  <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla" class="topbar-logo" onerror="this.style.display='none'">
   <div class="topbar-divider"></div>
-  <div class="topbar-title">Fire Pump <span>Monitoring</span> System</div>
-
-  <div class="mqtt-badge" id="mqttBadge">
-    <div class="dot"></div>
-    <span id="mqttBadgeText">Connecting…</span>
-  </div>
-
+  <div class="topbar-title">Fire Pump <span>Monitoring</span></div>
+  <div class="mqtt-badge" id="mqttBadge"><div class="dot"></div><span id="mqttBadgeText">Connecting…</span></div>
   <div class="topbar-clock" id="topbarClock">--:--:--</div>
+  <div class="user-chip" id="userChip">
+    <i class="fas fa-user-circle"></i>
+    <span id="userChipName">—</span>
+    <span class="role-badge" id="userChipRole">—</span>
+  </div>
+  <button class="topbar-btn users-btn" id="usersBtn" onclick="openUsersModal()" style="display:none">
+    <i class="fas fa-users" style="margin-right:5px"></i>Users
+  </button>
   <button class="topbar-btn" onclick="logout()">
     <i class="fas fa-sign-out-alt" style="margin-right:5px"></i>Logout
   </button>
 </nav>
 
-<!-- ═══ ALARM BANNER ═══ -->
 <div class="alarm-banner" id="alarmBanner">
-  <i class="fas fa-exclamation-triangle"></i>
+  <i class="fas fa-exclamation-triangle" style="flex-shrink:0"></i>
   <div class="alarm-text" id="alarmText">—</div>
-  <button class="alarm-ack-btn" onclick="acknowledgeAlarm()">
-    <i class="fas fa-bell-slash" style="margin-right:4px"></i>Silence
-  </button>
-  <button class="alarm-reset-btn" onclick="resetAlarm()">
-    <i class="fas fa-redo" style="margin-right:4px"></i>Reset
-  </button>
+  <button class="alarm-ack-btn"   onclick="acknowledgeAlarm()"><i class="fas fa-bell-slash" style="margin-right:4px"></i>Silence</button>
+  <button class="alarm-reset-btn" onclick="resetAlarm()"><i class="fas fa-redo" style="margin-right:4px"></i>Reset</button>
 </div>
 
-<!-- ═══ PAGE CONTENT ═══ -->
 <div class="page" id="page">
   <div class="page-content">
 
-    <!-- PUMPS ROW -->
     <div class="section-label"><i class="fas fa-tachometer-alt" style="color:var(--accent);margin-right:5px"></i>Pump Controllers</div>
     <div class="row row-pumps">
-
-      <!-- Jockey Pump -->
       <div class="panel" id="panel-jockey">
-        <div class="panel-header">
-          <div class="panel-title"><i class="fas fa-fan"></i>Jockey Pump</div>
-          <span class="panel-badge" id="badge-jockey">IDLE</span>
-        </div>
+        <div class="panel-header"><div class="panel-title"><i class="fas fa-fan"></i>Jockey Pump</div><span class="panel-badge" id="badge-jockey">IDLE</span></div>
         <div class="panel-body">
           <div class="led-row">
-            <div class="led-group">
-              <div class="led blank" id="jockey-pump-run"></div>
-              <div class="led-label">RUN</div>
-            </div>
-            <div class="led-group">
-              <div class="led blank" id="jockey-pump-off"></div>
-              <div class="led-label">OFF</div>
-            </div>
-            <div class="led-group">
-              <div class="led blank" id="jockey-pump-trip"></div>
-              <div class="led-label">TRIP</div>
-            </div>
+            <div class="led-group"><div class="led blank" id="jockey-pump-run"></div><div class="led-label">RUN</div></div>
+            <div class="led-group"><div class="led blank" id="jockey-pump-off"></div><div class="led-label">OFF</div></div>
+            <div class="led-group"><div class="led blank" id="jockey-pump-trip"></div><div class="led-label">TRIP</div></div>
           </div>
-          <div class="mode-row">
-            <span class="mode-label"><i class="fas fa-sliders-h" style="margin-right:5px;color:var(--accent)"></i>Mode</span>
-            <select class="mode-select" id="jockey-mode" onchange="sendMode('jockey', this.value)">
-              <option value="0">OFF</option>
-              <option value="1">MANUAL</option>
-              <option value="2">AUTO</option>
-            </select>
-          </div>
+          <div class="mode-row"><span class="mode-label"><i class="fas fa-sliders-h" style="margin-right:5px;color:var(--accent)"></i>Mode</span><select class="mode-select" id="jockey-mode" onchange="sendMode('jockey',this.value)"><option value="0">OFF</option><option value="1">MANUAL</option><option value="2">AUTO</option></select></div>
         </div>
       </div>
-
-      <!-- Main Pump -->
       <div class="panel" id="panel-main">
-        <div class="panel-header">
-          <div class="panel-title"><i class="fas fa-water"></i>Main Pump</div>
-          <span class="panel-badge" id="badge-main">IDLE</span>
-        </div>
+        <div class="panel-header"><div class="panel-title"><i class="fas fa-water"></i>Main Pump</div><span class="panel-badge" id="badge-main">IDLE</span></div>
         <div class="panel-body">
           <div class="led-row">
-            <div class="led-group">
-              <div class="led blank" id="main-pump-run"></div>
-              <div class="led-label">RUN</div>
-            </div>
-            <div class="led-group">
-              <div class="led blank" id="main-pump-off"></div>
-              <div class="led-label">OFF</div>
-            </div>
-            <div class="led-group">
-              <div class="led blank" id="main-pump-trip"></div>
-              <div class="led-label">TRIP</div>
-            </div>
+            <div class="led-group"><div class="led blank" id="main-pump-run"></div><div class="led-label">RUN</div></div>
+            <div class="led-group"><div class="led blank" id="main-pump-off"></div><div class="led-label">OFF</div></div>
+            <div class="led-group"><div class="led blank" id="main-pump-trip"></div><div class="led-label">TRIP</div></div>
           </div>
-          <div class="mode-row">
-            <span class="mode-label"><i class="fas fa-sliders-h" style="margin-right:5px;color:var(--accent)"></i>Mode</span>
-            <select class="mode-select" id="main-mode" onchange="sendMode('main', this.value)">
-              <option value="0">OFF</option>
-              <option value="1">MANUAL</option>
-              <option value="2">AUTO</option>
-            </select>
-          </div>
+          <div class="mode-row"><span class="mode-label"><i class="fas fa-sliders-h" style="margin-right:5px;color:var(--accent)"></i>Mode</span><select class="mode-select" id="main-mode" onchange="sendMode('main',this.value)"><option value="0">OFF</option><option value="1">MANUAL</option><option value="2">AUTO</option></select></div>
         </div>
       </div>
-
-      <!-- Diesel Pump -->
       <div class="panel" id="panel-diesel">
-        <div class="panel-header">
-          <div class="panel-title"><i class="fas fa-gas-pump"></i>Diesel Pump</div>
-          <span class="panel-badge" id="badge-diesel">IDLE</span>
-        </div>
+        <div class="panel-header"><div class="panel-title"><i class="fas fa-gas-pump"></i>Diesel Pump</div><span class="panel-badge" id="badge-diesel">IDLE</span></div>
         <div class="panel-body">
           <div class="led-row">
-            <div class="led-group">
-              <div class="led blank" id="diesel-pump-run"></div>
-              <div class="led-label">RUN</div>
-            </div>
-            <div class="led-group">
-              <div class="led blank" id="diesel-pump-off"></div>
-              <div class="led-label">OFF</div>
-            </div>
-            <div class="led-group">
-              <div class="led blank" id="diesel-pump-trip"></div>
-              <div class="led-label">TRIP</div>
-            </div>
+            <div class="led-group"><div class="led blank" id="diesel-pump-run"></div><div class="led-label">RUN</div></div>
+            <div class="led-group"><div class="led blank" id="diesel-pump-off"></div><div class="led-label">OFF</div></div>
+            <div class="led-group"><div class="led blank" id="diesel-pump-trip"></div><div class="led-label">TRIP</div></div>
           </div>
-          <div class="mode-row">
-            <span class="mode-label"><i class="fas fa-sliders-h" style="margin-right:5px;color:var(--accent)"></i>Mode</span>
-            <select class="mode-select" id="diesel-mode" onchange="sendMode('diesel', this.value)">
-              <option value="0">OFF</option>
-              <option value="1">MANUAL</option>
-              <option value="2">AUTO</option>
-            </select>
-          </div>
+          <div class="mode-row"><span class="mode-label"><i class="fas fa-sliders-h" style="margin-right:5px;color:var(--accent)"></i>Mode</span><select class="mode-select" id="diesel-mode" onchange="sendMode('diesel',this.value)"><option value="0">OFF</option><option value="1">MANUAL</option><option value="2">AUTO</option></select></div>
         </div>
       </div>
     </div>
 
-    <!-- SENSORS ROW -->
-    <div class="section-label"><i class="fas fa-satellite-dish" style="color:var(--accent);margin-right:5px"></i>Sensors & Environment</div>
+    <div class="section-label"><i class="fas fa-satellite-dish" style="color:var(--accent);margin-right:5px"></i>Sensors &amp; Environment</div>
     <div class="row row-sensors">
-
-      <!-- Temperature & Humidity -->
       <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title"><i class="fas fa-thermometer-half"></i>Env. Monitor</div>
-          <span class="panel-badge" id="badge-env">LIVE</span>
-        </div>
+        <div class="panel-header"><div class="panel-title"><i class="fas fa-thermometer-half"></i>Env. Monitor</div><span class="panel-badge">LIVE</span></div>
         <div class="panel-body" style="padding:10px 10px 14px">
           <div class="two-values">
-            <div class="value-half">
-              <i class="fas fa-thermometer-half"></i>
-              <div class="val" id="room-temperature">--<span>°C</span></div>
-              <div class="lbl">Temperature</div>
-            </div>
-            <div class="value-half">
-              <i class="fas fa-tint"></i>
-              <div class="val" id="room-humidity">--<span>%</span></div>
-              <div class="lbl">Humidity</div>
-            </div>
+            <div class="value-half"><i class="fas fa-thermometer-half"></i><div class="val" id="room-temperature">--<span>&nbsp;°C</span></div><div class="lbl">Temperature</div></div>
+            <div class="value-half"><i class="fas fa-tint"></i><div class="val" id="room-humidity">--<span>&nbsp;%</span></div><div class="lbl">Humidity</div></div>
           </div>
         </div>
       </div>
 
-      <!-- Water Pressure -->
-      <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title"><i class="fas fa-gauge-high"></i>Water Pressure</div>
-          <span class="panel-badge" id="badge-pressure">BAR</span>
-        </div>
+      <div class="panel" id="panel-pressure">
+        <div class="panel-header"><div class="panel-title"><i class="fas fa-gauge-high"></i>Water Pressure</div><span class="panel-badge" id="badge-pressure">—</span></div>
         <div class="panel-body">
-          <div class="pressure-wrap">
-            <div class="value-big" id="water-pressure">0<span>Bar</span></div>
-            <div class="pressure-bar-bg" style="width:100%">
-              <div class="pressure-bar-fill" id="pressure-bar" style="width:0%"></div>
+          <div class="pressure-wrap p-nodata" id="pressureWrap">
+            <div class="pressure-value-row">
+              <span class="pressure-number" id="pressure-number">--</span>
+              <span class="pressure-unit">Bar</span>
             </div>
+            <div class="pressure-bar-bg"><div class="pressure-bar-fill" id="pressure-bar" style="width:0%"></div></div>
             <div class="pressure-range">
-              <span>0 Bar</span><span>10 Bar</span>
+              <span>0</span>
+              <span id="pressure-mid">8 Bar</span>
+              <span id="pressure-max">16 Bar</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Smoke Detector -->
       <div class="panel" id="panel-smoke">
-        <div class="panel-header">
-          <div class="panel-title"><i class="fas fa-smog"></i>Smoke Detector</div>
-          <span class="panel-badge" id="badge-smoke">NORMAL</span>
-        </div>
-        <div class="panel-body">
-          <div class="led-row" style="justify-content:space-around">
-            <div class="led-group">
-              <div class="led blank" id="smoke-detector-alarm"></div>
-              <div class="led-label">ALARM</div>
-            </div>
-            <div class="led-group">
-              <div class="led blank" id="smoke-detector-normal"></div>
-              <div class="led-label">NORMAL</div>
-            </div>
-          </div>
-        </div>
+        <div class="panel-header"><div class="panel-title"><i class="fas fa-smog"></i>Smoke Detector</div><span class="panel-badge" id="badge-smoke">NORMAL</span></div>
+        <div class="panel-body"><div class="led-row" style="justify-content:space-around">
+          <div class="led-group"><div class="led blank" id="smoke-detector-alarm"></div><div class="led-label">ALARM</div></div>
+          <div class="led-group"><div class="led blank" id="smoke-detector-normal"></div><div class="led-label">NORMAL</div></div>
+        </div></div>
       </div>
 
-      <!-- Flood Sensor -->
       <div class="panel" id="panel-flood">
-        <div class="panel-header">
-          <div class="panel-title"><i class="fas fa-water"></i>Flood Sensor</div>
-          <span class="panel-badge" id="badge-flood">NORMAL</span>
-        </div>
-        <div class="panel-body">
-          <div class="led-row" style="justify-content:space-around">
-            <div class="led-group">
-              <div class="led blank" id="flood-sensor-alarm"></div>
-              <div class="led-label">ALARM</div>
-            </div>
-            <div class="led-group">
-              <div class="led blank" id="flood-sensor-normal"></div>
-              <div class="led-label">NORMAL</div>
-            </div>
-          </div>
-        </div>
+        <div class="panel-header"><div class="panel-title"><i class="fas fa-water"></i>Flood Sensor</div><span class="panel-badge" id="badge-flood">NORMAL</span></div>
+        <div class="panel-body"><div class="led-row" style="justify-content:space-around">
+          <div class="led-group"><div class="led blank" id="flood-sensor-alarm"></div><div class="led-label">ALARM</div></div>
+          <div class="led-group"><div class="led blank" id="flood-sensor-normal"></div><div class="led-label">NORMAL</div></div>
+        </div></div>
       </div>
     </div>
 
-    <!-- SYSTEM STATUS ROW -->
     <div class="section-label"><i class="fas fa-server" style="color:var(--accent);margin-right:5px"></i>System</div>
     <div class="row row-system">
-
-      <!-- Overall Status -->
       <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title"><i class="fas fa-heartbeat"></i>System Health</div>
-          <span class="panel-badge" id="last-update-badge">No data</span>
-        </div>
+        <div class="panel-header"><div class="panel-title"><i class="fas fa-heartbeat"></i>System Health</div><span class="panel-badge" id="last-update-badge">No data</span></div>
         <div class="panel-body" style="padding:0">
           <div class="sys-status-panel">
             <i class="fas fa-check-circle sys-icon ok" id="system-status"></i>
-            <div class="sys-meta">
-              <div class="sys-status-text" id="sys-status-text">All Systems Normal</div>
-              <div class="sys-status-sub" id="sys-status-sub">Waiting for live data…</div>
-            </div>
+            <div class="sys-meta"><div class="sys-status-text" id="sys-status-text">All Systems Normal</div><div class="sys-status-sub" id="sys-status-sub">Waiting for live data…</div></div>
           </div>
           <div class="stats-row">
-            <div class="stat-cell">
-              <div class="stat-val" id="stat-uptime">—</div>
-              <div class="stat-lbl">Uptime</div>
-            </div>
-            <div class="stat-cell">
-              <div class="stat-val" id="stat-msgs">0</div>
-              <div class="stat-lbl">Messages</div>
-            </div>
-            <div class="stat-cell">
-              <div class="stat-val" id="stat-alarms">0</div>
-              <div class="stat-lbl">Alarms</div>
-            </div>
+            <div class="stat-cell"><div class="stat-val" id="stat-uptime">—</div><div class="stat-lbl">Uptime</div></div>
+            <div class="stat-cell"><div class="stat-val" id="stat-msgs">0</div><div class="stat-lbl">Messages</div></div>
+            <div class="stat-cell"><div class="stat-val" id="stat-alarms">0</div><div class="stat-lbl">Alarms</div></div>
           </div>
         </div>
       </div>
-
-      <!-- Connection Panel -->
       <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title"><i class="fas fa-network-wired"></i>MQTT Connection</div>
-        </div>
+        <div class="panel-header"><div class="panel-title"><i class="fas fa-network-wired"></i>MQTT Connection</div></div>
         <div class="panel-body" style="padding:0">
           <div class="reconnect-info">
             <div class="reconnect-spinner" id="reconnectSpinner"></div>
@@ -747,470 +380,505 @@
             <div class="retry-countdown" id="retryCountdown" style="display:none"></div>
           </div>
           <div class="stats-row">
-            <div class="stat-cell">
-              <div class="stat-val" id="stat-broker">—</div>
-              <div class="stat-lbl">Broker</div>
-            </div>
-            <div class="stat-cell">
-              <div class="stat-val" id="stat-retries">0</div>
-              <div class="stat-lbl">Retries</div>
-            </div>
+            <div class="stat-cell"><div class="stat-val" id="stat-broker">—</div><div class="stat-lbl">Broker</div></div>
+            <div class="stat-cell"><div class="stat-val" id="stat-retries">0</div><div class="stat-lbl">Retries</div></div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="footer">
-      Fire Pump Monitoring System &nbsp;|&nbsp; Al Nakhla Engineering Dep. — <span>Eng. Youssef</span>
-      &nbsp;|&nbsp; v4.0 Grafana Edition
+    <div class="footer">Fire Pump Monitoring &nbsp;|&nbsp; Al Nakhla Engineering Dep. — <span>Eng. Youssef</span> &nbsp;|&nbsp; v4.1</div>
+  </div>
+</div>
+
+<!-- ═══ USER MANAGEMENT MODAL ═══ -->
+<div class="modal-overlay" id="usersOverlay" onclick="if(event.target===this)closeUsersModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-users-cog"></i>User Management</div>
+      <button class="modal-close" onclick="closeUsersModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="section-sub"><i class="fas fa-list" style="color:var(--blue);margin-right:6px"></i>Current Users</div>
+      <div class="users-table-wrap">
+        <table class="users-table">
+          <thead><tr><th>Username</th><th>Full Name</th><th>Role</th><th>Actions</th></tr></thead>
+          <tbody id="usersTableBody"><tr><td colspan="4" style="color:var(--text-muted);text-align:center;padding:20px">Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <hr class="section-divider">
+      <div class="section-sub"><i class="fas fa-user-plus" style="color:var(--green);margin-right:6px"></i>Add New User</div>
+      <div class="form-row">
+        <div class="form-group-sm"><label class="form-label-sm">Username</label><input class="form-input-sm" id="new-username" placeholder="e.g. jsmith" autocomplete="off"></div>
+        <div class="form-group-sm"><label class="form-label-sm">Full Name</label><input class="form-input-sm" id="new-name" placeholder="e.g. John Smith"></div>
+      </div>
+      <div class="form-row form-row-3">
+        <div class="form-group-sm"><label class="form-label-sm">Role</label><select class="form-select-sm" id="new-role"><option value="admin">Admin</option><option value="operator" selected>Operator</option><option value="viewer">Viewer</option></select></div>
+        <div class="form-group-sm"><label class="form-label-sm">Password</label><input class="form-input-sm" type="password" id="new-password" placeholder="Min 6 chars"></div>
+        <div class="form-group-sm"><label class="form-label-sm">Confirm</label><input class="form-input-sm" type="password" id="new-confirm" placeholder="Repeat"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)"><i class="fas fa-info-circle" style="margin-right:4px;color:var(--blue)"></i>Users stored locally in this browser.</div>
+      <button class="add-btn" onclick="addUser()"><i class="fas fa-user-plus" style="margin-right:6px"></i>Add User</button>
     </div>
   </div>
 </div>
 
-<!-- Toast Container -->
-<div class="toast-container" id="toastContainer"></div>
+<!-- ═══ CHANGE PASSWORD MINI MODAL ═══ -->
+<div class="pass-overlay" id="passOverlay" onclick="if(event.target===this)closePassModal()">
+  <div class="pass-modal">
+    <h3><i class="fas fa-key"></i>Change Password</h3>
+    <input type="hidden" id="pass-target-id">
+    <div class="form-group-sm" style="margin-bottom:10px">
+      <label class="form-label-sm">New Password</label>
+      <input class="form-input-sm" type="password" id="pass-new" placeholder="Min 6 characters">
+    </div>
+    <div class="form-group-sm">
+      <label class="form-label-sm">Confirm Password</label>
+      <input class="form-input-sm" type="password" id="pass-confirm" placeholder="Repeat password">
+    </div>
+    <div class="pass-actions">
+      <button class="pass-cancel-btn" onclick="closePassModal()">Cancel</button>
+      <button class="pass-save-btn" onclick="savePassword()"><i class="fas fa-save" style="margin-right:5px"></i>Save</button>
+    </div>
+  </div>
+</div>
 
-<!-- MQTT -->
+<div class="toast-container" id="toastContainer"></div>
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script>
-/* ════════════════════════════════════════
+/* ══════════════════════════════════════════════
+   PRESSURE CONFIG
+   Adjust these three constants to match your
+   sensor / system specs.
+══════════════════════════════════════════════ */
+const P_MAX      = 16;   // Bar — full-scale of your sensor
+const P_WARN     = 10;   // Bar — turn bar/number yellow above this
+const P_CRIT     = 14;   // Bar — turn bar/number red above this
+// If your firmware sends pressure as tenths of Bar (e.g. "52" = 5.2 Bar),
+// set SCALE to 0.1. If it already sends floats like "5.20", keep at 1.
+const P_SCALE    = 1;
+
+// Update gauge axis labels
+document.getElementById('pressure-mid').textContent = (P_MAX / 2) + ' Bar';
+document.getElementById('pressure-max').textContent = P_MAX + ' Bar';
+
+/* ══════════════════════════════════════════════
+   SHA-256 HASH  (matches login page salt)
+══════════════════════════════════════════════ */
+async function hashPassword(password) {
+  const data = new TextEncoder().encode('ALNAKHLA_FP_SALT_2024_' + password);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ══════════════════════════════════════════════
    AUTH
-════════════════════════════════════════ */
+══════════════════════════════════════════════ */
+let currentUser = null;
+
 function checkAuthentication() {
-  if (localStorage.getItem("authenticated") !== "true") {
-    window.location.href = "index.html";
+  if (localStorage.getItem('authenticated') !== 'true') { window.location.href = 'index.html'; return; }
+  try { currentUser = JSON.parse(localStorage.getItem('fp_current_user')); } catch { currentUser = null; }
+  if (!currentUser) { window.location.href = 'index.html'; return; }
+
+  document.getElementById('userChipName').textContent = currentUser.name || currentUser.username;
+  const rb = document.getElementById('userChipRole');
+  rb.textContent = currentUser.role.toUpperCase();
+  rb.className = 'role-badge role-' + currentUser.role;
+
+  if (currentUser.role === 'admin') document.getElementById('usersBtn').style.display = '';
+
+  if (currentUser.role === 'viewer') {
+    document.querySelectorAll('.mode-select').forEach(s => {
+      s.disabled = true;
+      s.title = 'Read-only access';
+    });
   }
 }
+
 function logout() {
-  localStorage.removeItem("authenticated");
-  localStorage.removeItem("userType");
-  window.location.href = "index.html";
+  localStorage.removeItem('authenticated');
+  localStorage.removeItem('fp_current_user');
+  window.location.href = 'index.html';
 }
 window.onload = checkAuthentication;
 
-/* ════════════════════════════════════════
+/* ══════════════════════════════════════════════
    CLOCK
-════════════════════════════════════════ */
+══════════════════════════════════════════════ */
 function updateClock() {
-  const now = new Date();
+  const n = new Date();
   document.getElementById('topbarClock').textContent =
-    now.toLocaleDateString('en-SA', { year: 'numeric', month: 'short', day: '2-digit' }) +
-    '  ' +
-    now.toLocaleTimeString('en-SA', { hour12: false });
+    n.toLocaleDateString('en-SA',{year:'numeric',month:'short',day:'2-digit'}) + '  ' +
+    n.toLocaleTimeString('en-SA',{hour12:false});
 }
-setInterval(updateClock, 1000);
-updateClock();
+setInterval(updateClock,1000); updateClock();
 
-/* ════════════════════════════════════════
-   STATE
-════════════════════════════════════════ */
-let lastMessageTime  = Date.now();
-let isConnected      = false;
-let alarmSilenced    = false;
-let isPageVisible    = true;
-let msgCount         = 0;
-let alarmCount       = 0;
-let sessionStart     = Date.now();
-let retryTimer       = null;
-let retryCountdown   = 0;
-let reconnectAttempt = 0;
-let currentServer    = 'primary';
-let mqttClient       = null;
-
-/* ════════════════════════════════════════
-   AUDIO
-════════════════════════════════════════ */
-let audioContext, alarmBuffer;
-try {
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  audioContext.suspend();
-} catch(e) { console.warn("AudioContext unavailable:", e); }
-
-const alarmSoundUrl = 'https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav';
-if (audioContext) {
-  fetch(alarmSoundUrl)
-    .then(r => r.arrayBuffer())
-    .then(buf => audioContext.decodeAudioData(buf))
-    .then(b => { alarmBuffer = b; })
-    .catch(e => console.warn("Alarm sound load failed:", e));
-}
-
-let alarmPlaying = false;
-function playAlarmSound() {
-  if (!alarmBuffer || alarmSilenced || alarmPlaying) return;
-  if (!audioContext) return;
-  audioContext.resume().then(() => {
-    const src = audioContext.createBufferSource();
-    src.buffer = alarmBuffer;
-    src.connect(audioContext.destination);
-    src.start(0);
-    alarmPlaying = true;
-    src.onended = () => { alarmPlaying = false; };
-  });
-}
-
-/* ════════════════════════════════════════
+/* ══════════════════════════════════════════════
    TOAST
-════════════════════════════════════════ */
-function showToast(msg, type = 'ok', duration = 3500) {
-  const icons = { ok: 'fa-check-circle', err: 'fa-times-circle', warn: 'fa-exclamation-triangle' };
+══════════════════════════════════════════════ */
+function showToast(msg, type='ok', dur=3500) {
+  const icons = {ok:'fa-check-circle',err:'fa-times-circle',warn:'fa-exclamation-triangle'};
   const t = document.createElement('div');
   t.className = `toast toast-${type}`;
   t.innerHTML = `<i class="fas ${icons[type]}"></i><span>${msg}</span>`;
   document.getElementById('toastContainer').appendChild(t);
-  setTimeout(() => {
-    t.style.animation = 'slideOut .3s ease forwards';
-    setTimeout(() => t.remove(), 320);
-  }, duration);
+  setTimeout(()=>{ t.style.animation='slideOut .3s ease forwards'; setTimeout(()=>t.remove(),320); }, dur);
 }
 
-/* ════════════════════════════════════════
-   LED HELPERS
-════════════════════════════════════════ */
-function setLed(id, cls) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.className = 'led ' + cls;
-}
-function setAllLedsBlank() {
-  document.querySelectorAll('.led').forEach(l => l.className = 'led blank');
-  document.getElementById('room-temperature').innerHTML = '--<span>°C</span>';
-  document.getElementById('room-humidity').innerHTML    = '--<span>%</span>';
-  document.getElementById('water-pressure').innerHTML   = '0<span>Bar</span>';
-  document.getElementById('pressure-bar').style.width   = '0%';
-}
+/* ══════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════ */
+let lastMsgTime=Date.now(), isConnected=false, alarmSilenced=false;
+let msgCount=0, alarmCount=0, sessionStart=Date.now();
+let retryTimer=null, retryCountdown=0, reconnectAttempt=0;
+let currentServer='primary', mqttClient=null, reconnectScheduled=false;
 
-/* ════════════════════════════════════════
-   PANEL ALARM STATE
-════════════════════════════════════════ */
-function setPanelState(id, state) {
-  const p = document.getElementById(id);
-  if (!p) return;
-  p.classList.remove('alarm-state', 'run-state');
-  if (state === 'alarm') p.classList.add('alarm-state');
-  else if (state === 'run') p.classList.add('run-state');
+/* ══════════════════════════════════════════════
+   AUDIO
+══════════════════════════════════════════════ */
+let audioCtx, alarmBuffer, alarmPlaying=false;
+try { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); audioCtx.suspend(); } catch(e){}
+if (audioCtx) {
+  fetch('https://alarmclock1987.s3.eu-north-1.amazonaws.com/alarm_clock+.wav')
+    .then(r=>r.arrayBuffer()).then(b=>audioCtx.decodeAudioData(b))
+    .then(b=>{alarmBuffer=b;}).catch(()=>{});
 }
-function setPanelBadge(id, text, color) {
-  const b = document.getElementById(id);
-  if (!b) return;
-  b.textContent = text;
-  b.style.color = color || '';
-  b.style.borderColor = color ? color + '55' : '';
+function playAlarmSound() {
+  if (!alarmBuffer||alarmSilenced||alarmPlaying||!audioCtx) return;
+  audioCtx.resume().then(()=>{
+    const s=audioCtx.createBufferSource(); s.buffer=alarmBuffer;
+    s.connect(audioCtx.destination); s.start(0);
+    alarmPlaying=true; s.onended=()=>{alarmPlaying=false;};
+  });
 }
 
-/* ════════════════════════════════════════
-   STATUS UPDATE
-════════════════════════════════════════ */
-function handleStatusUpdates(data) {
-  lastMessageTime = Date.now();
-  isConnected     = true;
-  msgCount++;
-  document.getElementById('stat-msgs').textContent = msgCount;
-  document.getElementById('last-update-badge').textContent = new Date().toLocaleTimeString('en-SA', { hour12: false });
+/* ══════════════════════════════════════════════
+   LED / PANEL HELPERS
+══════════════════════════════════════════════ */
+function setLed(id,cls){ const e=document.getElementById(id); if(e) e.className='led '+cls; }
+function setAllLedsBlank(){
+  document.querySelectorAll('.led').forEach(l=>l.className='led blank');
+  document.getElementById('room-temperature').innerHTML='--<span>&nbsp;°C</span>';
+  document.getElementById('room-humidity').innerHTML='--<span>&nbsp;%</span>';
+  updatePressure(null);
+}
+function setPanelState(id,st){
+  const p=document.getElementById(id); if(!p) return;
+  p.classList.remove('alarm-state','run-state');
+  if(st==='alarm') p.classList.add('alarm-state');
+  else if(st==='run') p.classList.add('run-state');
+}
+function setPanelBadge(id,txt,col){
+  const b=document.getElementById(id); if(!b) return;
+  b.textContent=txt; b.style.color=col||''; b.style.borderColor=col?col+'55':'';
+}
 
-  /* Jockey Pump */
-  setLed('jockey-pump-run',  data.JP  ? 'run'   : 'blank');
-  setLed('jockey-pump-off',  !data.JP ? 'off'   : 'blank');
-  setLed('jockey-pump-trip', data.JPT ? 'trip'  : 'blank');
-  setPanelState('panel-jockey', data.JPT ? 'alarm' : data.JP ? 'run' : '');
-  setPanelBadge('badge-jockey',
-    data.JPT ? 'TRIP' : data.JP ? 'RUNNING' : 'STOPPED',
-    data.JPT ? 'var(--yellow)' : data.JP ? 'var(--green)' : '');
+/* ══════════════════════════════════════════════
+   PRESSURE UPDATE — fixed robust version
+   Handles: undefined, null, '', integers, floats,
+   comma-decimal strings, scale factors, zones.
+══════════════════════════════════════════════ */
+function updatePressure(raw) {
+  const numEl  = document.getElementById('pressure-number');
+  const barEl  = document.getElementById('pressure-bar');
+  const wrap   = document.getElementById('pressureWrap');
+  const badge  = document.getElementById('badge-pressure');
 
-  /* Main Pump */
-  setLed('main-pump-run',  data.MP  ? 'run'  : 'blank');
-  setLed('main-pump-off',  !data.MP ? 'off'  : 'blank');
-  setLed('main-pump-trip', data.MPT ? 'trip' : 'blank');
-  setPanelState('panel-main', data.MPT ? 'alarm' : data.MP ? 'run' : '');
-  setPanelBadge('badge-main',
-    data.MPT ? 'TRIP' : data.MP ? 'RUNNING' : 'STOPPED',
-    data.MPT ? 'var(--yellow)' : data.MP ? 'var(--green)' : '');
+  // Remove all zone classes first
+  wrap.classList.remove('p-normal','p-warning','p-critical','p-nodata');
 
-  /* Diesel Pump */
-  setLed('diesel-pump-run',  data.DP  ? 'run'  : 'blank');
-  setLed('diesel-pump-off',  !data.DP ? 'off'  : 'blank');
-  setLed('diesel-pump-trip', data.DPT ? 'trip' : 'blank');
-  setPanelState('panel-diesel', data.DPT ? 'alarm' : data.DP ? 'run' : '');
-  setPanelBadge('badge-diesel',
-    data.DPT ? 'TRIP' : data.DP ? 'RUNNING' : 'STOPPED',
-    data.DPT ? 'var(--yellow)' : data.DP ? 'var(--green)' : '');
-
-  /* Smoke */
-  setLed('smoke-detector-alarm',  data.SS1  ? 'alarm-led' : 'blank');
-  setLed('smoke-detector-normal', !data.SS1 ? 'normal'    : 'blank');
-  setPanelState('panel-smoke', data.SS1 ? 'alarm' : '');
-  setPanelBadge('badge-smoke', data.SS1 ? 'ALARM!' : 'NORMAL', data.SS1 ? 'var(--red)' : '');
-
-  /* Flood */
-  setLed('flood-sensor-alarm',  data.FS  ? 'alarm-led' : 'blank');
-  setLed('flood-sensor-normal', !data.FS ? 'normal'    : 'blank');
-  setPanelState('panel-flood', data.FS ? 'alarm' : '');
-  setPanelBadge('badge-flood', data.FS ? 'ALARM!' : 'NORMAL', data.FS ? 'var(--red)' : '');
-
-  /* Temp / Humidity */
-  if (data.TH) {
-    const parts = data.TH.split(',');
-    document.getElementById('room-temperature').innerHTML = parts[0] + '<span>°C</span>';
-    document.getElementById('room-humidity').innerHTML    = parts[1] + '<span>%</span>';
+  // ── No data ──
+  if (raw === null || raw === undefined || raw === '') {
+    numEl.textContent = '--'; barEl.style.width='0%';
+    wrap.classList.add('p-nodata');
+    badge.textContent='—'; badge.style.color=''; badge.style.borderColor=''; return;
   }
 
-  /* Pressure */
-  const wp = parseFloat(data.WP) || 0;
-  document.getElementById('water-pressure').innerHTML = wp + '<span>Bar</span>';
-  document.getElementById('pressure-bar').style.width = Math.min(wp / 10 * 100, 100) + '%';
+  // ── Parse to float ──
+  // Normalise decimal separator (some PLCs send "5,20" instead of "5.20")
+  const cleaned = String(raw).replace(',', '.').trim();
+  let wp = parseFloat(cleaned);
 
-  /* Mode selectors */
-  setSelect('jockey-mode', data.JPM);
-  setSelect('main-mode',   data.MPM);
-  setSelect('diesel-mode', data.DPM);
+  if (!isFinite(wp)) {
+    numEl.textContent='ERR'; barEl.style.width='0%';
+    wrap.classList.add('p-nodata');
+    badge.textContent='ERR'; badge.style.color='var(--red)'; return;
+  }
 
-  /* Build alarm text */
+  // Apply scale factor (0.1 if firmware sends tenths as integers)
+  wp = wp * P_SCALE;
+
+  // ── Format display ──
+  // Show up to 2 decimals, remove trailing zeros: 5.20→"5.2", 5.00→"5", 5.10→"5.1"
+  numEl.textContent = parseFloat(wp.toFixed(2)).toString();
+
+  // ── Progress bar ──
+  const pct = Math.min(Math.max(wp / P_MAX * 100, 0), 100);
+  barEl.style.width = pct.toFixed(1) + '%';
+
+  // ── Zone ──
+  if (wp >= P_CRIT) {
+    wrap.classList.add('p-critical');
+    badge.textContent = 'CRITICAL';
+    badge.style.color = 'var(--red)'; badge.style.borderColor = 'rgba(224,80,80,.35)';
+  } else if (wp >= P_WARN) {
+    wrap.classList.add('p-warning');
+    badge.textContent = 'HIGH';
+    badge.style.color = 'var(--yellow)'; badge.style.borderColor = 'rgba(245,200,66,.35)';
+  } else {
+    wrap.classList.add('p-normal');
+    badge.textContent = parseFloat(wp.toFixed(2)).toString() + ' Bar';
+    badge.style.color = 'var(--green)'; badge.style.borderColor = 'rgba(65,216,132,.3)';
+  }
+}
+
+/* ══════════════════════════════════════════════
+   STATUS UPDATE
+══════════════════════════════════════════════ */
+function handleStatusUpdates(data) {
+  lastMsgTime = Date.now(); isConnected = true; msgCount++;
+  document.getElementById('stat-msgs').textContent = msgCount;
+  document.getElementById('last-update-badge').textContent = new Date().toLocaleTimeString('en-SA',{hour12:false});
+
+  // Pumps
+  setLed('jockey-pump-run',  data.JP  ?'run' :'blank'); setLed('jockey-pump-off',  !data.JP?'off':'blank'); setLed('jockey-pump-trip', data.JPT?'trip':'blank');
+  setPanelState('panel-jockey', data.JPT?'alarm':data.JP?'run':'');
+  setPanelBadge('badge-jockey', data.JPT?'TRIP':data.JP?'RUNNING':'STOPPED', data.JPT?'var(--yellow)':data.JP?'var(--green)':'');
+
+  setLed('main-pump-run',  data.MP  ?'run' :'blank'); setLed('main-pump-off',  !data.MP?'off':'blank'); setLed('main-pump-trip', data.MPT?'trip':'blank');
+  setPanelState('panel-main', data.MPT?'alarm':data.MP?'run':'');
+  setPanelBadge('badge-main', data.MPT?'TRIP':data.MP?'RUNNING':'STOPPED', data.MPT?'var(--yellow)':data.MP?'var(--green)':'');
+
+  setLed('diesel-pump-run',  data.DP  ?'run' :'blank'); setLed('diesel-pump-off',  !data.DP?'off':'blank'); setLed('diesel-pump-trip', data.DPT?'trip':'blank');
+  setPanelState('panel-diesel', data.DPT?'alarm':data.DP?'run':'');
+  setPanelBadge('badge-diesel', data.DPT?'TRIP':data.DP?'RUNNING':'STOPPED', data.DPT?'var(--yellow)':data.DP?'var(--green)':'');
+
+  // Sensors
+  setLed('smoke-detector-alarm',  data.SS1 ?'alarm-led':'blank'); setLed('smoke-detector-normal', !data.SS1?'normal':'blank');
+  setPanelState('panel-smoke', data.SS1?'alarm':'');
+  setPanelBadge('badge-smoke', data.SS1?'ALARM!':'NORMAL', data.SS1?'var(--red)':'');
+
+  setLed('flood-sensor-alarm',  data.FS ?'alarm-led':'blank'); setLed('flood-sensor-normal', !data.FS?'normal':'blank');
+  setPanelState('panel-flood', data.FS?'alarm':'');
+  setPanelBadge('badge-flood', data.FS?'ALARM!':'NORMAL', data.FS?'var(--red)':'');
+
+  // Env
+  if (data.TH) {
+    const parts = String(data.TH).split(',');
+    document.getElementById('room-temperature').innerHTML = String(parts[0]||'--').trim() + '<span>&nbsp;°C</span>';
+    document.getElementById('room-humidity').innerHTML    = String(parts[1]||'--').trim() + '<span>&nbsp;%</span>';
+  }
+
+  // ── Pressure — fixed ──
+  updatePressure(data.WP !== undefined ? data.WP : null);
+
+  // Mode selectors
+  if (data.JPM !== undefined) setSelect('jockey-mode', data.JPM);
+  if (data.MPM !== undefined) setSelect('main-mode',   data.MPM);
+  if (data.DPM !== undefined) setSelect('diesel-mode', data.DPM);
+
+  // Alarms
   const alarms = [];
-  if (data.JPT) alarms.push('⚠ Jockey Pump Trip');
-  if (data.MPT) alarms.push('⚠ Main Pump Trip');
-  if (data.DPT) alarms.push('⚠ Diesel Pump Trip');
-  if (data.SS1) alarms.push('⚠ Smoke Detector Alarm');
-  if (data.FS)  alarms.push('⚠ Flood Sensor Alarm');
+  if (data.JPT)     alarms.push('⚠ Jockey Pump Trip');
+  if (data.MPT)     alarms.push('⚠ Main Pump Trip');
+  if (data.DPT)     alarms.push('⚠ Diesel Pump Trip');
+  if (data.SS1)     alarms.push('⚠ Smoke Detector Alarm');
+  if (data.FS)      alarms.push('⚠ Flood Sensor Alarm');
   if (!data.RXTX)   { alarms.push('⚠ RXTX Comm Failed');   setAllLedsBlank(); }
   if (!data.RXMQTT) { alarms.push('⚠ RXMQTT Comm Failed'); setAllLedsBlank(); }
 
-  const alarmActive = alarms.length > 0;
-  const banner  = document.getElementById('alarmBanner');
-  const page    = document.getElementById('page');
-  const sysIcon = document.getElementById('system-status');
-  const sysText = document.getElementById('sys-status-text');
-  const sysSub  = document.getElementById('sys-status-sub');
+  const banner=document.getElementById('alarmBanner'), pg=document.getElementById('page');
+  const si=document.getElementById('system-status'), st=document.getElementById('sys-status-text'), ss=document.getElementById('sys-status-sub');
 
-  if (alarmActive) {
+  if (alarms.length) {
     if (!alarmSilenced) playAlarmSound();
-    alarmCount += alarms.length;
-    document.getElementById('stat-alarms').textContent = alarmCount;
-    banner.classList.add('active');
-    page.classList.add('has-alarm');
+    alarmCount++; document.getElementById('stat-alarms').textContent = alarmCount;
+    banner.classList.add('active'); pg.classList.add('has-alarm');
     document.getElementById('alarmText').textContent = alarms.join('   |   ');
-    sysIcon.className = 'fas fa-exclamation-circle sys-icon fail';
-    sysText.textContent = 'Active Alarms Detected';
-    sysSub.textContent  = alarms.join(' | ');
+    si.className='fas fa-exclamation-circle sys-icon fail'; st.textContent='Active Alarms Detected'; ss.textContent=alarms.join(' | ');
   } else {
-    banner.classList.remove('active');
-    page.classList.remove('has-alarm');
-    sysIcon.className = 'fas fa-check-circle sys-icon ok';
-    sysText.textContent = 'All Systems Normal';
-    sysSub.textContent  = 'Last data: ' + new Date().toLocaleTimeString('en-SA', { hour12: false });
+    banner.classList.remove('active'); pg.classList.remove('has-alarm');
+    si.className='fas fa-check-circle sys-icon ok'; st.textContent='All Systems Normal'; ss.textContent='Last data: '+new Date().toLocaleTimeString('en-SA',{hour12:false});
   }
 }
 
-function setSelect(id, val) {
-  const el = document.getElementById(id);
-  if (el && val !== undefined && val !== null) el.value = String(val);
-}
+function setSelect(id,val){ const e=document.getElementById(id); if(e&&val!==undefined&&val!==null) e.value=String(val); }
 
-/* ════════════════════════════════════════
+/* ══════════════════════════════════════════════
    ALARM CONTROLS
-════════════════════════════════════════ */
-function acknowledgeAlarm() {
-  alarmSilenced = true;
-  if (audioContext) audioContext.suspend();
-  showToast('Alarm silenced', 'warn');
-}
-function resetAlarm() {
-  alarmSilenced = false;
-  if (audioContext) audioContext.resume();
-  showToast('Alarm reset — sound re-enabled', 'ok');
-}
+══════════════════════════════════════════════ */
+function acknowledgeAlarm(){ alarmSilenced=true; if(audioCtx)audioCtx.suspend(); showToast('Alarm silenced','warn'); }
+function resetAlarm(){ alarmSilenced=false; if(audioCtx)audioCtx.resume(); showToast('Alarm reset','ok'); }
 
-/* ════════════════════════════════════════
+/* ══════════════════════════════════════════════
    MQTT
-════════════════════════════════════════ */
-const MQTT_SERVERS = {
+══════════════════════════════════════════════ */
+const SERVERS = {
   primary:   'wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt',
   secondary: 'wss://279f2d6397444dbcbeb4eaa4897960f7.s1.eu.hivemq.cloud:8884/mqtt',
 };
-const MQTT_OPTS = {
-  username: 'firepump',
-  password: '044313187Ki@',
-  clientId: `fp_dash_${Math.random().toString(16).slice(2,10)}`,
-  keepalive: 30,
-  reconnectPeriod: 0,   // we handle reconnect manually
-  connectTimeout: 10000,
-  clean: true,
-};
+const MOPTS = { username:'firepump', password:'044313187Ki@', clientId:`fp_${Math.random().toString(16).slice(2,10)}`, keepalive:30, reconnectPeriod:0, connectTimeout:10000, clean:true };
 
-function setBadge(state, text) {
-  const b = document.getElementById('mqttBadge');
-  b.className = 'mqtt-badge ' + state;
-  document.getElementById('mqttBadgeText').textContent = text;
+function setBadge(st,txt){ const b=document.getElementById('mqttBadge'); b.className='mqtt-badge '+st; document.getElementById('mqttBadgeText').textContent=txt; }
+function setReconnUI(spin,msg,srv,cd){
+  document.getElementById('reconnectSpinner').className='reconnect-spinner'+(spin?' active':'');
+  document.getElementById('reconnectMsg').textContent=msg;
+  document.getElementById('reconnectServer').textContent=srv||'—';
+  const c=document.getElementById('retryCountdown');
+  if(cd>0){c.style.display='';c.textContent=cd+'s';}else{c.style.display='none';}
 }
 
-function setReconnectUI(spinning, msg, server, countdown) {
-  document.getElementById('reconnectSpinner').className = 'reconnect-spinner' + (spinning ? ' active' : '');
-  document.getElementById('reconnectMsg').textContent = msg;
-  document.getElementById('reconnectServer').textContent = server || '—';
-  const cd = document.getElementById('retryCountdown');
-  if (countdown > 0) { cd.style.display = ''; cd.textContent = countdown + 's'; }
-  else               { cd.style.display = 'none'; }
+function connectMqtt(key){
+  if(mqttClient){try{mqttClient.end(true);}catch(e){} mqttClient=null;}
+  currentServer=key;
+  const url=SERVERS[key], lbl=key==='primary'?'Primary':'Backup';
+  document.getElementById('stat-broker').textContent=lbl;
+  setBadge('','Connecting…'); setReconnUI(true,'Connecting to '+lbl+'…',url,0);
+  reconnectAttempt++; document.getElementById('stat-retries').textContent=reconnectAttempt;
+
+  mqttClient=mqtt.connect(url,MOPTS);
+  mqttClient.on('connect',()=>{
+    isConnected=true; setBadge('connected','Connected · '+lbl);
+    setReconnUI(false,'Connected to '+lbl,url,0); showToast('MQTT connected — '+lbl,'ok');
+    mqttClient.subscribe('fire-pump/status',err=>{ if(err)console.error('Sub:',err); });
+  });
+  mqttClient.on('message',(topic,msg)=>{
+    if(topic==='fire-pump/status'){try{handleStatusUpdates(JSON.parse(msg.toString()));}catch(e){console.warn('JSON:',e);}}
+  });
+  mqttClient.on('error',err=>{ console.error(err); setBadge('error','Error · '+lbl); isConnected=false; });
+  mqttClient.on('close',()=>{ if(!isConnected)return; isConnected=false; setBadge('error','Disconnected'); triggerReconnect(); });
+  mqttClient.on('offline',()=>{ isConnected=false; setBadge('error','Offline'); triggerReconnect(); });
 }
 
-function connectMqtt(serverKey) {
-  if (mqttClient) {
-    try { mqttClient.end(true); } catch(e) {}
-    mqttClient = null;
-  }
+function triggerReconnect(delay){
+  if(reconnectScheduled)return; reconnectScheduled=true;
+  const next=currentServer==='primary'?'secondary':'primary';
+  const wait=delay!==undefined?delay:(currentServer==='primary'?3:30);
+  retryCountdown=wait; setReconnUI(false,'Reconnecting in:',SERVERS[next],retryCountdown);
+  if(retryTimer)clearInterval(retryTimer);
+  retryTimer=setInterval(()=>{
+    retryCountdown--; setReconnUI(false,'Reconnecting in:',SERVERS[next],retryCountdown);
+    if(retryCountdown<=0){clearInterval(retryTimer);reconnectScheduled=false;connectMqtt(next);}
+  },1000);
+}
 
-  currentServer = serverKey;
-  const url = MQTT_SERVERS[serverKey];
-  const shortName = serverKey === 'primary' ? 'Primary' : 'Backup';
-  document.getElementById('stat-broker').textContent = shortName;
-
-  setBadge('', 'Connecting…');
-  setReconnectUI(true, `Connecting to ${shortName} broker…`, url, 0);
-  reconnectAttempt++;
-  document.getElementById('stat-retries').textContent = reconnectAttempt;
-
-  mqttClient = mqtt.connect(url, MQTT_OPTS);
-
-  mqttClient.on('connect', () => {
-    isConnected = true;
-    setBadge('connected', 'Connected · ' + shortName);
-    setReconnectUI(false, `Connected to ${shortName} broker`, url, 0);
-    showToast('MQTT connected — ' + shortName, 'ok');
-
-    mqttClient.subscribe('fire-pump/status', err => {
-      if (err) console.error('Subscribe error:', err);
-    });
-  });
-
-  mqttClient.on('message', (topic, message) => {
-    if (topic === 'fire-pump/status') {
-      try {
-        const data = JSON.parse(message.toString());
-        handleStatusUpdates(data);
-      } catch(e) { console.warn('Bad JSON:', e); }
-    }
-  });
-
-  mqttClient.on('error', err => {
-    console.error('MQTT error:', err);
-    setBadge('error', 'Error · ' + shortName);
-    isConnected = false;
-  });
-
-  mqttClient.on('close', () => {
-    if (!isConnected) return;
-    isConnected = false;
-    setBadge('error', 'Disconnected');
-    setReconnectUI(false, 'Connection lost. Switching broker…', '', 0);
-    triggerReconnect();
-  });
-
-  mqttClient.on('offline', () => {
-    isConnected = false;
-    setBadge('error', 'Offline');
-    triggerReconnect();
+function sendMode(group,mode){
+  if(currentUser&&currentUser.role==='viewer'){showToast('Read-only access — cannot change modes','err');return;}
+  if(!mqttClient||!isConnected){showToast('Not connected','err');return;}
+  const payload=JSON.stringify({group,mode:parseInt(mode)});
+  mqttClient.publish('fire-pump/mode',payload,err=>{
+    if(err)showToast('Publish failed','err');
+    else   showToast(group.toUpperCase()+' → '+['OFF','MANUAL','AUTO'][mode],'ok');
   });
 }
 
-let reconnectScheduled = false;
-function triggerReconnect(delay) {
-  if (reconnectScheduled) return;
-  reconnectScheduled = true;
-
-  // Alternate servers
-  const nextServer = currentServer === 'primary' ? 'secondary' : 'primary';
-  const wait = delay !== undefined ? delay : (currentServer === 'primary' ? 3 : 30);
-
-  retryCountdown = wait;
-  setReconnectUI(false, 'Reconnecting in:', MQTT_SERVERS[nextServer], retryCountdown);
-
-  if (retryTimer) clearInterval(retryTimer);
-  retryTimer = setInterval(() => {
-    retryCountdown--;
-    setReconnectUI(false, 'Reconnecting in:', MQTT_SERVERS[nextServer], retryCountdown);
-    if (retryCountdown <= 0) {
-      clearInterval(retryTimer);
-      reconnectScheduled = false;
-      connectMqtt(nextServer);
-    }
-  }, 1000);
-}
-
-/* ════════════════════════════════════════
-   MODE PUBLISH
-════════════════════════════════════════ */
-function sendMode(group, mode) {
-  if (!mqttClient || !isConnected) {
-    showToast('Not connected — cannot change mode', 'err');
-    return;
-  }
-  const payload = JSON.stringify({ group, mode: parseInt(mode) });
-  mqttClient.publish('fire-pump/mode', payload, err => {
-    if (err) showToast('Publish failed: ' + err.message, 'err');
-    else     showToast(`${group.toUpperCase()} mode set to ${['OFF','MANUAL','AUTO'][mode]}`, 'ok');
-  });
-}
-
-/* ════════════════════════════════════════
-   WATCHDOG — NO location.reload()
-════════════════════════════════════════ */
-setInterval(() => {
-  const elapsed = Date.now() - lastMessageTime;
-
-  // Update uptime
-  const up = Math.floor((Date.now() - sessionStart) / 1000);
-  const hh = String(Math.floor(up / 3600)).padStart(2,'0');
-  const mm = String(Math.floor((up % 3600) / 60)).padStart(2,'0');
-  const ss = String(up % 60).padStart(2,'0');
-  document.getElementById('stat-uptime').textContent = `${hh}:${mm}:${ss}`;
-
-  // If connected but no data for >60s → data timeout alarm
-  if (isConnected && elapsed > 60000) {
-    const banner = document.getElementById('alarmBanner');
-    banner.classList.add('active');
+/* ══════════════════════════════════════════════
+   WATCHDOG
+══════════════════════════════════════════════ */
+setInterval(()=>{
+  const up=Math.floor((Date.now()-sessionStart)/1000);
+  document.getElementById('stat-uptime').textContent=
+    String(Math.floor(up/3600)).padStart(2,'0')+':'+String(Math.floor((up%3600)/60)).padStart(2,'0')+':'+String(up%60).padStart(2,'0');
+  if(isConnected&&(Date.now()-lastMsgTime)>60000){
+    document.getElementById('alarmBanner').classList.add('active');
     document.getElementById('page').classList.add('has-alarm');
-    document.getElementById('alarmText').textContent = '⚠ Transmitter-MQTT Communication Timeout — No data received';
-    document.getElementById('system-status').className = 'fas fa-exclamation-circle sys-icon fail';
-    document.getElementById('sys-status-text').textContent = 'Communication Timeout';
-    document.getElementById('sys-status-sub').textContent = 'No MQTT message for >60s';
-    setAllLedsBlank();
-    playAlarmSound();
+    document.getElementById('alarmText').textContent='⚠ Transmitter-MQTT Timeout — No data for >60s';
+    document.getElementById('system-status').className='fas fa-exclamation-circle sys-icon fail';
+    document.getElementById('sys-status-text').textContent='Communication Timeout';
+    document.getElementById('sys-status-sub').textContent='No MQTT message for >60s';
+    setAllLedsBlank(); playAlarmSound();
   }
+  if(!isConnected&&!reconnectScheduled) triggerReconnect(5);
+},1000);
 
-  // If disconnected and no reconnect in progress → trigger reconnect
-  if (!isConnected && !reconnectScheduled) {
-    triggerReconnect(5);
-  }
-}, 1000);
-
-/* ════════════════════════════════════════
-   PAGE VISIBILITY — keep MQTT alive
-════════════════════════════════════════ */
-document.addEventListener('visibilitychange', () => {
-  isPageVisible = document.visibilityState === 'visible';
-  if (isPageVisible) {
-    // Resume audio if it was running before hide
-    if (audioContext && audioContext.state === 'suspended' && !alarmSilenced) {
-      // Don't auto-resume on visibility restore — let user interact first
-    }
-    // If connection dropped while hidden, reconnect immediately
-    if (!isConnected && !reconnectScheduled) {
-      triggerReconnect(1);
-    }
-  }
-  // Note: MQTT connection stays alive in background regardless of visibility
-  // No reload, no suspension of MQTT
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&!isConnected&&!reconnectScheduled) triggerReconnect(1);
 });
 
-/* ════════════════════════════════════════
-   KEEP ALIVE — periodic MQTT ping
-   (mqtt.js keepalive=30 handles PINGREQ,
-    but we also re-subscribe on reconnect)
-════════════════════════════════════════ */
-// The MQTT keepalive=30 option in MQTT_OPTS already sends PINGREQ every 30s.
-// No manual ping needed. Just ensure we don't call location.reload().
+/* ══════════════════════════════════════════════
+   USER MANAGEMENT
+══════════════════════════════════════════════ */
+function getUsers(){try{return JSON.parse(localStorage.getItem('fp_users'))||[];}catch{return [];}}
+function saveUsers(u){localStorage.setItem('fp_users',JSON.stringify(u));}
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-/* ════════════════════════════════════════
+function openUsersModal(){ renderUsersTable(); document.getElementById('usersOverlay').classList.add('open'); }
+function closeUsersModal(){
+  document.getElementById('usersOverlay').classList.remove('open');
+  ['new-username','new-name','new-password','new-confirm'].forEach(id=>document.getElementById(id).value='');
+}
+
+function renderUsersTable(){
+  const users=getUsers(), tbody=document.getElementById('usersTableBody');
+  if(!users.length){ tbody.innerHTML='<tr><td colspan="4" style="color:var(--text-muted);text-align:center;padding:20px">No users found</td></tr>'; return; }
+  tbody.innerHTML=users.map(u=>{
+    const isSelf=currentUser&&u.id===currentUser.id;
+    const isLastAdmin=u.role==='admin'&&users.filter(x=>x.role==='admin').length===1;
+    const dis=(isSelf||isLastAdmin)?'disabled title="Cannot remove yourself or last admin"':'';
+    return `<tr>
+      <td class="mono">${escH(u.username)}${isSelf?' <span style="color:var(--accent);font-size:10px">(you)</span>':''}</td>
+      <td>${escH(u.name||'—')}</td>
+      <td><span class="role-pill ${u.role}">${u.role.toUpperCase()}</span></td>
+      <td>
+        <button class="tbl-btn pass" onclick="openPassModal('${u.id}')"><i class="fas fa-key" style="margin-right:3px"></i>Password</button>
+        <button class="tbl-btn del" onclick="deleteUser('${u.id}')" ${dis}><i class="fas fa-trash" style="margin-right:3px"></i>Delete</button>
+      </td></tr>`;
+  }).join('');
+}
+
+async function addUser(){
+  const username=document.getElementById('new-username').value.trim();
+  const name    =document.getElementById('new-name').value.trim();
+  const role    =document.getElementById('new-role').value;
+  const pwd     =document.getElementById('new-password').value;
+  const confirm =document.getElementById('new-confirm').value;
+  if(!username){showToast('Username is required','err');return;}
+  if(!/^[a-z0-9_.-]+$/i.test(username)){showToast('Username: letters, numbers, _ . - only','err');return;}
+  if(pwd.length<6){showToast('Password must be ≥ 6 characters','err');return;}
+  if(pwd!==confirm){showToast('Passwords do not match','err');return;}
+  const users=getUsers();
+  if(users.find(u=>u.username.toLowerCase()===username.toLowerCase())){showToast('Username already exists','err');return;}
+  const hash=await hashPassword(pwd);
+  users.push({id:Date.now().toString(),username,name:name||username,role,hash});
+  saveUsers(users); renderUsersTable();
+  ['new-username','new-name','new-password','new-confirm'].forEach(id=>document.getElementById(id).value='');
+  showToast(`User "${username}" added as ${role}`,'ok');
+}
+
+function deleteUser(id){
+  const users=getUsers(), user=users.find(u=>u.id===id); if(!user)return;
+  if(!confirm(`Delete user "${user.username}"? This cannot be undone.`))return;
+  saveUsers(users.filter(u=>u.id!==id)); renderUsersTable();
+  showToast(`User "${user.username}" deleted`,'warn');
+}
+
+function openPassModal(uid){
+  document.getElementById('pass-target-id').value=uid;
+  document.getElementById('pass-new').value=''; document.getElementById('pass-confirm').value='';
+  document.getElementById('passOverlay').classList.add('open');
+}
+function closePassModal(){ document.getElementById('passOverlay').classList.remove('open'); }
+
+async function savePassword(){
+  const uid=document.getElementById('pass-target-id').value;
+  const np =document.getElementById('pass-new').value;
+  const cf =document.getElementById('pass-confirm').value;
+  if(np.length<6){showToast('Password must be ≥ 6 characters','err');return;}
+  if(np!==cf){showToast('Passwords do not match','err');return;}
+  const users=getUsers(), idx=users.findIndex(u=>u.id===uid);
+  if(idx<0){showToast('User not found','err');return;}
+  users[idx].hash=await hashPassword(np); saveUsers(users);
+  closePassModal(); renderUsersTable();
+  showToast(`Password updated for "${users[idx].username}"`,'ok');
+  if(currentUser&&uid===currentUser.id){ showToast('Your password changed — re-login required','warn',3000); setTimeout(logout,3200); }
+}
+
+/* ══════════════════════════════════════════════
    START
-════════════════════════════════════════ */
+══════════════════════════════════════════════ */
 connectMqtt('primary');
 </script>
 </body>
