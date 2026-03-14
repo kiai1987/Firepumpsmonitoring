@@ -1,112 +1,313 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Fire Pump Monitoring Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f8f8f8;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Fire Pump Monitoring</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+  <style>
+    :root {
+      --bg-app:    #0d0f13;
+      --bg-panel:  #161921;
+      --bg-panel2: #1c202b;
+      --bg-input:  #22273a;
+      --border:    #2a3046;
+      --accent:    #f08533;
+      --text-main: #d8dce8;
+      --text-muted:#6b7599;
+      --green:     #41d884;
+      --red:       #e05050;
+      --radius:    8px;
+      --font-head: 'Barlow Condensed', sans-serif;
+      --font-body: 'Barlow', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .login-container {
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            padding: 40px;
-            width: 400px;
-            text-align: center;
-            position: relative;
-        }
+    html, body {
+      height: 100%; background: var(--bg-app);
+      color: var(--text-main); font-family: var(--font-body);
+      display: flex; align-items: center; justify-content: center;
+    }
 
-        .login-container img {
-            width: 150px;
-            height: auto;
-            margin-bottom: 20px;
-        }
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: .25;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 60% 60% at 50% 40%, rgba(240,133,51,.06) 0%, transparent 70%);
+    }
 
-        .login-container input[type="text"],
-        .login-container input[type="password"] {
-            width: calc(100% - 40px);
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
+    .login-wrap {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 400px;
+      padding: 16px;
+    }
 
-        .login-container button {
-            width: calc(100% - 40px);
-            padding: 10px;
-            background-color: #004d40;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
+    .brand {
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      margin-bottom: 32px;
+    }
+    .brand img {
+      height: 52px; filter: drop-shadow(0 0 12px rgba(240,133,51,.3));
+    }
+    .brand-title {
+      font-family: var(--font-head); font-size: 22px; font-weight: 700;
+      letter-spacing: .8px; color: var(--text-main); text-align: center;
+    }
+    .brand-title span { color: var(--accent); }
+    .brand-sub {
+      font-family: var(--font-mono); font-size: 11px;
+      color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase;
+    }
 
-        .login-container button:hover {
-            background-color: #00332b;
-        }
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 28px 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    }
 
-        .login-container h2 {
-            margin-bottom: 20px;
-        }
-    </style>
+    .card-header {
+      font-family: var(--font-head); font-size: 13px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 22px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-header::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block; font-size: 12px; font-weight: 600;
+      letter-spacing: .8px; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 6px;
+    }
+    .input-wrap {
+      position: relative;
+    }
+    .input-wrap i {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: var(--text-muted); font-size: 13px;
+      pointer-events: none;
+    }
+    .form-input {
+      width: 100%; padding: 10px 12px 10px 36px;
+      background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text-main);
+      font-family: var(--font-mono); font-size: 13px;
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+    }
+    .form-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(240,133,51,.1);
+    }
+    .form-input::placeholder { color: var(--text-muted); opacity: .6; }
+
+    .eye-toggle {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--text-muted);
+      cursor: pointer; padding: 2px 4px; font-size: 13px;
+      transition: color .2s;
+    }
+    .eye-toggle:hover { color: var(--text-main); }
+
+    .error-msg {
+      background: rgba(224,80,80,.1); border: 1px solid rgba(224,80,80,.3);
+      border-radius: var(--radius); padding: 10px 14px;
+      color: var(--red); font-size: 13px; margin-bottom: 16px;
+      display: none; align-items: center; gap: 8px;
+    }
+    .error-msg.show { display: flex; }
+
+    .login-btn {
+      width: 100%; padding: 11px;
+      background: var(--accent); border: none;
+      border-radius: var(--radius); color: #fff;
+      font-family: var(--font-head); font-size: 16px; font-weight: 700;
+      letter-spacing: .8px; cursor: pointer;
+      transition: background .2s, transform .1s, box-shadow .2s;
+      box-shadow: 0 4px 16px rgba(240,133,51,.3);
+    }
+    .login-btn:hover  { background: #e07020; box-shadow: 0 6px 20px rgba(240,133,51,.45); }
+    .login-btn:active { transform: translateY(1px); }
+    .login-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.4); border-top-color: #fff;
+      border-radius: 50%; animation: spin .7s linear infinite;
+      margin-right: 6px; vertical-align: middle; display: none;
+    }
+    .login-btn.loading .spinner { display: inline-block; }
+    .login-btn.loading .btn-text { display: none; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .footer-note {
+      text-align: center; margin-top: 20px;
+      font-family: var(--font-mono); font-size: 10px;
+      color: var(--text-muted); letter-spacing: .5px;
+    }
+    .footer-note span { color: var(--accent); }
+  </style>
 </head>
 <body>
-    <div class="login-container">
-        <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png" alt="Al Nakhla Logo">
-        <h2>Fire Pump Monitoring Dashboard</h2>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button onclick="login()">Login</button>
+  <div class="login-wrap">
+    <div class="brand">
+      <img src="https://www.alnakhla.sa/wp-content/uploads/2023/03/new-logo-300x263.png"
+           alt="Al Nakhla" onerror="this.style.display='none'">
+      <div>
+        <div class="brand-title">Fire Pump <span>Monitoring</span></div>
+        <div class="brand-sub">Alsharq Village · Al Nakhla Engineering</div>
+      </div>
     </div>
 
-    <script>
-        const engineerUsername = "Engineer";
-        const engineerPassword = "12345678";
-        const securityUsername = "Security";
-        const securityPassword = "12345678";
+    <div class="card">
+      <div class="card-header"><i class="fas fa-lock" style="color:var(--accent)"></i>Sign In</div>
 
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+      <div class="error-msg" id="errorMsg">
+        <i class="fas fa-times-circle"></i>
+        <span id="errorText">Invalid username or password.</span>
+      </div>
 
-            if ((username === engineerUsername && password === engineerPassword) || 
-                (username === securityUsername && password === securityPassword)) {
-                localStorage.setItem("authenticated", "true");
-                localStorage.setItem("username", username);
-                if (username === engineerUsername) {
-                    window.location.href = "engineer_dashboard.html";
-                } else {
-                    window.location.href = "dashboard.html";
-                }
-            } else {
-                alert("Incorrect username or password. Please try again.");
-            }
-        }
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <div class="input-wrap">
+          <i class="fas fa-user"></i>
+          <input type="text" class="form-input" id="username"
+                 placeholder="Enter username" autocomplete="username"
+                 onkeydown="if(event.key==='Enter') doLogin()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-wrap">
+          <i class="fas fa-key"></i>
+          <input type="password" class="form-input" id="password"
+                 placeholder="Enter password" autocomplete="current-password"
+                 onkeydown="if(event.key==='Enter') doLogin()">
+          <button class="eye-toggle" type="button" onclick="toggleEye(this)"
+                  tabindex="-1">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+      </div>
 
-        window.onload = function() {
-            const username = localStorage.getItem("username");
-            if (localStorage.getItem("authenticated") === "true") {
-                if (username === "Engineer") {
-                    window.location.href = "engineer_dashboard.html";
-                } else {
-                    window.location.href = "dashboard.html";
-                }
-            }
-        }
-    </script>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">
+        <div class="spinner" id="spinner"></div>
+        <span class="btn-text"><i class="fas fa-sign-in-alt" style="margin-right:6px"></i>Sign In</span>
+      </button>
+    </div>
+
+    <div class="footer-note">
+      Al Nakhla Engineering Dep. — <span>Eng. Youssef</span> · v4.0
+    </div>
+  </div>
+
+<script>
+/* ═══ PASSWORD HASHING ═══ */
+async function hashPassword(password) {
+  const enc = new TextEncoder();
+  const data = enc.encode('ALNAKHLA_FP_SALT_2024_' + password);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ═══ DEFAULT USERS (seeded on first load) ═══ */
+const DEFAULT_USERS = [
+  { id:'1', username:'admin',    name:'Administrator',    role:'admin',    pwd:'Admin@1234'   },
+  { id:'2', username:'operator', name:'Pump Operator',    role:'operator', pwd:'Operator@1234'},
+  { id:'3', username:'viewer',   name:'View Only',        role:'viewer',   pwd:'Viewer@1234'  },
+];
+
+async function seedDefaultUsers() {
+  const existing = localStorage.getItem('fp_users');
+  if (existing) return;
+  const users = [];
+  for (const u of DEFAULT_USERS) {
+    const hash = await hashPassword(u.pwd);
+    users.push({ id: u.id, username: u.username, name: u.name, role: u.role, hash });
+  }
+  localStorage.setItem('fp_users', JSON.stringify(users));
+}
+
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem('fp_users')) || []; }
+  catch { return []; }
+}
+
+/* ═══ LOGIN ═══ */
+function showError(msg) {
+  document.getElementById('errorText').textContent = msg;
+  document.getElementById('errorMsg').classList.add('show');
+}
+function hideError() {
+  document.getElementById('errorMsg').classList.remove('show');
+}
+
+function toggleEye(btn) {
+  const inp = btn.closest('.input-wrap').querySelector('input');
+  const ico = btn.querySelector('i');
+  if (inp.type === 'password') {
+    inp.type = 'text'; ico.className = 'fas fa-eye-slash';
+  } else {
+    inp.type = 'password'; ico.className = 'fas fa-eye';
+  }
+}
+
+async function doLogin() {
+  hideError();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+
+  if (!username || !password) { showError('Please enter username and password.'); return; }
+
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.classList.add('loading');
+
+  // Small delay for UX feel
+  await new Promise(r => setTimeout(r, 400));
+
+  const users = getUsers();
+  const hash  = await hashPassword(password);
+  const user  = users.find(u => u.username === username && u.hash === hash);
+
+  if (!user) {
+    showError('Invalid username or password.');
+    btn.disabled = false; btn.classList.remove('loading');
+    return;
+  }
+
+  localStorage.setItem('authenticated', 'true');
+  localStorage.setItem('fp_current_user', JSON.stringify({
+    id: user.id, username: user.username, name: user.name, role: user.role
+  }));
+  window.location.href = 'fire_pump_dashboard.html';
+}
+
+// Seed & prefill check
+(async () => {
+  await seedDefaultUsers();
+  // If already authenticated, redirect straight to dashboard
+  if (localStorage.getItem('authenticated') === 'true') {
+    window.location.href = 'fire_pump_dashboard.html';
+  }
+})();
+</script>
 </body>
 </html>
