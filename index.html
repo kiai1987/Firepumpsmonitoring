@@ -297,7 +297,7 @@ async function doLogin() {
   localStorage.setItem('fp_current_user', JSON.stringify({
     id: user.id, username: user.username, name: user.name, role: user.role
   }));
-  window.location.href = 'fire_pump_dashboard.html';
+  window.location.href = 'engineer_dashboard.html';
 }
 
 // Seed & prefill check
@@ -305,10 +305,9 @@ async function doLogin() {
   await seedDefaultUsers();
   // If already authenticated, redirect straight to dashboard
   if (localStorage.getItem('authenticated') === 'true') {
-    window.location.href = 'fire_pump_dashboard.html';
+    window.location.href = 'engineer_dashboard.html';
   }
 })();
 </script>
 </body>
 </html>
-
