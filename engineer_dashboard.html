@@ -434,42 +434,6 @@
     <button style="flex-shrink:0;padding:4px 12px;border-radius:var(--radius);cursor:pointer;font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-muted);margin-left:6px;" onclick="resetAlarm()"><i class="fas fa-redo" style="margin-right:4px"></i>Reset</button>
   </div>
 
-  <!-- Full-screen alarm overlay -->
-  <div class="alarm-overlay" id="alarmOverlay">
-    <div class="alarm-flash"></div>
-    <div class="alarm-modal">
-      <div class="alarm-modal-hdr">
-        <div class="alarm-bell-wrap"><i class="fas fa-bell"></i></div>
-        <div class="alarm-modal-title">⚠ SYSTEM ALARM ACTIVE</div>
-        <div class="alarm-modal-sub">Fire Pump Monitoring — Al Nakhla Village</div>
-      </div>
-      <div class="alarm-modal-body">
-        <div class="alarm-list" id="alarmList"></div>
-        <div class="alarm-time-row">
-          <span>Alarm Time:</span>
-          <span class="alarm-time-val" id="alarmTime">—</span>
-        </div>
-      </div>
-      <div class="alarm-modal-ftr">
-        <div class="alarm-status-pill" id="alarmStatusPill">
-          <i class="fas fa-volume-up"></i>&nbsp; AUDIBLE ACTIVE
-        </div>
-        <div class="alarm-btns">
-          <button class="btn-ack" onclick="acknowledgeAlarm()">
-            <i class="fas fa-bell-slash"></i>
-            ACKNOWLEDGE
-            <small>Silence the alarm sound</small>
-          </button>
-          <button class="btn-rst" onclick="resetAlarm()">
-            <i class="fas fa-redo"></i>
-            RESET
-            <small>Clear &amp; close this screen</small>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Page content -->
   <div class="page" id="page">
     <div class="page-content">
@@ -651,16 +615,72 @@
 
 </div><!-- end dashboardView -->
 
+<!-- ════ ALARM OVERLAY — body level, always on top ════ -->
+<div class="alarm-overlay" id="alarmOverlay">
+  <div class="alarm-flash"></div>
+  <div class="alarm-modal">
+    <div class="alarm-modal-hdr">
+      <div class="alarm-bell-wrap"><i class="fas fa-bell"></i></div>
+      <div class="alarm-modal-title" id="alarmOverlayTitle">⚠ SYSTEM ALARM ACTIVE</div>
+      <div class="alarm-modal-sub">Fire Pump Monitoring — Al Nakhla Village</div>
+    </div>
+    <div class="alarm-modal-body">
+      <div class="alarm-list" id="alarmList"></div>
+      <div class="alarm-time-row">
+        <span>Alarm Time:</span>
+        <span class="alarm-time-val" id="alarmTime">—</span>
+      </div>
+    </div>
+    <div class="alarm-modal-ftr">
+      <div class="alarm-status-pill" id="alarmStatusPill">
+        <i class="fas fa-volume-up"></i>&nbsp; AUDIBLE ACTIVE
+      </div>
+      <div class="alarm-btns">
+        <button class="btn-ack" onclick="acknowledgeAlarm()">
+          <i class="fas fa-bell-slash"></i>
+          ACKNOWLEDGE
+          <small>Silence the alarm sound</small>
+        </button>
+        <button class="btn-rst" onclick="resetAlarm()">
+          <i class="fas fa-redo"></i>
+          RESET
+          <small>Clear &amp; close this screen</small>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="toast-container" id="toastContainer"></div>
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════
-   PRESSURE CONFIG — adjust to match your sensor
+   PRESSURE CONFIG
+   P_SCALE = 'auto'  → smart auto-detect (recommended)
+   P_SCALE = 1       → value already in Bar (e.g. 7.5)
+   P_SCALE = 0.1     → firmware sends tenths (75 = 7.5 Bar)
+   P_SCALE = 0.001   → firmware sends mbar  (7500 = 7.5 Bar)
+   P_SCALE = 0.00001 → firmware sends Pa*10 (75000 = 7.5 Bar)
 ═══════════════════════════════════════════════════════ */
-const P_MAX   = 16;   // Bar — sensor full scale
-const P_WARN  = 10;   // Bar — yellow zone
-const P_CRIT  = 14;   // Bar — red zone
-const P_SCALE = 1;    // 0.1 if firmware sends tenths (52 = 5.2 Bar)
+const P_MAX   = 16;    // Bar — gauge full scale
+const P_WARN  = 10;    // Bar — yellow zone
+const P_CRIT  = 14;    // Bar — red zone
+const P_SCALE = 'auto'; // 'auto' detects scale from raw value
+
+function normalizeBarValue(raw) {
+  if (raw === null || raw === undefined || raw === '') return null;
+  let v = parseFloat(String(raw).replace(',','.').replace(/\s/g,''));
+  if (!isFinite(v)) return null;
+  if (P_SCALE !== 'auto') return v * P_SCALE;
+  // Auto-scale: bring value into 0–30 Bar range
+  const a = Math.abs(v);
+  if (a === 0) return 0;
+  if (a >= 1e6)  return +(v / 1e6).toFixed(4);  // 10886792 → 10.887 Bar
+  if (a >= 1e5)  return +(v / 1e5).toFixed(4);  // 108867   → 1.089  Bar
+  if (a >= 1e4)  return +(v / 1e4).toFixed(4);  // raw ADC range
+  if (a >= 1e3)  return +(v / 1e3).toFixed(4);  // mbar
+  if (a > 30)    return +(v / 10).toFixed(4);    // tenths
+  return +v.toFixed(4);                           // already Bar
+}
 
 /* ═══════════════════════════════════════════════════════
    SHA-256 (salt matches across login + dashboard)
@@ -808,8 +828,7 @@ function startClock(){
 ═══════════════════════════════════════════════════════ */
 let lastMsgTime=Date.now(),isConnected=false,alarmSilenced=false;
 let msgCount=0,alarmCount=0,sessionStart=Date.now();
-let retryTimer=null,retryCountdown=0,reconnectAttempt=0;
-let curServer='primary',mqttClient=null,reconnectScheduled=false;
+let reconnectAttempt=0, curServer='primary', mqttClient=null;
 
 /* ═══════════════════════════════════════════════════════
    ALARM SOUND ENGINE — synthesised, no external files
@@ -869,7 +888,7 @@ function setPanelBadge(id,txt,col){
 }
 
 /* ═══════════════════════════════════════════════════════
-   PRESSURE UPDATE
+   PRESSURE UPDATE — with auto-scale
 ═══════════════════════════════════════════════════════ */
 function updatePressure(raw){
   const numEl=document.getElementById('pressure-number');
@@ -877,11 +896,11 @@ function updatePressure(raw){
   const wrap =document.getElementById('pressureWrap');
   const badge=document.getElementById('badge-pressure');
   wrap.classList.remove('p-normal','p-warning','p-critical','p-nodata');
-  if(raw===null||raw===undefined||raw===''){
+  const wp = normalizeBarValue(raw);
+  if(wp===null){
     numEl.textContent='--'; barEl.style.width='0%';
-    wrap.classList.add('p-nodata'); badge.textContent='—'; badge.style.color=''; return;
+    wrap.classList.add('p-nodata'); badge.textContent='—'; badge.style.color=''; badge.style.borderColor=''; return;
   }
-  const wp=parseFloat(String(raw).replace(',','.'))*P_SCALE;
   if(!isFinite(wp)){ numEl.textContent='ERR'; barEl.style.width='0%'; wrap.classList.add('p-nodata'); badge.textContent='ERR'; badge.style.color='var(--red)'; return; }
   numEl.textContent=parseFloat(wp.toFixed(2)).toString();
   barEl.style.width=Math.min(Math.max(wp/P_MAX*100,0),100).toFixed(1)+'%';
@@ -892,6 +911,7 @@ function updatePressure(raw){
   } else {
     wrap.classList.add('p-normal'); badge.textContent=parseFloat(wp.toFixed(2))+' Bar'; badge.style.color='var(--green)'; badge.style.borderColor='rgba(65,216,132,.3)';
   }
+  return wp;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1000,13 +1020,24 @@ function handleStatusUpdates(data){
 function setSelect(id,val){ const e=document.getElementById(id); if(e&&val!=null)e.value=String(val); }
 
 /* ═══════════════════════════════════════════════════════
-   MQTT
+   MQTT — fast reconnect, auto server switch, disconnect alarm
 ═══════════════════════════════════════════════════════ */
-const SERVERS={
+const SERVERS = {
   primary:  'wss://f2ab9bfaba074ec09d314fd0d5aedfd8.s1.eu.hivemq.cloud:8884/mqtt',
   secondary:'wss://279f2d6397444dbcbeb4eaa4897960f7.s1.eu.hivemq.cloud:8884/mqtt',
 };
-const MOPTS={username:'firepump',password:'044313187Ki@',clientId:`fp_${Math.random().toString(16).slice(2,10)}`,keepalive:30,reconnectPeriod:0,connectTimeout:10000,clean:true};
+// primary opts: fast reconnect, qos 1 for reliability
+const mkOpts = (server) => ({
+  username:'firepump', password:'044313187Ki@',
+  clientId:`fp_${server[0]}_${Math.random().toString(16).slice(2,8)}`,
+  keepalive: 20,           // PINGREQ every 20s — detect dead connection faster
+  reconnectPeriod: 2000,   // mqtt.js auto-reconnect every 2s on same server
+  connectTimeout: 8000,
+  clean: true,
+});
+
+let serverSwitchTimer = null;
+let primaryFailCount  = 0;
 
 function setBadge(st,txt){ const b=document.getElementById('mqttBadge'); b.className='mqtt-badge '+st; document.getElementById('mqttBadgeText').textContent=txt; }
 function setReconnUI(spin,msg,srv,cd){
@@ -1016,68 +1047,138 @@ function setReconnUI(spin,msg,srv,cd){
   const c=document.getElementById('retryCountdown');
   if(cd>0){c.style.display='';c.textContent=cd+'s';}else{c.style.display='none';}
 }
+
 function connectMqtt(key){
   if(mqttClient){try{mqttClient.end(true);}catch(e){} mqttClient=null;}
+  if(serverSwitchTimer){clearTimeout(serverSwitchTimer);serverSwitchTimer=null;}
   curServer=key;
-  const url=SERVERS[key],lbl=key==='primary'?'Primary':'Backup';
+  reconnectAttempt++;
+  const url=SERVERS[key], lbl=key==='primary'?'Primary':'Backup';
   document.getElementById('stat-broker').textContent=lbl;
-  setBadge('','Connecting…'); setReconnUI(true,'Connecting to '+lbl+'…',url,0);
-  reconnectAttempt++; document.getElementById('stat-retries').textContent=reconnectAttempt;
-  mqttClient=mqtt.connect(url,MOPTS);
+  document.getElementById('stat-retries').textContent=reconnectAttempt;
+  setBadge('','Connecting…');
+  setReconnUI(true,'Connecting to '+lbl+'…',url,0);
+
+  mqttClient = mqtt.connect(url, mkOpts(key));
+
   mqttClient.on('connect',()=>{
-    isConnected=true; setBadge('connected','Connected · '+lbl);
-    setReconnUI(false,'Connected to '+lbl,url,0); showToast('MQTT connected — '+lbl,'ok');
-    mqttClient.subscribe('fire-pump/status',err=>{if(err)console.error(err);});
+    isConnected=true; primaryFailCount=0;
+    setBadge('connected','Connected · '+lbl);
+    setReconnUI(false,'Connected to '+lbl,url,0);
+    showToast('MQTT connected — '+lbl,'ok');
+    // Subscribe with QoS 1 for reliable delivery
+    mqttClient.subscribe('fire-pump/status',{qos:1},err=>{if(err)console.error('Sub:',err);});
+    // Clear any disconnect alarm if it was active
+    clearDisconnectAlarm();
   });
+
   mqttClient.on('message',(topic,msg)=>{
-    if(topic==='fire-pump/status'){try{handleStatusUpdates(JSON.parse(msg.toString()));}catch(e){console.warn(e);}}
+    if(topic==='fire-pump/status'){
+      try{ handleStatusUpdates(JSON.parse(msg.toString())); }
+      catch(e){ console.warn('Bad JSON:',e); }
+    }
   });
-  mqttClient.on('error',err=>{console.error(err);setBadge('error','Error · '+lbl);isConnected=false;});
-  mqttClient.on('close',()=>{if(!isConnected)return;isConnected=false;setBadge('error','Disconnected');triggerReconnect();});
-  mqttClient.on('offline',()=>{isConnected=false;setBadge('error','Offline');triggerReconnect();});
+
+  mqttClient.on('reconnect',()=>{
+    setBadge('error','Reconnecting · '+lbl);
+    setReconnUI(true,'Auto-reconnecting to '+lbl+'…',url,0);
+    reconnectAttempt++; document.getElementById('stat-retries').textContent=reconnectAttempt;
+    primaryFailCount++;
+    // After 3 failed reconnects on primary, switch to backup
+    if(primaryFailCount>=3 && key==='primary'){
+      primaryFailCount=0;
+      showToast('Primary failed 3× — switching to Backup','warn');
+      connectMqtt('secondary');
+    }
+  });
+
+  mqttClient.on('error', err=>{
+    console.error('MQTT error:',err);
+    setBadge('error','Error · '+lbl);
+    isConnected=false;
+    raiseDisconnectAlarm(lbl);
+  });
+
+  mqttClient.on('close',()=>{
+    isConnected=false;
+    setBadge('error','Disconnected · '+lbl);
+    raiseDisconnectAlarm(lbl);
+    // If we've been on backup a while, schedule return to primary in 60s
+    if(key==='secondary' && !serverSwitchTimer){
+      serverSwitchTimer=setTimeout(()=>{
+        showToast('Returning to Primary broker…','ok');
+        connectMqtt('primary');
+      }, 60000);
+    }
+  });
+
+  mqttClient.on('offline',()=>{
+    isConnected=false;
+    setBadge('error','Offline · '+lbl);
+    raiseDisconnectAlarm(lbl);
+  });
 }
-function triggerReconnect(delay){
-  if(reconnectScheduled)return; reconnectScheduled=true;
-  const next=curServer==='primary'?'secondary':'primary';
-  const wait=delay!==undefined?delay:(curServer==='primary'?3:30);
-  retryCountdown=wait; setReconnUI(false,'Reconnecting in:',SERVERS[next],retryCountdown);
-  if(retryTimer)clearInterval(retryTimer);
-  retryTimer=setInterval(()=>{
-    retryCountdown--; setReconnUI(false,'Reconnecting in:',SERVERS[next],retryCountdown);
-    if(retryCountdown<=0){clearInterval(retryTimer);reconnectScheduled=false;connectMqtt(next);}
-  },1000);
+
+/* Raise comm alarm when MQTT goes down */
+let disconnectAlarmActive = false;
+function raiseDisconnectAlarm(broker) {
+  if(disconnectAlarmActive) return;
+  disconnectAlarmActive = true;
+  const msg = '⚠ MQTT Disconnected — '+broker+' broker lost';
+  document.getElementById('alarmBanner').classList.add('active');
+  document.getElementById('page').classList.add('has-alarm');
+  document.getElementById('alarmText').textContent = msg;
+  document.getElementById('system-status').className='fas fa-exclamation-circle sys-icon fail';
+  document.getElementById('sys-status-text').textContent='Communication Lost';
+  document.getElementById('sys-status-sub').textContent='MQTT broker disconnected';
+  setAllLedsBlank();
+  showAlarmOverlay([msg]);
+  if(!alarmSilenced) startAlarmLoop();
 }
+function clearDisconnectAlarm() {
+  disconnectAlarmActive = false;
+  // Only clear banner/overlay if no other alarms active
+  // (handleStatusUpdates will set correct state on next message)
+}
+
 function sendMode(group,mode){
   if(currentUser&&currentUser.role==='viewer'){showToast('Read-only — cannot change modes','err');return;}
   if(!mqttClient||!isConnected){showToast('Not connected','err');return;}
-  mqttClient.publish('fire-pump/mode',JSON.stringify({group,mode:parseInt(mode)}),err=>{
+  mqttClient.publish('fire-pump/mode',JSON.stringify({group,mode:parseInt(mode)}),{qos:1},err=>{
     if(err)showToast('Publish failed','err');
     else   showToast(group.toUpperCase()+' → '+['OFF','MANUAL','AUTO'][mode],'ok');
   });
 }
 
 /* ═══════════════════════════════════════════════════════
-   WATCHDOG
+   WATCHDOG — uptime + data timeout
 ═══════════════════════════════════════════════════════ */
 setInterval(()=>{
   if(!mqttStarted)return;
   const up=Math.floor((Date.now()-sessionStart)/1000);
-  document.getElementById('stat-uptime').textContent=String(Math.floor(up/3600)).padStart(2,'0')+':'+String(Math.floor((up%3600)/60)).padStart(2,'0')+':'+String(up%60).padStart(2,'0');
+  document.getElementById('stat-uptime').textContent=
+    String(Math.floor(up/3600)).padStart(2,'0')+':'+
+    String(Math.floor((up%3600)/60)).padStart(2,'0')+':'+
+    String(up%60).padStart(2,'0');
+  // Data timeout: connected but no message for >60s
   if(isConnected&&(Date.now()-lastMsgTime)>60000){
     document.getElementById('alarmBanner').classList.add('active');
     document.getElementById('page').classList.add('has-alarm');
-    document.getElementById('alarmText').textContent='⚠ Transmitter-MQTT Timeout — No data for >60s';
+    document.getElementById('alarmText').textContent='⚠ Transmitter Timeout — No data from device >60s';
     document.getElementById('system-status').className='fas fa-exclamation-circle sys-icon fail';
-    document.getElementById('sys-status-text').textContent='Communication Timeout';
+    document.getElementById('sys-status-text').textContent='Data Timeout';
     document.getElementById('sys-status-sub').textContent='No MQTT message for >60s';
     setAllLedsBlank();
-    showAlarmOverlay(['⚠ Transmitter-MQTT Timeout — No data for >60s']);
+    showAlarmOverlay(['⚠ Transmitter Timeout — No data from device >60s']);
     if(!alarmSilenced)startAlarmLoop();
   }
-  if(!isConnected&&!reconnectScheduled)triggerReconnect(5);
 },1000);
+
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'&&!isConnected&&!reconnectScheduled)triggerReconnect(1);
+  // Page restored from background — if disconnected, nudge reconnect
+  if(document.visibilityState==='visible'&&!isConnected&&mqttClient){
+    try{mqttClient.reconnect();}catch(e){}
+  }
 });
 
 /* ═══════════════════════════════════════════════════════
